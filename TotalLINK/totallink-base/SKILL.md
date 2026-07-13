@@ -65,15 +65,20 @@ python3 scripts/totallink_api.py --list-projects
 AI Agent 在每次会话开始时应遵循以下流程：
 
 1. 执行 `python3 scripts/totallink_api.py --list-projects` 获取项目列表
-2. 如果只有一个项目，直接使用（无需询问用户）
-3. 如果有多个项目，列出所有项目并标记当前活跃项目，询问用户选择：
-   > 当前有以下 TotalLINK 项目环境：
-   > - default（活跃）→ http://124.71.144.80:8088
-   > - uat → http://uat-server:8088
-   >
-   > 请选择要使用的项目环境（直接回车使用活跃项目 `default`）：
-4. 用户选择后，如果不是活跃项目，执行 `--set-active` 切换。若用户直接回车，使用当前活跃项目。
-5. 后续所有 API 调用可通过 `--project <项目名>` 显式指定，或省略以使用活跃项目。
+2. **只有一个项目**：直接使用，无需询问用户
+3. **有多个项目**：使用 `AskUserQuestion` 弹出交互式选择菜单，而非让用户手动输入项目名：
+
+   ```
+   AskUserQuestion:
+     question: "当前有 N 个 TotalLINK 项目，请选择要使用的环境："
+     header: "项目选择"
+     options:
+       - label: "default (活跃)"    description: "http://124.71.144.80:8088"
+       - label: "Tamper"            description: "http://124.71.144.80:8081"
+   ```
+
+   每个选项的 `label` 格式为 `"<项目名> [(活跃)]"`，`description` 为 `base_url`。用户点击后，如果所选项目不是当前活跃项目则执行 `--set-active <项目名>` 切换；如果已是活跃项目则直接确认。
+4. 后续所有 API 调用可通过 `--project <项目名>` 显式指定，或省略以使用活跃项目。
 
 ### 添加新项目
 

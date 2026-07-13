@@ -232,6 +232,7 @@ def main():
     parser.add_argument("--set-active", metavar="PROJECT", help="设置活跃项目")
     parser.add_argument("--add-project", metavar="PROJECT", help="添加或更新项目配置（配合 --token 和 --url）")
     parser.add_argument("--token", metavar="TOKEN", help="auth_token（配合 --add-project）")
+    parser.add_argument("--url", metavar="URL", help="base_url（配合 --add-project，默认 http://124.71.144.80:8088）")
 
     # API 调用参数
     parser.add_argument("--project", help="指定项目名（不传则使用活跃项目）")
@@ -273,13 +274,13 @@ def main():
         return
 
     if args.add_project:
-        if not args.token:
+        if args.token is None:
             print(json.dumps({"error": "PARAM", "message": "--add-project 需要配合 --token"}, ensure_ascii=False))
             sys.exit(1)
         result = add_project(
             project_name=args.add_project,
             auth_token=args.token,
-            base_url=getattr(args, "url", "http://124.71.144.80:8088"),
+            base_url=args.url or "http://124.71.144.80:8088",
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return

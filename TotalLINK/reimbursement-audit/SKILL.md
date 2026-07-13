@@ -27,7 +27,7 @@ metadata:
 
 ## 前置条件
 
-- **TotalLINK 认证**：参照 [基础 Skill](../totallink-base/SKILL.md) 完成 `${TOTALLINK_AUTH_TOKEN}` 配置
+- **TotalLINK 项目选择**：参照 [基础 Skill](../totallink-base/SKILL.md) 完成项目选择和认证配置
 - **API 调用**：通过 `../totallink-base/scripts/totallink_api.py` 调用
 - 邮件 SMTP 授权码：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)，首次使用时向用户索取，保存到 `~/.workbuddy/MEMORY.md`
 - PDF 生成工具链：Pandoc CLI + WeasyPrint，参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)

@@ -7,15 +7,22 @@ TotalLINK API 调用封装：认证、Payload 构造、请求与错误处理。
   AIRowSubmit  — 行数据提交 → /api/DataModel/linkDMAIRowSubmit
   AIDataSubmit — 批量数据提交 → /api/DataModel/linkDMAIDataSubmit
 
-用法：
-  python3 scripts/totallink_api.py --type AIResult --dm-code LINKEXP01 --dm-num 9 \\
-    --params "" "2026-06-01" "2026-07-11" ""
+支持多项目环境，每个项目独立配置 auth_token 和 base_url。
 
+用法：
+  # 列出所有项目
+  python3 scripts/totallink_api.py --list-projects
+
+  # 切换活跃项目
+  python3 scripts/totallink_api.py --set-active my-project
+
+  # 指定项目调用
+  python3 scripts/totallink_api.py --project my-project --type AIResult \\
+    --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" ""
+
+  # 使用活跃项目调用（省略 --project）
   python3 scripts/totallink_api.py --type AIRowSubmit --dm-code LINKEXP01 --dm-num 10 \\
     --params "param1" --script-type 1 --row-data '{"field": "value"}'
-
-  python3 scripts/totallink_api.py --type AIDataSubmit --dm-code LINKEXP01 --dm-num 10 \\
-    --params "param1" --script-type 1 --row-data '{"f1":"v1"}' --table-data '[{"f1":"v1"}]'
 """
 
 import argparse
@@ -34,43 +41,118 @@ ENDPOINTS = {
 }
 
 
-def load_config():
-    """从 ~/.totallink/config.json 读取认证信息。"""
+def load_all_config():
+    """从 ~/.totallink/config.json 读取全部配置。"""
     if not os.path.exists(CONFIG_PATH):
-        print(
-            json.dumps(
-                {
-                    "error": "CONFIG",
-                    "message": f"配置文件不存在：{CONFIG_PATH}，请先运行首次认证配置",
-                },
-                ensure_ascii=False,
-            ),
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        return None
     with open(CONFIG_PATH, encoding="utf-8") as f:
         return json.load(f)
 
 
+def save_config(cfg):
+    """保存配置到文件。"""
+    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+
+def get_project_config(project_name=None):
+    """
+    获取指定项目的认证配置。
+
+    优先级：project_name 参数 > active 字段 > 第一个项目
+    返回: (project_key, project_cfg) 或 (None, None)
+    """
+    cfg = load_all_config()
+    if not cfg:
+        return None, None
+
+    projects = cfg.get("projects", {})
+
+    if not projects:
+        return None, None
+
+    if project_name and project_name in projects:
+        return project_name, projects[project_name]
+
+    active = cfg.get("active")
+    if active and active in projects:
+        return active, projects[active]
+
+    # fallback: 第一个项目
+    first_key = next(iter(projects))
+    return first_key, projects[first_key]
+
+
+def list_projects():
+    """列出所有项目，标记活跃项目。"""
+    cfg = load_all_config()
+    if not cfg:
+        return []
+    projects = cfg.get("projects", {})
+    active = cfg.get("active", "")
+    result = []
+    for name, proj in projects.items():
+        result.append({
+            "name": name,
+            "base_url": proj.get("base_url", ""),
+            "active": name == active,
+        })
+    return result
+
+
+def set_active_project(project_name):
+    """设置活跃项目。"""
+    cfg = load_all_config()
+    if not cfg:
+        print(json.dumps({"error": "CONFIG", "message": "配置文件不存在，请先创建项目配置"}, ensure_ascii=False))
+        sys.exit(1)
+    if project_name not in cfg.get("projects", {}):
+        print(json.dumps({"error": "CONFIG", "message": f"项目 '{project_name}' 不存在"}, ensure_ascii=False))
+        sys.exit(1)
+    cfg["active"] = project_name
+    save_config(cfg)
+    return {"status": "ok", "active": project_name}
+
+
+def add_project(project_name, auth_token, base_url="http://124.71.144.80:8088"):
+    """添加或更新项目配置。"""
+    cfg = load_all_config()
+    if not cfg:
+        cfg = {"projects": {}, "active": project_name}
+    cfg["projects"][project_name] = {
+        "auth_token": auth_token,
+        "base_url": base_url,
+    }
+    if cfg.get("active") is None:
+        cfg["active"] = project_name
+    save_config(cfg)
+    return {"status": "ok", "project": project_name, "active": cfg["active"]}
+
+
 def call(call_type, dm_code, dm_num, params=None,
-         script_type=None, row_data=None, table_data=None):
+         script_type=None, row_data=None, table_data=None, project=None):
     """
     调用 TotalLINK API。
 
     参数:
-        call_type:  "AIResult" | "AIRowSubmit" | "AIDataSubmit"
-        dm_code:    工具代码，如 "LINKEXP01"
-        dm_num:     工具编号，如 9
-        params:     Para 参数列表（字符串数组），如 ["", "2026-06-01", "", ""]
+        call_type:   "AIResult" | "AIRowSubmit" | "AIDataSubmit"
+        dm_code:     工具代码，如 "LINKEXP01"
+        dm_num:      工具编号，如 9
+        params:      Para 参数列表（字符串数组）
         script_type: 操作类型（仅 AIRowSubmit / AIDataSubmit）
-        row_data:   rowData 字典（仅 AIRowSubmit / AIDataSubmit）
-        table_data: tableData 列表（仅 AIDataSubmit）
+        row_data:    rowData 字典（仅 AIRowSubmit / AIDataSubmit）
+        table_data:  tableData 列表（仅 AIDataSubmit）
+        project:     项目名，不传则使用活跃项目
 
     返回:
         dict: API 响应 JSON，出错时包含 "error" 字段
     """
-    cfg = load_config()
-    base_url = cfg["base_url"].rstrip("/")
+    project_key, proj_cfg = get_project_config(project)
+    if not proj_cfg:
+        return {"error": "CONFIG", "message": f"配置文件不存在：{CONFIG_PATH}，请先运行首次认证配置"}
+
+    base_url = proj_cfg["base_url"].rstrip("/")
     endpoint = ENDPOINTS.get(call_type)
     if not endpoint:
         return {"error": "PARAM", "message": f"未知调用类型：{call_type}"}
@@ -89,7 +171,7 @@ def call(call_type, dm_code, dm_num, params=None,
         if call_type == "AIDataSubmit":
             par["tableData"] = table_data or []
 
-    payload = {"loginID": cfg["auth_token"], "par": par}
+    payload = {"loginID": proj_cfg["auth_token"], "par": par}
 
     req_body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(
@@ -105,19 +187,20 @@ def call(call_type, dm_code, dm_num, params=None,
         if e.code in (401, 403):
             return {
                 "error": "AUTH",
-                "message": "令牌无效或已过期，请检查 ~/.totallink/config.json 中的 auth_token",
+                "message": f"令牌无效或已过期，请检查项目 '{project_key}' 的 auth_token",
             }
         return {"error": "HTTP", "code": e.code, "reason": e.reason}
     except urllib.error.URLError as e:
         return {
             "error": "NETWORK",
-            "message": f"无法连接 TotalLINK 服务，请检查 base_url：{str(e.reason)}",
+            "message": f"无法连接 TotalLINK 服务，请检查项目 '{project_key}' 的 base_url：{str(e.reason)}",
         }
     except Exception as e:
         return {"error": "UNKNOWN", "message": str(e)}
 
+    resp["_project"] = project_key
     if resp.get("isSuccess") == "false":
-        return {"error": "BIZ", "message": resp.get("message", "未知业务错误")}
+        return {"error": "BIZ", "message": resp.get("message", "未知业务错误"), "_project": project_key}
 
     return resp
 
@@ -128,18 +211,37 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
+  # 列出项目
+  %(prog)s --list-projects
+
+  # 切换活跃项目
+  %(prog)s --set-active my-project
+
+  # 添加项目
+  %(prog)s --add-project my-project --token "tlk_xxx" --url "http://host:8088"
+
+  # 调用 API
   %(prog)s --type AIResult --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" ""
-  %(prog)s --type AIRowSubmit --dm-code LINKEXP01 --dm-num 10 \\
+  %(prog)s --project my-project --type AIRowSubmit --dm-code LINKEXP01 --dm-num 10 \\
       --params "EXP001" --script-type 1 --row-data '{"amount":"100"}'
         """,
     )
+
+    # 项目管理
+    parser.add_argument("--list-projects", action="store_true", help="列出所有项目")
+    parser.add_argument("--set-active", metavar="PROJECT", help="设置活跃项目")
+    parser.add_argument("--add-project", metavar="PROJECT", help="添加或更新项目配置（配合 --token 和 --url）")
+    parser.add_argument("--token", metavar="TOKEN", help="auth_token（配合 --add-project）")
+
+    # API 调用参数
+    parser.add_argument("--project", help="指定项目名（不传则使用活跃项目）")
     parser.add_argument(
-        "--type", dest="call_type", required=True,
+        "--type", dest="call_type",
         choices=list(ENDPOINTS.keys()),
         help="调用类型",
     )
-    parser.add_argument("--dm-code", required=True, help="工具代码")
-    parser.add_argument("--dm-num", type=int, required=True, help="工具编号")
+    parser.add_argument("--dm-code", help="工具代码")
+    parser.add_argument("--dm-num", type=int, help="工具编号")
     parser.add_argument(
         "--params", nargs="*", default=[],
         help="Para 参数列表，空位传 ''",
@@ -159,6 +261,33 @@ def main():
 
     args = parser.parse_args()
 
+    # --- 管理命令 ---
+    if args.list_projects:
+        projects = list_projects()
+        print(json.dumps(projects, ensure_ascii=False, indent=2))
+        return
+
+    if args.set_active:
+        result = set_active_project(args.set_active)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    if args.add_project:
+        if not args.token:
+            print(json.dumps({"error": "PARAM", "message": "--add-project 需要配合 --token"}, ensure_ascii=False))
+            sys.exit(1)
+        result = add_project(
+            project_name=args.add_project,
+            auth_token=args.token,
+            base_url=getattr(args, "url", "http://124.71.144.80:8088"),
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    # --- API 调用 ---
+    if not args.call_type:
+        parser.error("需要指定 --type（AIResult / AIRowSubmit / AIDataSubmit）")
+
     result = call(
         call_type=args.call_type,
         dm_code=args.dm_code,
@@ -167,6 +296,7 @@ def main():
         script_type=args.script_type,
         row_data=args.row_data,
         table_data=args.table_data,
+        project=args.project,
     )
 
     print(json.dumps(result, ensure_ascii=False, indent=2))

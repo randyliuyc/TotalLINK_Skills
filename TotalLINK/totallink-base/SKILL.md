@@ -2,47 +2,93 @@
 name: totallink-base
 slug: totallink
 description:
-  TotalLINK 数据分析平台基础 Skill，提供认证管理、动态工具发现和通用 API 调用能力。
+  TotalLINK 数据分析平台基础 Skill，提供多项目认证管理、动态工具发现和通用 API 调用能力。
   所有 TotalLINK 场景化 Skill（报销审核、库存管理、客户分析等）均依赖本基础 Skill。
 metadata:
   workbuddy:
     env:
       TOTALLINK_AUTH_TOKEN: ""
       TOTALLINK_BASE_URL: "http://124.71.144.80:8088"
-    note: "Token 和 Base URL 首次使用时由用户提供，持久化到 ~/.totallink/config.json，后续自动读取"
+    note: "支持多项目环境，每个项目独立配置 auth_token 和 base_url，持久化到 ~/.totallink/config.json"
 ---
 
 # TotalLINK 基础 Skill
 
 ## 认证管理
 
-### 首次使用
+TotalLINK 支持**多项目环境**，每个项目独立配置认证令牌和服务地址，统一持久化到 `~/.totallink/config.json`。
 
-用户提供 TotalLINK 授权令牌和服务地址，持久化到 `~/.totallink/config.json`：
+### 首次使用：选择或创建项目
+
+**第一步：检查已配置的项目**
+
+```bash
+python3 scripts/totallink_api.py --list-projects
+```
+
+**第二步：根据结果处理**
+
+- **有项目**：列出项目列表，提示用户选择（如 `["default", "uat", "prod"]`）。用户选择后，设置活跃项目：
+  ```bash
+  python3 scripts/totallink_api.py --set-active <项目名>
+  ```
+
+- **无项目**：提示用户提供项目信息，创建第一个项目：
+  ```bash
+  python3 scripts/totallink_api.py --add-project <项目名> \
+    --token "tlk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+    --url "http://124.71.144.80:8088"
+  ```
+  若用户未提供 `--url`，默认使用 `http://124.71.144.80:8088`。
+  若用户未提供项目名，默认使用 `default`。
+
+### 配置文件格式
 
 ```json
 {
-  "auth_token": "tlk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  "base_url": "http://124.71.144.80:8088"
+  "projects": {
+    "default": {
+      "auth_token": "tlk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "base_url": "http://124.71.144.80:8088"
+    },
+    "uat": {
+      "auth_token": "tlk_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "base_url": "http://uat-server:8088"
+    }
+  },
+  "active": "default"
 }
 ```
 
-若用户未指定 `base_url`，默认使用 `http://124.71.144.80:8088`。
+### 项目选择流程（每次会话）
 
-### 后续使用
+AI Agent 在每次会话开始时应遵循以下流程：
 
-每次调用时从配置文件读取令牌和服务地址，注入为环境变量：
+1. 执行 `python3 scripts/totallink_api.py --list-projects` 获取项目列表
+2. 如果只有一个项目，直接使用（无需询问用户）
+3. 如果有多个项目，列出所有项目并标记当前活跃项目，询问用户选择：
+   > 当前有以下 TotalLINK 项目环境：
+   > - default（活跃）→ http://124.71.144.80:8088
+   > - uat → http://uat-server:8088
+   >
+   > 请选择要使用的项目环境（直接回车使用活跃项目 `default`）：
+4. 用户选择后，如果不是活跃项目，执行 `--set-active` 切换。若用户直接回车，使用当前活跃项目。
+5. 后续所有 API 调用可通过 `--project <项目名>` 显式指定，或省略以使用活跃项目。
+
+### 添加新项目
+
+当用户需要在现有配置中增加新项目时：
 
 ```bash
-export TOTALLINK_AUTH_TOKEN=$(cat ~/.totallink/config.json | python3 -c "import sys,json; print(json.load(sys.stdin)['auth_token'])")
-export TOTALLINK_BASE_URL=$(cat ~/.totallink/config.json | python3 -c "import sys,json; print(json.load(sys.stdin)['base_url'])")
+python3 scripts/totallink_api.py --add-project <项目名> \
+  --token "<auth_token>" --url "<base_url>"
 ```
 
 ### 配置变更
 
-- 检测到认证失败（`HTTP 401/403` 或 `isSuccess: "false"`）时，提示用户检查令牌并重新提供
-- 若连接超时或 `HTTP 5xx`，提示用户检查 `base_url` 是否正确可达
-- 更新 `~/.totallink/config.json` 对应字段即可，无需重新配置全部
+- 检测到认证失败（`HTTP 401/403` 或 `error: "AUTH"`）→ 提示当前项目令牌失效，引导用户更新令牌
+- 检测到连接失败（`error: "NETWORK"`）→ 检查当前项目的 `base_url` 是否正确可达
+- 更新令牌：重新执行 `--add-project <项目名> --token <新令牌>` 即可覆盖
 
 ---
 
@@ -50,17 +96,8 @@ export TOTALLINK_BASE_URL=$(cat ~/.totallink/config.json | python3 -c "import sy
 
 仅在需要探索未知工具时使用。已知工具应直接硬编码 `dmCode`/`dmNum`，跳过此步。
 
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dmCode": "SEARCHLIST",
-    "dmNum": 100,
-    "Para": []
-  }
-}
+```bash
+python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 --params
 ```
 
 返回的 `data.Table` 包含工具列表，关键字段：
@@ -74,7 +111,7 @@ POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
 
 ## API 调用
 
-所有 API 调用统一通过 `scripts/totallink_api.py` 脚本执行，脚本自动处理认证、Payload 构造和错误解析。
+所有 API 调用统一通过 `scripts/totallink_api.py` 脚本执行，脚本自动处理项目管理、认证、Payload 构造和错误解析。
 
 ### 三种调用模式
 
@@ -93,13 +130,16 @@ python3 scripts/totallink_api.py --type AIDataSubmit --dm-code <dmCode> --dm-num
   --table-data '[{"字段1":"值1"},{"字段1":"值2"}]'
 ```
 
+- 省略 `--project` 时自动使用活跃项目（`active` 字段指定的项目）
+- 显式 `--project <项目名>` 可临时切换到其他项目
+
 ### 响应处理
 
-- 成功：输出 JSON 含 `data` 字段，可通过 `python3 -c "import sys,json; d=json.load(sys.stdin); ..."` 提取
+- 成功：输出 JSON 含 `data` 字段和 `_project` 字段（标识当前使用的项目）
 - 出错：输出 JSON 含 `error` 字段 + 非零退出码，常见类型：
-  - `CONFIG` — 配置文件缺失
-  - `AUTH` — 令牌无效（提示用户更新）
-  - `NETWORK` — 无法连接（检查 base_url）
+  - `CONFIG` — 配置文件缺失或项目不存在
+  - `AUTH` — 令牌无效（提示用户更新对应项目的令牌）
+  - `NETWORK` — 无法连接（检查对应项目的 base_url）
   - `HTTP` — HTTP 错误
   - `BIZ` — 业务错误（`isSuccess: "false"`）
 
@@ -116,7 +156,7 @@ python3 scripts/totallink_api.py --type AIDataSubmit --dm-code <dmCode> --dm-num
 ```markdown
 ## 前置条件
 
-- **TotalLINK 认证**：参照基础 Skill 完成 `${TOTALLINK_AUTH_TOKEN}` 配置
+- **TotalLINK 项目选择**：参照基础 Skill 完成项目选择和 `${TOTALLINK_AUTH_TOKEN}` 配置
 - **API 调用**：通过 `scripts/totallink_api.py` 调用，详见基础 Skill
 ```
 
@@ -127,7 +167,8 @@ python3 scripts/totallink_api.py --type AIDataSubmit --dm-code <dmCode> --dm-num
 ## 错误处理
 
 脚本自动解析错误并以 JSON + 非零退出码返回，场景 Skill 根据 `error` 字段处理：
-- `AUTH` → 令牌无效，提示用户重新提供
-- `NETWORK` → 后端不可达，提示检查 base_url
+- `CONFIG` → 配置文件缺失，引导用户创建项目
+- `AUTH` → 令牌无效，提示用户更新对应项目的令牌
+- `NETWORK` → 后端不可达，提示检查对应项目的 base_url
 - `BIZ` → 检查 `message` 字段了解业务错误详情
 - `HTTP 5xx` → 后端异常，稍后重试

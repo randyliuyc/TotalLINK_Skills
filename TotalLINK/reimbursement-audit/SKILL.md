@@ -28,7 +28,7 @@ metadata:
 ## 前置条件
 
 - **TotalLINK 认证**：参照 [基础 Skill](../totallink-base/SKILL.md) 完成 `${TOTALLINK_AUTH_TOKEN}` 配置
-- **API 调用**：遵循基础 Skill 的 Payload 格式
+- **API 调用**：通过 `../totallink-base/scripts/totallink_api.py` 调用
 - 邮件 SMTP 授权码：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)，首次使用时向用户索取，保存到 `~/.workbuddy/MEMORY.md`
 - PDF 生成工具链：Pandoc CLI + WeasyPrint，参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)
 - Python 环境：venv 下安装有 pdfplumber（`/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3`）
@@ -52,20 +52,13 @@ metadata:
 
 ### Step 1：查询报销单列表
 
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dmCode": "LINKEXP01",
-    "dmNum": 9,
-    "Para": ["", "2026-06-01", "2026-07-11", ""]
-  }
-}
+```bash
+python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
+  --dm-code LINKEXP01 --dm-num 9 \
+  --params "" "2026-06-01" "2026-07-11" ""
 ```
 
-`Para` 按位置传入：`["搜索内容(可空)", "开始日期", "结束日期", "状态(可空)"]`。
+`--params` 按位置传入：`"搜索内容(可空)"` `"开始日期"` `"结束日期"` `"状态(可空)"`。
 默认时间范围：上月至今（用户可指定起止日期）。
 
 **返回数据：**
@@ -91,37 +84,18 @@ POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
 
 对每张报销单并行调用（提升效率）：
 
-**表头信息：**
+```bash
+# 表头信息
+python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
+  --dm-code LINKEXP01 --dm-num 10 --params "EXP260600009"
 
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
+# 费用明细
+python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
+  --dm-code LINKEXP01 --dm-num 20 --params "EXP260600009"
 
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": { "dmCode": "LINKEXP01", "dmNum": 10, "Para": ["EXP260600009"] }
-}
-```
-
-**费用明细：**
-
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": { "dmCode": "LINKEXP01", "dmNum": 20, "Para": ["EXP260600009"] }
-}
-```
-
-**附件列表：**
-
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": { "dmCode": "LINKAI60", "dmNum": 10, "Para": ["EXP260600009"] }
-}
+# 附件列表
+python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
+  --dm-code LINKAI60 --dm-num 10 --params "EXP260600009"
 ```
 
 ---
@@ -283,9 +257,9 @@ print("邮件已自动发送至 randy.liu@sagesoft.cn")
 
 ## 关键注意事项
 
-1. **认证**：所有请求的 `loginID` 使用 `${TOTALLINK_AUTH_TOKEN}`
+1. **认证**：脚本自动从 `~/.totallink/config.json` 读取令牌，无需手动传
 2. **dmCode/dmNum**：已硬编码，无需工具发现步骤
-3. **Para 数组**：空位传 `""`（空字符串），不是 `null`/`undefined`
+3. **直参**：`--params` 空位传 `""`（空字符串），不是 `null`/`undefined`
 4. **并行调用**：Step 2 中多张报销单的详情可并行请求
 5. **附件 URL**：含中文时需对路径部分做 URL-encode
 6. **JPG vs PDF**：JPG 用多模态直接读取，PDF 用 pdfplumber

@@ -72,95 +72,62 @@ POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
 
 ---
 
-## API 调用模板
+## API 调用
 
-### 通用约定
+所有 API 调用统一通过 `scripts/totallink_api.py` 脚本执行，脚本自动处理认证、Payload 构造和错误解析。
 
-- 统一响应：`{ isSuccess, data, message }`，`isSuccess` 为字符串 `"true"`/`"false"`
-- `Para` 为字符串数组，空位传 `""`，不传 `null`/`undefined`
-- `data.Table` 格式：`{ schema: ["字段名", ...], data: [["值", ...]] }`
-- 超时：连接 5s，读写 30s
-- Content-Type: `application/json`
+### 三种调用模式
 
----
+```bash
+# AIResult — 数据查询
+python3 scripts/totallink_api.py --type AIResult --dm-code <dmCode> --dm-num <dmNum> \
+  --params "参数1" "参数2" "..."
 
-### AIResult — 数据查询
+# AIRowSubmit — 行数据提交
+python3 scripts/totallink_api.py --type AIRowSubmit --dm-code <dmCode> --dm-num <dmNum> \
+  --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}'
 
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dmCode": "<dmCode>",
-    "dmNum": <dmNum>,
-    "Para": ["参数1", "参数2", "..."]
-  }
-}
+# AIDataSubmit — 批量数据提交
+python3 scripts/totallink_api.py --type AIDataSubmit --dm-code <dmCode> --dm-num <dmNum> \
+  --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}' \
+  --table-data '[{"字段1":"值1"},{"字段1":"值2"}]'
 ```
 
----
+### 响应处理
 
-### AIRowSubmit — 行数据提交
+- 成功：输出 JSON 含 `data` 字段，可通过 `python3 -c "import sys,json; d=json.load(sys.stdin); ..."` 提取
+- 出错：输出 JSON 含 `error` 字段 + 非零退出码，常见类型：
+  - `CONFIG` — 配置文件缺失
+  - `AUTH` — 令牌无效（提示用户更新）
+  - `NETWORK` — 无法连接（检查 base_url）
+  - `HTTP` — HTTP 错误
+  - `BIZ` — 业务错误（`isSuccess: "false"`）
 
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIRowSubmit
+### 手动 JSON 参考
 
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dm": {
-      "dmCode": "<dmCode>",
-      "dmNum": <dmNum>,
-      "Para": ["参数1", "..."]
-    },
-    "scriptType": <操作类型>,
-    "rowData": { "字段": "值" }
-  }
-}
-```
-
-`scriptType` 从工具描述中获取（格式 `script_type: N`）。
-
----
-
-### AIDataSubmit — 批量数据提交
-
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIDataSubmit
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dm": {
-      "dmCode": "<dmCode>",
-      "dmNum": <dmNum>,
-      "Para": ["参数1", "..."]
-    },
-    "scriptType": <操作类型>,
-    "rowData": { "字段": "值" },
-    "tableData": [{ "字段1": "值1" }, { "字段1": "值2" }]
-  }
-}
-```
+如需了解完整 Payload 结构，参见 [references/api-templates.md](references/api-templates.md)。
 
 ---
 
 ## 场景化 Skill 引用方式
 
-场景化 Skill 在文档开头声明依赖，不重复描述认证和 API 格式：
+场景化 Skill 在文档开头声明依赖，通过脚本调用 API：
 
 ```markdown
 ## 前置条件
 
 - **TotalLINK 认证**：参照基础 Skill 完成 `${TOTALLINK_AUTH_TOKEN}` 配置
-- **API 调用**：遵循基础 Skill 的 Payload 格式
+- **API 调用**：通过 `scripts/totallink_api.py` 调用，详见基础 Skill
 ```
+
+调用时脚本路径相对于 `totallink-base/` 目录，场景 Skill 中使用 `../totallink-base/scripts/totallink_api.py`。
 
 ---
 
 ## 错误处理
 
-- `isSuccess: "false"` → 检查 `message` 字段
-- `HTTP 401/403` → 令牌无效，提示用户重新提供
+脚本自动解析错误并以 JSON + 非零退出码返回，场景 Skill 根据 `error` 字段处理：
+- `AUTH` → 令牌无效，提示用户重新提供
+- `NETWORK` → 后端不可达，提示检查 base_url
+- `BIZ` → 检查 `message` 字段了解业务错误详情
 - `HTTP 5xx` → 后端异常，稍后重试

@@ -96,16 +96,41 @@ python3 scripts/totallink_api.py --add-project <项目名> \
 
 仅在需要探索未知工具时使用。已知工具应直接硬编码 `dmCode`/`dmNum`，跳过此步。
 
+### 搜索工具
+
 ```bash
-python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 --params
+# 按关键字搜索（服务端过滤）
+python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 \
+  --params "报销" | python3 scripts/parse_tools.py
+
+# 列出所有工具（空关键字）
+python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 \
+  --params "" | python3 scripts/parse_tools.py
 ```
 
-返回的 `data.Table` 包含工具列表，关键字段：
-- `TOOL_CODE` → dmCode
-- `TOOL_NUM` → dmNum
-- `TOOL_NAME` → 工具名称
-- `TOOL_DESC` → 描述（含参数说明）
-- `TOOL_TYPE` → AIResult / AIRowSubmit / AIDataSubmit
+`--params` 传入搜索关键字时，服务端 `SEARCHLIST` 工具自动按 `TOOL_NAME`/`TOOL_DESC` 过滤；传空字符串时返回全部工具。管道接入 `scripts/parse_tools.py` 将原始 `Table` 转为结构化 JSON 列表。
+
+### 解析结果
+
+输出格式：
+```json
+[
+  {
+    "code": "LINKEXP01",
+    "num": "9",
+    "name": "报销单列表",
+    "desc": "按日期范围查询报销单，参数：开始日期、结束日期",
+    "type": "AIResult"
+  }
+]
+```
+
+字段说明：
+- `code` → dmCode
+- `num` → dmNum
+- `name` → 工具名称
+- `desc` → 描述（含参数说明）
+- `type` → AIResult / AIRowSubmit / AIDataSubmit
 
 ---
 

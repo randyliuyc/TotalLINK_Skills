@@ -2,13 +2,8 @@
 """
 TotalLINK API 调用封装：认证、Payload 构造、请求与错误处理。
 
-支持四种调用类型：
-  AIResult     — 数据查询 → /api/DataModel/linkDMAIResult
-  AIRowSubmit  — 行数据提交 → /api/DataModel/linkDMAIRowSubmit
-  AIDataSubmit — 批量数据提交 → /api/DataModel/linkDMAIDataSubmit
-  AIAction     — 功能操作 → /api/DataModel/linkDMAIAction
-
-获取的工具列表中，除 AIResult / AIRowSubmit / AIDataSubmit 外，统一调用 AIAction。
+所有调用统一走 /api/DataModel/linkDMAIAction，服务端根据 scriptType 自动区分查询/提交。
+--row-data / --table-data 根据工具说明按需传入。
 
 支持多项目环境，每个项目独立配置 auth_token 和 base_url。
 
@@ -19,12 +14,12 @@ TotalLINK API 调用封装：认证、Payload 构造、请求与错误处理。
   # 切换活跃项目
   python3 scripts/totallink_api.py --set-active my-project
 
-  # 指定项目调用
-  python3 scripts/totallink_api.py --project my-project --type AIResult \\
-    --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" ""
+  # 指定项目调用（查询，script-type=0）
+  python3 scripts/totallink_api.py --project my-project \\
+    --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" "" --script-type 0
 
-  # 使用活跃项目调用（省略 --project）
-  python3 scripts/totallink_api.py --type AIRowSubmit --dm-code LINKEXP01 --dm-num 10 \\
+  # 使用活跃项目调用（提交，含 row_data）
+  python3 scripts/totallink_api.py --dm-code LINKEXP01 --dm-num 10 \\
     --params "param1" --script-type 1 --row-data '{"field": "value"}'
 """
 
@@ -37,12 +32,7 @@ import urllib.error
 
 CONFIG_PATH = os.path.expanduser("~/.totallink/config.json")
 
-ENDPOINTS = {
-    "AIResult": "/api/DataModel/linkDMAIResult",
-    "AIRowSubmit": "/api/DataModel/linkDMAIRowSubmit",
-    "AIDataSubmit": "/api/DataModel/linkDMAIDataSubmit",
-    "AIAction": "/api/DataModel/linkDMAIAction",
-}
+ENDPOINT = "/api/DataModel/linkDMAIAction"
 
 
 def load_all_config():
@@ -134,19 +124,18 @@ def add_project(project_name, auth_token, base_url="http://124.71.144.80:8088"):
     return {"status": "ok", "project": project_name, "active": cfg["active"]}
 
 
-def call(call_type, dm_code, dm_num, params=None,
-         script_type=None, row_data=None, table_data=None, project=None):
+def call(dm_code, dm_num, params=None,
+         script_type=0, row_data=None, table_data=None, project=None):
     """
-    调用 TotalLINK API。
+    调用 TotalLINK API，统一走 /api/DataModel/linkDMAIAction。
 
     参数:
-        call_type:   "AIResult" | "AIRowSubmit" | "AIDataSubmit" | "AIAction"
         dm_code:     工具代码，如 "LINKEXP01"
         dm_num:      工具编号，如 9
         params:      Para 参数列表（字符串数组）
-        script_type: 操作类型（AIRowSubmit / AIDataSubmit / AIAction，整数 0-4）
-        row_data:    rowData 字典（AIRowSubmit / AIDataSubmit / AIAction）
-        table_data:  tableData 列表（仅 AIDataSubmit / AIAction）
+        script_type: 工具的 call_type 值（整数），服务端据此自动区分查询/提交
+        row_data:    rowData 字典（按工具说明按需传入）
+        table_data:  tableData 列表（按工具说明按需传入）
         project:     项目名，不传则使用活跃项目
 
     返回:
@@ -157,23 +146,15 @@ def call(call_type, dm_code, dm_num, params=None,
         return {"error": "CONFIG", "message": f"配置文件不存在：{CONFIG_PATH}，请先运行首次认证配置"}
 
     base_url = proj_cfg["base_url"].rstrip("/")
-    endpoint = ENDPOINTS.get(call_type)
-    if not endpoint:
-        return {"error": "PARAM", "message": f"未知调用类型：{call_type}"}
+    url = base_url + ENDPOINT
 
-    url = base_url + endpoint
     dm_block = {"dmCode": dm_code, "dmNum": dm_num, "Para": params or []}
-
-    if call_type == "AIResult":
-        par = dm_block
-    else:
-        par = {
-            "dm": dm_block,
-            "scriptType": script_type,
-            "rowData": row_data or {},
-        }
-        if call_type in ("AIDataSubmit", "AIAction"):
-            par["tableData"] = table_data or []
+    par = {
+        "dm": dm_block,
+        "scriptType": script_type,
+        "rowData": row_data or {},
+        "tableData": table_data or [],
+    }
 
     payload = {"loginID": proj_cfg["auth_token"], "par": par}
 
@@ -224,11 +205,15 @@ def main():
   # 添加项目
   %(prog)s --add-project my-project --token "tlk_xxx" --url "http://host:8088"
 
-  # 调用 API
-  %(prog)s --type AIResult --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" ""
-  %(prog)s --project my-project --type AIRowSubmit --dm-code LINKEXP01 --dm-num 10 \\
+  # 查询（script-type=0，无需 row-data / table-data）
+  %(prog)s --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" "" --script-type 0
+
+  # 行提交
+  %(prog)s --project my-project --dm-code LINKEXP01 --dm-num 10 \\
       --params "EXP001" --script-type 1 --row-data '{"amount":"100"}'
-  %(prog)s --type AIAction --dm-code LINKEXP02 --dm-num 15 \\
+
+  # 批量提交
+  %(prog)s --dm-code LINKEXP02 --dm-num 15 \\
       --params "" --script-type 2 --row-data '{"key":"val"}' \\
       --table-data '[{"col1":"val1"}]'
         """,
@@ -243,11 +228,6 @@ def main():
 
     # API 调用参数
     parser.add_argument("--project", help="指定项目名（不传则使用活跃项目）")
-    parser.add_argument(
-        "--type", dest="call_type",
-        choices=list(ENDPOINTS.keys()),
-        help="调用类型",
-    )
     parser.add_argument("--dm-code", help="工具代码")
     parser.add_argument("--dm-num", type=int, help="工具编号")
     parser.add_argument(
@@ -255,16 +235,16 @@ def main():
         help="Para 参数列表，空位传 ''",
     )
     parser.add_argument(
-        "--script-type", type=int,
-        help="操作类型（AIRowSubmit / AIDataSubmit / AIAction 必传，整数 0-4）",
+        "--script-type", type=int, required=True,
+        help="操作类型，取工具的 call_type 值，服务端自动区分查询/提交（整数 0-4）",
     )
     parser.add_argument(
         "--row-data", type=json.loads, default={},
-        help="rowData JSON 字典（AIRowSubmit / AIDataSubmit / AIAction）",
+        help="rowData JSON 字典（按工具说明按需传入）",
     )
     parser.add_argument(
         "--table-data", type=json.loads, default=[],
-        help="tableData JSON 数组（仅 AIDataSubmit / AIAction）",
+        help="tableData JSON 数组（按工具说明按需传入）",
     )
 
     args = parser.parse_args()
@@ -293,11 +273,7 @@ def main():
         return
 
     # --- API 调用 ---
-    if not args.call_type:
-        parser.error("需要指定 --type（AIResult / AIRowSubmit / AIDataSubmit / AIAction）")
-
     result = call(
-        call_type=args.call_type,
         dm_code=args.dm_code,
         dm_num=args.dm_num,
         params=args.params,

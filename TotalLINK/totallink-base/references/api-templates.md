@@ -1,6 +1,6 @@
 # TotalLINK API 调用模板参考
 
-本文档详细描述 TotalLINK 后端三种 API 的 Payload 结构，供需要直接手写 JSON 时查阅。
+所有调用统一走 AIAction 端点，服务端根据 `scriptType` 自动区分查询/提交。
 **日常使用建议通过 `scripts/totallink_api.py` 脚本调用，避免手拼 JSON 出错。**
 
 ---
@@ -15,69 +15,7 @@
 
 ---
 
-## AIResult — 数据查询
-
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIResult
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dmCode": "<dmCode>",
-    "dmNum": <dmNum>,
-    "Para": ["参数1", "参数2", "..."]
-  }
-}
-```
-
----
-
-## AIRowSubmit — 行数据提交
-
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIRowSubmit
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dm": {
-      "dmCode": "<dmCode>",
-      "dmNum": <dmNum>,
-      "Para": ["参数1", "..."]
-    },
-    "scriptType": <操作类型>,
-    "rowData": { "字段": "值" }
-  }
-}
-```
-
-`scriptType` 从工具描述中获取（格式 `script_type: N`）。
-
----
-
-## AIDataSubmit — 批量数据提交
-
-```
-POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIDataSubmit
-
-{
-  "loginID": "${TOTALLINK_AUTH_TOKEN}",
-  "par": {
-    "dm": {
-      "dmCode": "<dmCode>",
-      "dmNum": <dmNum>,
-      "Para": ["参数1", "..."]
-    },
-    "scriptType": <操作类型>,
-    "rowData": { "字段": "值" },
-    "tableData": [{ "字段1": "值1" }, { "字段1": "值2" }]
-  }
-}
-```
-
----
-
-## AIAction — 功能操作
+## AIAction — 统一调用
 
 ```
 POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIAction
@@ -88,13 +26,17 @@ POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIAction
     "dm": {
       "dmCode": "<dmCode>",
       "dmNum": <dmNum>,
-      "Para": ["参数1", "..."]
+      "Para": ["参数1", "参数2", "..."]
     },
-    "scriptType": <操作类型>,
-    "rowData": { "字段": "值" },
-    "tableData": [{ "字段1": "值1" }]
+    "scriptType": <工具的 call_type>,
+    "rowData": {},
+    "tableData": []
   }
 }
 ```
 
-`scriptType` 使用工具自身的 `call_type`（整数 0-4）。参数结构与 `AIDataSubmit` 一致。
+- `scriptType`：取工具的 `call_type` 值（整数 0-4），服务端据此自动区分查询/提交
+- `rowData` / `tableData`：根据工具说明按需传入
+  - 纯查询场景：`rowData` 和 `tableData` 传空 `{}`/`[]`
+  - 行提交场景：传入 `rowData`
+  - 批量提交场景：同时传入 `rowData` 和 `tableData`

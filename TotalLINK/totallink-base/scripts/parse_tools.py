@@ -3,11 +3,11 @@
 解析 TotalLINK SEARCHLIST 返回的 Table 数据，转换为结构化工具列表。
 
 输入（stdin）：totallink_api.py 的 JSON 输出
-输出（stdout）：[{ code, num, name, desc, type }, ...]
-type 字段包含四种：AIResult / AIRowSubmit / AIDataSubmit / AIAction
+输出（stdout）：[{ code, num, name, desc, script_type }, ...]
+script_type 字段为工具的 call_type 值，直接作为 --script-type 参数传入。
 
 用法：
-  python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 --params "报销" \\
+  python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 --params "报销" --script-type 0 \\
     | python3 scripts/parse_tools.py
 """
 
@@ -30,19 +30,15 @@ def main():
     schema = table.get("schema", [])
     rows = table.get("data", [])
 
-    KNOWN_TYPES = {"AIResult", "AIRowSubmit", "AIDataSubmit"}
-
     items = []
     for row in rows:
         item = dict(zip(schema, row))
-        raw_type = item.get("TOOL_TYPE", "")
-        tool_type = raw_type if raw_type in KNOWN_TYPES else "AIAction"
         items.append({
             "code": item.get("TOOL_CODE", ""),
             "num": item.get("TOOL_NUM", ""),
             "name": item.get("TOOL_NAME", ""),
             "desc": item.get("TOOL_DESC", ""),
-            "type": tool_type,
+            "script_type": item.get("TOOL_TYPE", "0"),
         })
 
     print(json.dumps(items, ensure_ascii=False, indent=2))

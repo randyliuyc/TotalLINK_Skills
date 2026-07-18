@@ -105,12 +105,12 @@ python3 scripts/totallink_api.py --add-project <项目名> \
 
 ```bash
 # 按关键字搜索（服务端过滤）
-python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 \
-  --params "报销" | python3 scripts/parse_tools.py
+python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
+  --params "报销" --script-type 0 | python3 scripts/parse_tools.py
 
 # 列出所有工具（空关键字）
-python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 \
-  --params "" | python3 scripts/parse_tools.py
+python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
+  --params "" --script-type 0 | python3 scripts/parse_tools.py
 ```
 
 `--params` 传入搜索关键字时，服务端 `SEARCHLIST` 工具自动按 `TOOL_NAME`/`TOOL_DESC` 过滤；传空字符串时返回全部工具。管道接入 `scripts/parse_tools.py` 将原始 `Table` 转为结构化 JSON 列表。
@@ -125,7 +125,7 @@ python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 1
     "num": "9",
     "name": "报销单列表",
     "desc": "按日期范围查询报销单，参数：开始日期、结束日期",
-    "type": "AIResult"
+    "script_type": 0
   }
 ]
 ```
@@ -135,7 +135,7 @@ python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 1
 - `num` → dmNum
 - `name` → 工具名称
 - `desc` → 描述（含参数说明）
-- `type` → AIResult / AIRowSubmit / AIDataSubmit / AIAction（除前三种外统一调用 AIAction）
+- `script_type` → 工具的 call_type 值，直接作为 `--script-type` 参数传入
 
 ---
 
@@ -162,27 +162,21 @@ python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 1
 
 ---
 
-### 四种调用模式
+### 统一调用模式
+
+所有调用统一走 `AIAction` 端点，服务端根据 `--script-type` 自动区分查询/提交。
 
 ```bash
-# AIResult — 数据查询
-python3 scripts/totallink_api.py --type AIResult --dm-code <dmCode> --dm-num <dmNum> \
-  --params "<参数1>" "<参数2>" "..."    # 参数数量、顺序严格按工具声明
-
-# AIRowSubmit — 行数据提交
-python3 scripts/totallink_api.py --type AIRowSubmit --dm-code <dmCode> --dm-num <dmNum> \
-  --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}'
-
-# AIDataSubmit — 批量数据提交
-python3 scripts/totallink_api.py --type AIDataSubmit --dm-code <dmCode> --dm-num <dmNum> \
-  --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}' \
-  --table-data '[{"字段1":"值1"},{"字段1":"值2"}]'
-
-# AIAction — 功能操作
-python3 scripts/totallink_api.py --type AIAction --dm-code <dmCode> --dm-num <dmNum> \
-  --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}' \
-  --table-data '[{"字段1":"值1"}]'
+# 统一调用模板
+python3 scripts/totallink_api.py --dm-code <dmCode> --dm-num <dmNum> \
+  --params "<参数1>" "<参数2>" "..." \
+  --script-type <工具的 call_type 值> \
+  [--row-data '{"字段":"值"}'] [--table-data '[...]']
 ```
+
+- `--script-type`：必传，取工具的 `call_type` 值（整数），服务端据此自动区分查询/提交
+- `--row-data` / `--table-data`：根据工具说明按需传入
+- `--params`：参数数量、顺序严格按工具声明，空位用 `""` 占位
 
 - 省略 `--project` 时自动使用活跃项目（`active` 字段指定的项目）
 - 显式 `--project <项目名>` 可临时切换到其他项目

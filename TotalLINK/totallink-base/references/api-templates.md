@@ -74,3 +74,27 @@ POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIDataSubmit
   }
 }
 ```
+
+---
+
+## AIAction — 功能操作
+
+```
+POST ${TOTALLINK_BASE_URL}/api/DataModel/linkDMAIAction
+
+{
+  "loginID": "${TOTALLINK_AUTH_TOKEN}",
+  "par": {
+    "dm": {
+      "dmCode": "<dmCode>",
+      "dmNum": <dmNum>,
+      "Para": ["参数1", "..."]
+    },
+    "scriptType": <操作类型>,
+    "rowData": { "字段": "值" },
+    "tableData": [{ "字段1": "值1" }]
+  }
+}
+```
+
+`scriptType` 使用工具自身的 `call_type`（整数 0-4）。参数结构与 `AIDataSubmit` 一致。

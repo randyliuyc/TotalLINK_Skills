@@ -135,7 +135,7 @@ python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 1
 - `num` → dmNum
 - `name` → 工具名称
 - `desc` → 描述（含参数说明）
-- `type` → AIResult / AIRowSubmit / AIDataSubmit
+- `type` → AIResult / AIRowSubmit / AIDataSubmit / AIAction（除前三种外统一调用 AIAction）
 
 ---
 
@@ -143,7 +143,7 @@ python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 1
 
 所有 API 调用统一通过 `scripts/totallink_api.py` 脚本执行，脚本自动处理项目管理、认证、Payload 构造和错误解析。
 
-### 三种调用模式
+### 四种调用模式
 
 ```bash
 # AIResult — 数据查询
@@ -158,6 +158,11 @@ python3 scripts/totallink_api.py --type AIRowSubmit --dm-code <dmCode> --dm-num 
 python3 scripts/totallink_api.py --type AIDataSubmit --dm-code <dmCode> --dm-num <dmNum> \
   --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}' \
   --table-data '[{"字段1":"值1"},{"字段1":"值2"}]'
+
+# AIAction — 功能操作
+python3 scripts/totallink_api.py --type AIAction --dm-code <dmCode> --dm-num <dmNum> \
+  --params "参数1" --script-type <操作类型> --row-data '{"字段":"值"}' \
+  --table-data '[{"字段1":"值1"}]'
 ```
 
 - 省略 `--project` 时自动使用活跃项目（`active` 字段指定的项目）

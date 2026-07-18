@@ -2,10 +2,13 @@
 """
 TotalLINK API 调用封装：认证、Payload 构造、请求与错误处理。
 
-支持三种调用类型：
+支持四种调用类型：
   AIResult     — 数据查询 → /api/DataModel/linkDMAIResult
   AIRowSubmit  — 行数据提交 → /api/DataModel/linkDMAIRowSubmit
   AIDataSubmit — 批量数据提交 → /api/DataModel/linkDMAIDataSubmit
+  AIAction     — 功能操作 → /api/DataModel/linkDMAIAction
+
+获取的工具列表中，除 AIResult / AIRowSubmit / AIDataSubmit 外，统一调用 AIAction。
 
 支持多项目环境，每个项目独立配置 auth_token 和 base_url。
 
@@ -38,6 +41,7 @@ ENDPOINTS = {
     "AIResult": "/api/DataModel/linkDMAIResult",
     "AIRowSubmit": "/api/DataModel/linkDMAIRowSubmit",
     "AIDataSubmit": "/api/DataModel/linkDMAIDataSubmit",
+    "AIAction": "/api/DataModel/linkDMAIAction",
 }
 
 
@@ -136,13 +140,13 @@ def call(call_type, dm_code, dm_num, params=None,
     调用 TotalLINK API。
 
     参数:
-        call_type:   "AIResult" | "AIRowSubmit" | "AIDataSubmit"
+        call_type:   "AIResult" | "AIRowSubmit" | "AIDataSubmit" | "AIAction"
         dm_code:     工具代码，如 "LINKEXP01"
         dm_num:      工具编号，如 9
         params:      Para 参数列表（字符串数组）
-        script_type: 操作类型（仅 AIRowSubmit / AIDataSubmit）
-        row_data:    rowData 字典（仅 AIRowSubmit / AIDataSubmit）
-        table_data:  tableData 列表（仅 AIDataSubmit）
+        script_type: 操作类型（AIRowSubmit / AIDataSubmit / AIAction，整数 0-4）
+        row_data:    rowData 字典（AIRowSubmit / AIDataSubmit / AIAction）
+        table_data:  tableData 列表（仅 AIDataSubmit / AIAction）
         project:     项目名，不传则使用活跃项目
 
     返回:
@@ -168,7 +172,7 @@ def call(call_type, dm_code, dm_num, params=None,
             "scriptType": script_type,
             "rowData": row_data or {},
         }
-        if call_type == "AIDataSubmit":
+        if call_type in ("AIDataSubmit", "AIAction"):
             par["tableData"] = table_data or []
 
     payload = {"loginID": proj_cfg["auth_token"], "par": par}
@@ -224,6 +228,9 @@ def main():
   %(prog)s --type AIResult --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" ""
   %(prog)s --project my-project --type AIRowSubmit --dm-code LINKEXP01 --dm-num 10 \\
       --params "EXP001" --script-type 1 --row-data '{"amount":"100"}'
+  %(prog)s --type AIAction --dm-code LINKEXP02 --dm-num 15 \\
+      --params "" --script-type 2 --row-data '{"key":"val"}' \\
+      --table-data '[{"col1":"val1"}]'
         """,
     )
 
@@ -249,15 +256,15 @@ def main():
     )
     parser.add_argument(
         "--script-type", type=int,
-        help="操作类型（AIRowSubmit / AIDataSubmit 必传）",
+        help="操作类型（AIRowSubmit / AIDataSubmit / AIAction 必传，整数 0-4）",
     )
     parser.add_argument(
         "--row-data", type=json.loads, default={},
-        help="rowData JSON 字典（AIRowSubmit / AIDataSubmit）",
+        help="rowData JSON 字典（AIRowSubmit / AIDataSubmit / AIAction）",
     )
     parser.add_argument(
         "--table-data", type=json.loads, default=[],
-        help="tableData JSON 数组（仅 AIDataSubmit）",
+        help="tableData JSON 数组（仅 AIDataSubmit / AIAction）",
     )
 
     args = parser.parse_args()
@@ -287,7 +294,7 @@ def main():
 
     # --- API 调用 ---
     if not args.call_type:
-        parser.error("需要指定 --type（AIResult / AIRowSubmit / AIDataSubmit）")
+        parser.error("需要指定 --type（AIResult / AIRowSubmit / AIDataSubmit / AIAction）")
 
     result = call(
         call_type=args.call_type,

@@ -4,6 +4,7 @@
 
 输入（stdin）：totallink_api.py 的 JSON 输出
 输出（stdout）：[{ code, num, name, desc, type }, ...]
+type 字段包含四种：AIResult / AIRowSubmit / AIDataSubmit / AIAction
 
 用法：
   python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 100 --params "报销" \\

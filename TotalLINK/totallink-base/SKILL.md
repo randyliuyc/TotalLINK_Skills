@@ -143,12 +143,31 @@ python3 scripts/totallink_api.py --type AIResult --dm-code SEARCHLIST --dm-num 1
 
 所有 API 调用统一通过 `scripts/totallink_api.py` 脚本执行，脚本自动处理项目管理、认证、Payload 构造和错误解析。
 
+### 参数传递规则（重要）
+
+`--params` 后的参数按**严格位置匹配**传入后端，顺序和数量必须与工具描述的 `parameters: [...]` 列表一一对应。
+
+- **不可跳过位置**：即使某个位置不需要传值，也必须用空字符串 `""` 占位
+- **按工具描述顺序**：参数顺序与工具 `desc` 中 `parameters: [...]` 声明完全一致
+
+示例：工具声明 `["搜索内容", "起始日期", "结束日期", "单据状态"]` 四个参数：
+
+```bash
+# ✅ 正确：四个参数全部按序传入，空的用 "" 占位
+--params "" "2026-06-18" "2026-07-18" ""
+
+# ❌ 错误：缺少位置1和位置4的参数，后端收到的值会错位
+--params "2026-06-18" "2026-07-18"
+```
+
+---
+
 ### 四种调用模式
 
 ```bash
 # AIResult — 数据查询
 python3 scripts/totallink_api.py --type AIResult --dm-code <dmCode> --dm-num <dmNum> \
-  --params "参数1" "参数2" "..."
+  --params "<参数1>" "<参数2>" "..."    # 参数数量、顺序严格按工具声明
 
 # AIRowSubmit — 行数据提交
 python3 scripts/totallink_api.py --type AIRowSubmit --dm-code <dmCode> --dm-num <dmNum> \

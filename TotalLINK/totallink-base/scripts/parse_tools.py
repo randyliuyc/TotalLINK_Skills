@@ -30,15 +30,19 @@ def main():
     schema = table.get("schema", [])
     rows = table.get("data", [])
 
+    KNOWN_TYPES = {"AIResult", "AIRowSubmit", "AIDataSubmit"}
+
     items = []
     for row in rows:
         item = dict(zip(schema, row))
+        raw_type = item.get("TOOL_TYPE", "")
+        tool_type = raw_type if raw_type in KNOWN_TYPES else "AIAction"
         items.append({
             "code": item.get("TOOL_CODE", ""),
             "num": item.get("TOOL_NUM", ""),
             "name": item.get("TOOL_NAME", ""),
             "desc": item.get("TOOL_DESC", ""),
-            "type": item.get("TOOL_TYPE", ""),
+            "type": tool_type,
         })
 
     print(json.dumps(items, ensure_ascii=False, indent=2))

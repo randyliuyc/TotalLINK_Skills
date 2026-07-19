@@ -235,7 +235,7 @@ def main():
         help="Para 参数列表，空位传 ''",
     )
     parser.add_argument(
-        "--script-type", type=int, required=True,
+        "--script-type", type=int,
         help="操作类型，取工具的 call_type 值，服务端自动区分查询/提交（整数 0-4）",
     )
     parser.add_argument(
@@ -273,6 +273,10 @@ def main():
         return
 
     # --- API 调用 ---
+    if args.script_type is None:
+        print(json.dumps({"error": "PARAM", "message": "API 调用必须提供 --script-type"}, ensure_ascii=False))
+        sys.exit(1)
+
     result = call(
         dm_code=args.dm_code,
         dm_num=args.dm_num,

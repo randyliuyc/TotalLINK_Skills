@@ -39,12 +39,12 @@ metadata:
 
 以下 4 个工具的 dmCode/dmNum 已固定，调用时直接使用：
 
-| 工具 | dmCode | dmNum | 类型 | 用途 |
-|------|--------|-------|------|------|
-| 报销单列表 | LINKEXP01 | 9 | AIResult | 按日期范围查询 |
-| 报销单表头信息 | LINKEXP01 | 10 | AIResult | 获取单张表头 |
-| 报销单内容 | LINKEXP01 | 20 | AIResult | 获取费用明细 |
-| 报销单附件列表 | LINKAI60 | 10 | AIResult | 获取附件 URL |
+| 工具 | dmCode | dmNum | script_type | 用途 |
+|------|--------|-------|-------------|------|
+| 报销单列表 | LINKEXP01 | 9 | 0 | 按日期范围查询 |
+| 报销单表头信息 | LINKEXP01 | 10 | 0 | 获取单张表头 |
+| 报销单内容 | LINKEXP01 | 20 | 0 | 获取费用明细 |
+| 报销单附件列表 | LINKAI60 | 10 | 0 | 获取附件 URL |
 
 ---
 
@@ -53,9 +53,9 @@ metadata:
 ### Step 1：查询报销单列表
 
 ```bash
-python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
+python3 ../totallink-base/scripts/totallink_api.py \
   --dm-code LINKEXP01 --dm-num 9 \
-  --params "" "2026-06-01" "2026-07-11" ""
+  --params "" "2026-06-01" "2026-07-11" "" --script-type 0
 ```
 
 `--params` 按位置传入：`"搜索内容(可空)"` `"开始日期"` `"结束日期"` `"状态(可空)"`。
@@ -86,16 +86,16 @@ python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
 
 ```bash
 # 表头信息
-python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
-  --dm-code LINKEXP01 --dm-num 10 --params "EXP260600009"
+python3 ../totallink-base/scripts/totallink_api.py \
+  --dm-code LINKEXP01 --dm-num 10 --params "EXP260600009" --script-type 0
 
 # 费用明细
-python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
-  --dm-code LINKEXP01 --dm-num 20 --params "EXP260600009"
+python3 ../totallink-base/scripts/totallink_api.py \
+  --dm-code LINKEXP01 --dm-num 20 --params "EXP260600009" --script-type 0
 
 # 附件列表
-python3 ../totallink-base/scripts/totallink_api.py --type AIResult \
-  --dm-code LINKAI60 --dm-num 10 --params "EXP260600009"
+python3 ../totallink-base/scripts/totallink_api.py \
+  --dm-code LINKAI60 --dm-num 10 --params "EXP260600009" --script-type 0
 ```
 
 ---

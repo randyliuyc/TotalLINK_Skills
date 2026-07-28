@@ -58,12 +58,23 @@ python3 scripts/totallink_api.py --list-projects
 
    `label` 格式 `"<项目名> [(活跃)]"`，`description` 为 `base_url`。如所选项目不是当前活跃项目则 `--set-active` 切换。
 
-### 添加新项目
+### 输入识别
+
+收到以下格式的字符串时自动处理：
+
+| 前缀 | 含义 | 处理 |
+|------|------|------|
+| `tlk_` | Auth Token | 执行令牌更新命令 |
+| `TotalLINK.AI.QUOTA.` | 额度激活码 | 调用 SYSINFOMATION/230 激活，需选择起始月份 |
+
+### 命令参考
 
 ```bash
-python3 scripts/totallink_api.py --add-project <项目名> \
-  --token "<auth_token>" --url "<base_url>"
+# 创建/更新项目令牌（<URL> 为当前项目配置的 base_url，可从 --list-projects 查看）
+python3 scripts/totallink_api.py --add-project <项目名> --token "<auth_token>" --url "<base_url>"
 ```
+
+> ⚠️ 更新令牌时 `--url` 必传，不带则覆盖为默认值导致连接错误。
 
 ---
 
@@ -97,6 +108,18 @@ python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
 
 ---
 
+## 通用系统工具（所有项目可用）
+
+以下工具硬编码使用，无需通过 SEARCHLIST 发现：
+
+| dmCode | dmNum | 功能 | script_type | 参数 |
+|--------|-------|------|-------------|------|
+| SYSINFOMATION | 210 | 调用记录查询 | 0 | `["起始日期","结束日期"]` |
+| SYSINFOMATION | 220 | 积分额度���询 | 0 | 无 |
+| SYSINFOMATION | 230 | 额度激活 | 0 | `["激活码","激活月份(yyyyMM)"]` |
+
+---
+
 ## API 调用
 
 所有调用通过 `scripts/totallink_api.py` 执行，统一 POST `/api/DataModel/linkDMAIAction`，服务端根据 `--script-type` 自动区分查询/提交。
@@ -127,6 +150,28 @@ python3 scripts/totallink_api.py --dm-code <dmCode> --dm-num <dmNum> \
 - `--row-data` / `--table-data`：按工具说明按需传入
 - `--project`：省略时使用活跃项目，显式指定可临时切换
 
+### 大数据预处理
+
+当数据量较大（>50KB）或用户提到「分析/汇总/统计」时，管道接入 `scripts/preprocess.py --smart`：
+
+```bash
+python3 scripts/totallink_api.py ... --script-type 0 \
+  | python3 scripts/preprocess.py --smart
+```
+
+**行为**：
+- < 50KB → 透传原始 JSON，零干扰
+- 50KB~500KB → 自动输出列描述（非空率、去重值）
+- > 500KB → 列描述 + 提示可用分析命令
+
+**手动分析**：
+```bash
+preprocess.py data.json --group <列名>     # 按列分组计数
+preprocess.py data.json --filter <列名>=<值> # 过滤
+preprocess.py data.json --stats             # 数值列 min/avg/max
+preprocess.py data.json --head 10           # 前 N 行预览
+```
+
 ### 响应与错误处理
 
 成功时 JSON 含 `data` 和 `_project`；失败时含 `error` + 非零退出码：
@@ -134,8 +179,7 @@ python3 scripts/totallink_api.py --dm-code <dmCode> --dm-num <dmNum> \
 | error | 含义 | 处理 |
 |-------|------|------|
 | `CONFIG` | 配置文件缺失或项目不存在 | 引导创建项目 |
-| `AUTH` | 令牌无效 | 更新对应项目令牌：`--add-project <项目名> --token <新令牌>` |
-| `NETWORK` | 后端不可达 | 检查 base_url |
+| `BIZ: 没有操作权限` | 令牌过期或无效 | 提示用户检查令牌，执行令牌更新命令 |
 | `BIZ` | 业务错误（`isSuccess: "false"`） | 查看 `message` |
 | `HTTP 5xx` | 后端异常 | 稍后重试 |
 

@@ -1,17 +1,17 @@
 ---
 name: totallink-base
+slug: totallink
 description:
-  TotalLINK 平台通用基础 Skill，提供多项目认证、工具发现和统一 API 调用能力。
-  可被任意 AI Agent 加载使用。
+  TotalLINK 平台基础 Skill，提供多项目认证、工具发现和统一 API 调用能力。
+  所有场景化 Skill 均依赖本 Skill。
 setup:
   required:
     - Python 3.9+
-    - totallink-base/scripts/ 目录（须告知 Agent 脚本所在路径）
 ---
 
-# TotalLINK 基础 Skill（通用版）
+# TotalLINK 基础 Skill
 
-> 本文件与平台无关，任何能执行 shell 命令的 AI Agent 均可使用。脚本路径为相对于本 Skill 的 `scripts/` 目录。
+> 支持 WorkBuddy 及任何能执行 shell 的 AI Agent。脚本位于相对于本文件的 `scripts/` 目录。
 
 ## 认证管理
 
@@ -23,11 +23,11 @@ setup:
 python3 scripts/totallink_api.py --list-projects
 ```
 
-- **有项目**：列出后询问用户选择哪个，执行 `--set-active <项目名>` 切换
-- **无项目**：询问用户提供项目名、令牌和地址：
+- **有项目**：列出后请用户选择，执行 `--set-active <项目名>` 切换
+- **无项目**：请用户提供项目名、令牌和地址：
   ```bash
   python3 scripts/totallink_api.py --add-project <项目名> \
-    --token "tlk_..." --url "http://124.71.144.80:8088"
+    --token "tlk_..." --url "<服务地址>"
   ```
   `--url` 默认 `http://124.71.144.80:8088`，项目名默认 `default`。
 
@@ -46,7 +46,10 @@ python3 scripts/totallink_api.py --list-projects
 
 1. 执行 `--list-projects` 获取项目列表
 2. **单项目**：直接使用
-3. **多项目**：列出所有项目名和地址，用文字询问用户选择，然后 `--set-active <项目名>`
+3. **多项目**：列出所有项目名和地址，请用户选择：
+   - WorkBuddy 环境：使用 `AskUserQuestion` 弹窗，`label` 格式 `"<项目名> [(活跃)]"`，`description` 为 `base_url`
+   - 其他环境：用文字列出选项，等待用户回复选择
+4. 所选项目非当前活跃则 `--set-active` 切换
 
 ### 输入识别
 
@@ -181,5 +184,5 @@ preprocess.py data.json --head 10            # 前 N 行预览
 ```markdown
 ## 前提
 - 已配置 TotalLINK 项目（参见 totallink-base Skill）
-- API 调用通过 `totallink_api.py` 执行
+- API 调用通过 `scripts/totallink_api.py` 执行
 ```

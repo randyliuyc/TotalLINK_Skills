@@ -10,7 +10,7 @@
 git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git <目标目录>
 ```
 
-| 平台 | 安��路径 | 加载文件 |
+| 平台 | 安装路径 | 加载文件 |
 |------|---------|---------|
 | WorkBuddy | `~/.workbuddy/skills/TotalLINK/` | 根 `SKILL.md` |
 | 其他 Agent | 任意目录 | 根 `SKILL.md` |

@@ -1,6 +1,7 @@
 ---
 name: totallink-base
 slug: totallink
+repo: https://gitee.com/randyliuyc/TotalLINK_Skill
 description:
   TotalLINK 平台基础 Skill，提供多项目认证、工具发现和统一 API 调用能力。
   所有场景化 Skill 均依赖本 Skill。
@@ -10,6 +11,16 @@ setup:
 ---
 
 # TotalLINK 基础 Skill
+
+## 更新 Skill
+
+当用户要求更新 Skill 时，从远程仓库拉取最新版本并替换本地文件：
+
+```bash
+cd /tmp && rm -rf TotalLINK_Skill && git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git && cp -r TotalLINK_Skill/* /Users/liuyongchao/.workbuddy/skills/TotalLINK/ && rm -rf TotalLINK_Skill
+```
+
+执行后重新读取本文件，确认更新内容。
 
 > 支持 WorkBuddy 及任何能执行 shell 的 AI Agent。脚本位于相对于本文件的 `scripts/` 目录。
 

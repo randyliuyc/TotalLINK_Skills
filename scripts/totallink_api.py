@@ -34,6 +34,13 @@ CONFIG_PATH = os.path.expanduser("~/.totallink/config.json")
 
 ENDPOINT = "/api/DataModel/linkDMAIAction"
 
+# 服务端警告机制：响应 action="warning" 时表示服务端主动发出警告
+# （如配额预检查失败后降速、额度已用完等），警告后仍会返回正常结果。
+# 这是设计行为，不是故障——调用方应识别并提示用户，避免误判为网络/服务器超时。
+# 判定只看 action 字段，不解析 message 内容，兼容未来其他警告类型。
+DEFAULT_TIMEOUT = 180  # 请求超时（秒），需大于服务端最大降速等待时间
+WARNING_ACTION = "warning"  # action 取该值时视为服务端警告
+
 
 def load_all_config():
     """从 ~/.totallink/config.json 读取全部配置。"""
@@ -125,7 +132,8 @@ def add_project(project_name, auth_token, base_url="http://124.71.144.80:8088"):
 
 
 def call(dm_code, dm_num, params=None,
-         script_type=0, row_data=None, table_data=None, project=None):
+         script_type=0, row_data=None, table_data=None, project=None,
+         timeout=DEFAULT_TIMEOUT):
     """
     调用 TotalLINK API，统一走 /api/DataModel/linkDMAIAction。
 
@@ -137,6 +145,7 @@ def call(dm_code, dm_num, params=None,
         row_data:    rowData 字典（按工具说明按需传入）
         table_data:  tableData 列表（按工具说明按需传入）
         project:     项目名，不传则使用活跃项目
+        timeout:     请求超时秒数（默认 DEFAULT_TIMEOUT，须大于服务端降速等待时间）
 
     返回:
         dict: API 响应 JSON，出错时包含 "error" 字段
@@ -166,7 +175,7 @@ def call(dm_code, dm_num, params=None,
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
             resp = json.loads(r.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
@@ -186,6 +195,18 @@ def call(dm_code, dm_num, params=None,
     resp["_project"] = project_key
     if resp.get("isSuccess") == "false":
         return {"error": "BIZ", "message": resp.get("message", "未知业务错误"), "_project": project_key}
+
+    # 检测服务端警告：action == "warning" 时服务端主动警告后返回（设计行为，非故障）。
+    # 判定只看 action 字段，不解析 message；message 原文随结果保留，供提示用户时使用。
+    if resp.get("action") == WARNING_ACTION:
+        resp["_warning"] = {
+            "detected": True,
+            "message": resp.get("message", ""),
+        }
+        print(
+            f"[TotalLINK] 服务端警告: {resp.get('message', '')}",
+            file=sys.stderr,
+        )
 
     return resp
 
@@ -246,6 +267,10 @@ def main():
         "--table-data", type=json.loads, default=[],
         help="tableData JSON 数组（按工具说明按需传入）",
     )
+    parser.add_argument(
+        "--timeout", type=int, default=DEFAULT_TIMEOUT,
+        help=f"请求超时秒数（默认 {DEFAULT_TIMEOUT}，需大于服务端降速等待时间）",
+    )
 
     args = parser.parse_args()
 
@@ -285,6 +310,7 @@ def main():
         row_data=args.row_data,
         table_data=args.table_data,
         project=args.project,
+        timeout=args.timeout,
     )
 
     print(json.dumps(result, ensure_ascii=False, indent=2))

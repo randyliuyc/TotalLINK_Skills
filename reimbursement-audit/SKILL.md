@@ -27,8 +27,8 @@ metadata:
 
 ## 前置条件
 
-- **TotalLINK 项目选择**：参照 [基础 Skill](../totallink-base/SKILL.md) 完成项目选择和认证配置
-- **API 调用**：通过 `../totallink-base/scripts/totallink_api.py` 调用
+- **TotalLINK 项目选择**：参照 [基础 Skill](../SKILL.md) 完成项目选择和认证配置
+- **API 调用**：通过 `../scripts/totallink_api.py` 调用
 - 邮件 SMTP 授权码：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)，首次使用时向用户索取，保存到 `~/.workbuddy/MEMORY.md`
 - PDF 生成工具链：Pandoc CLI + WeasyPrint，参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)
 - Python 环境：venv 下安装有 pdfplumber（`/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3`）
@@ -53,7 +53,7 @@ metadata:
 ### Step 1：查询报销单列表
 
 ```bash
-python3 ../totallink-base/scripts/totallink_api.py \
+python3 ../scripts/totallink_api.py \
   --dm-code LINKEXP01 --dm-num 9 \
   --params "" "2026-06-01" "2026-07-11" "" --script-type 0
 ```
@@ -86,15 +86,15 @@ python3 ../totallink-base/scripts/totallink_api.py \
 
 ```bash
 # 表头信息
-python3 ../totallink-base/scripts/totallink_api.py \
+python3 ../scripts/totallink_api.py \
   --dm-code LINKEXP01 --dm-num 10 --params "EXP260600009" --script-type 0
 
 # 费用明细
-python3 ../totallink-base/scripts/totallink_api.py \
+python3 ../scripts/totallink_api.py \
   --dm-code LINKEXP01 --dm-num 20 --params "EXP260600009" --script-type 0
 
 # 附件列表
-python3 ../totallink-base/scripts/totallink_api.py \
+python3 ../scripts/totallink_api.py \
   --dm-code LINKAI60 --dm-num 10 --params "EXP260600009" --script-type 0
 ```
 
@@ -270,6 +270,6 @@ print("邮件已自动发送至 randy.liu@sagesoft.cn")
 ## Resources
 
 ### references/
-- [TotalLINK 基础 Skill](../totallink-base/SKILL.md) — 认证管理、API 格式
+- [TotalLINK 基础 Skill](../SKILL.md) — 认证管理、API 格式
 - [邮件发送 Skill](../shared/email-sender/SKILL.md) — SMTP 发送规范
 - [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) — Pandoc + WeasyPrint 工具链

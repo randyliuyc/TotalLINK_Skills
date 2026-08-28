@@ -183,32 +183,44 @@ preprocess.py data.json --head 10            # 前 N 行预览
 | `BIZ` | 其他业务错误 | 告知用户 `message` 内容 |
 | `HTTP 5xx` | 后端异常 | 提示稍后重试 |
 
-### 数据字段（captions）
+---
 
-返回数据中 `captions` 提供列的中文标签，输出给用户时用 captions 名，不暴露 schema 字段名。
+## 服务端警告（Action Warning）
 
-### 删除操作（通用规则）
+服务端在**配额预检查失败（降速）、额度已用完**等情况下不会拒绝请求，而是主动发出警告（`action="warning"`）后返回正常结果。这是**设计行为，不是故障**——调用方识别后提示用户，避免误判为网络/服务器超时。当前警告类型为降速，未来可扩展其他类型。
 
-**执行任何删除操作前，必须通过 AskUserQuestion 弹窗提示用户再次确认。** 此规则适用于所有场景化 Skill。
+### 识别方式
 
-- 弹窗需明确展示：删除目标的关键标识（如单号、名称）、关联信息和不可撤销警告
-- 仅在用户明确选择「确认」后方可执行对应 API 调用
-- 不得以任何理由跳过确认步骤
-
-问询模板：
+响应 `action` 字段为 `"warning"` 即为服务端警告（`totallink_api.py` 已自动识别，**只看 action，不解析 message**）：
 
 ```json
 {
-  "questions": [{
-    "question": "确认删除 [目标类型] [标识]（[关键信息]）？此操作不可撤销。",
-    "header": "删除确认",
-    "options": [
-      {"label": "确认删除", "description": "永久删除，不可恢复"},
-      {"label": "取消", "description": "不执行删除操作"}
-    ]
-  }]
+  "isSuccess": "true",
+  "action": "warning",
+  "message": "当月积分额度已用完，已等待 21 秒后继续执行",
+  "data": { "...": "正常返回的数据" }
 }
 ```
+
+脚本自动处理：
+- 结果 JSON 增加 `_warning` 字段：`{"detected": true, "message": "<message 原文>"}`
+- stderr 打印一行 `[TotalLINK] 服务端警告: <message>`
+
+### 现象与应对
+
+| 现象 | 应对 |
+|------|------|
+| `action="warning"`，响应 20~60+ 秒 | 正常服务端警告（降速），告知用户：**"服务端警告：<message>，已等待后返回，结果正常"**，不误报为故障 |
+| 脚本报 `timed out` | 用 `--timeout <更大秒数>` 重试（默认 180s，须大于服务端降速等待时间） |
+| `action="warning"` 且 message 含"积分额度已用完" | 提示用户额度已用完，需激活额度（SYSINFOMATION/230） |
+
+> 警告不是错误：`isSuccess=true` 时数据照常返回，脚本**不会**以非零码退出。
+
+---
+
+### 数据字段（captions）
+
+返回数据中 `captions` 提供列的中文标签，输出给用户时用 captions 名，不暴露 schema 字段名。
 
 ---
 

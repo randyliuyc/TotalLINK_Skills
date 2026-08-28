@@ -27,7 +27,7 @@ git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git <目标目录>
 ## 目录结构
 
 ```
-TotalLINK_Skills/
+totallink-base/
 ├── SKILL.md                 # totallink-base（多平台通用）
 ├── README.md
 ├── scripts/                 # Python 脚本

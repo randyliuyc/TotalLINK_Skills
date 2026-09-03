@@ -12,17 +12,38 @@ setup:
 
 # TotalLINK 基础 Skill
 
-## 更新 Skill
-
-当用户要求更新 Skill 时，从远程仓库拉取最新版本并替换本地文件：
-
-```bash
-cd /tmp && rm -rf TotalLINK_Skill && git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git && cp -r TotalLINK_Skill/* /Users/liuyongchao/.workbuddy/skills/TotalLINK/ && rm -rf TotalLINK_Skill
-```
-
-执行后重新读取本文件，确认更新内容。
+> **安全约定（上游自带，更新时勿回退）**
+> 1. 更新 Skill 必须先经人工审查再落地，禁止「远程拉取即覆盖」
+> 2. 默认服务地址为明文 HTTP，Auth Token 会以明文传输，优先改用 HTTPS
 
 > 支持 WorkBuddy 及任何能执行 shell 的 AI Agent。脚本位于相对于本文件的 `scripts/` 目录。
+
+## 更新 Skill
+
+> ⚠️ **禁止直接把远程内容覆盖到技能目录。** 技能文件属于可执行代码，自动覆盖等于把远程仓库变成代码执行通道。
+
+用户要求更新时，按以下流程走：
+
+1. 克隆到**临时目录**，不要把任何文件写进技能目录：
+   ```bash
+   cd /tmp && rm -rf TotalLINK_Skill_update && \
+     git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git TotalLINK_Skill_update
+   ```
+2. **逐文件 diff**，重点看 `scripts/` 下的 Python 与所有 `SKILL.md`：
+   ```bash
+   diff -r /tmp/TotalLINK_Skill_update <本 Skill 的安装目录>
+   ```
+   > `<本 Skill 的安装目录>` 视平台而定，例如 WorkBuddy 为 `~/.workbuddy-ai/skills/TotalLINK` 或 `~/.workbuddy/skills/TotalLINK`。
+3. 把差异摘要报给用户，**等用户明确同意**后再复制落地
+4. 落地后重新比对，确认安全约定（SMTP 凭据位置、收件人确认、无自更新指令）未被上游回退；被回退则重新应用
+
+## 传输安全
+
+默认 `--url` 为 `http://124.71.144.80:8088`（明文 HTTP）。Auth Token 会随请求体明文发送，公网环境下存在被截获风险。
+
+- 若服务端已支持 HTTPS，**优先配置 `https://` 地址**
+- 仅在内网 / 可信链路下使用 `http://`
+- 配置文件的 `auth_token` 等价于账号口令，`~/.totallink/config.json` 不应提交到任何仓库或外发
 
 ## 认证管理
 

@@ -71,22 +71,42 @@ def group_by(rows, schema, captions, column):
         print(f"  {k}: {v}")
 
 
+def _to_number(v):
+    """把 API 返回的金额字符串（如 '300.00'、'1,250.5'）转成 float；不可转换返回 None。"""
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    if not isinstance(v, str):
+        return None
+    s = v.strip().replace(",", "")
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
 def filter_rows(rows, schema, captions, expr):
-    """过滤: 列名=值。"""
+    """过滤: 列名=值。始终返回 list（列不存在时返回原 rows，绝不返回 None）。"""
+    if "=" not in expr:
+        print(f"过滤表达式格式错误，应为 列名=值，实际: {expr}")
+        return rows
+
     col, val = expr.split("=", 1)
     idx = _resolve_index(schema, captions, col)
     if idx is None:
         return rows
 
+    return [r for r in rows if idx < len(r) and str(r[idx]) == val]
+
 
 def stats(rows, schema, captions):
-    """数值列 min/avg/max。"""
+    """数值列 min/avg/max/sum。兼容 API 返回的字符串金额（如 '300.00'）。"""
     numeric_cols = []
     for i, c in enumerate(schema):
-        vals = []
-        for r in rows:
-            if i < len(r) and r[i] is not None and isinstance(r[i], (int, float)):
-                vals.append(r[i])
+        vals = [n for r in rows if i < len(r) for n in [_to_number(r[i])] if n is not None]
         if vals:
             numeric_cols.append((captions.get(c, c), i, vals))
 
@@ -95,7 +115,10 @@ def stats(rows, schema, captions):
         return
 
     for name, i, vals in numeric_cols:
-        print(f"{name}: min={min(vals)}, avg={sum(vals)/len(vals):.2f}, max={max(vals)}")
+        print(
+            f"{name}: min={min(vals):.2f}, avg={sum(vals)/len(vals):.2f}, "
+            f"max={max(vals):.2f}, sum={sum(vals):.2f}, count={len(vals)}"
+        )
 
 
 def head(rows, schema, captions, n=5):
@@ -181,7 +204,7 @@ def main():
     if args.group:
         group_by(rows, schema, captions, args.group)
     if args.filter_expr:
-        rows = filter_rows(rows, schema, args.filter_expr)
+        rows = filter_rows(rows, schema, captions, args.filter_expr)
         print(f"过滤后 {len(rows)} 行")
         head(rows, schema, captions, 10)
     if args.stats:

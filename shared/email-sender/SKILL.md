@@ -12,8 +12,12 @@ metadata:
       SMTP_FROM: ""
       SMTP_PASSWORD: ""
       SMTP_TO_DEFAULT: ""
-    note: "SMTP 授权码首次使用时向用户索取，保存到 ~/.workbuddy/MEMORY.md 复用"
+    note: "SMTP 授权码首次使用时向用户索取，保存到 ~/.totallink/smtp.json（chmod 600）复用"
 ---
+
+> **安全约定（上游自带，更新时勿回退）**
+> 1. 凭据一律存 `~/.totallink/smtp.json`（权限 600），**禁止**写入 `~/.workbuddy/MEMORY.md`、`SOUL.md`、`USER.md` 等会被注入模型上下文的文件
+> 2. 发送前必须向用户确认收件人地址，禁止用 `SMTP_TO_DEFAULT` 跳过确认
 
 # 邮件发送 Skill
 
@@ -21,9 +25,23 @@ metadata:
 
 通过 SMTP 发送邮件，支持纯文本正文和附件。优先使用网易邮箱（smtp.163.com SSL 465）。
 
+> ⚠️ 发送邮件是不可逆的外部动作。执行 `send_message` 前必须向用户确认**收件人地址**。
+
 ## 配置
 
-首次使用时向用户索取 SMTP 授权码，保存到 `~/.workbuddy/MEMORY.md` 供后续复用：
+首次使用时向用户索取发件人邮箱与 SMTP 授权码，保存到 `~/.totallink/smtp.json`（权限 600）供后续复用：
+
+```bash
+mkdir -p ~/.totallink && umask 077 && cat > ~/.totallink/smtp.json << 'EOF'
+{
+  "host": "smtp.163.com",
+  "port": 465,
+  "from_addr": "your邮箱@example.com",
+  "password": "SMTP授权码"
+}
+EOF
+chmod 600 ~/.totallink/smtp.json
+```
 
 ```
 SMTP服务器：smtp.163.com
@@ -100,10 +118,12 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 
-# 从 ~/.workbuddy/MEMORY.md 读取或首次索要
-from_addr = "lycurgus@163.com"
-password = "<从MEMORY.md读取>"
-to_addr = "randy.liu@sagesoft.cn"
+# 从 ~/.totallink/smtp.json（chmod 600）读取；缺失则向用户索取
+import json, os
+cfg = json.load(open(os.path.expanduser("~/.totallink/smtp.json"), encoding="utf-8"))
+from_addr = cfg["from_addr"]
+password = cfg["password"]
+to_addr = "<用户本次确认的收件人地址>"   # 禁止硬编码，发送前必须确认
 
 msg = MIMEMultipart()
 msg["From"] = from_addr

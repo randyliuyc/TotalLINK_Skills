@@ -14,10 +14,15 @@ metadata:
       TOTALLINK_BASE_URL: "http://124.71.144.80:8088"
       SMTP_HOST: "smtp.163.com"
       SMTP_PORT: "465"
-      SMTP_FROM: "lycurgus@163.com"
-      SMTP_TO: "randy.liu@sagesoft.cn"
-    note: "Token + SMTP 授权码需首次配置后持久化"
+      SMTP_FROM: ""
+      SMTP_TO: ""
+    note: "Token + SMTP 授权码需首次配置后持久化。SMTP 凭据存 ~/.totallink/smtp.json（chmod 600），严禁写入 MEMORY.md"
 ---
+
+> **安全约定（上游自带，更新时勿回退）**
+> 1. 发件人 / 收件人一律不硬编码，发送前必须向用户确认收件人地址
+> 2. SMTP 授权码存 `~/.totallink/smtp.json`（权限 600），**禁止**写入 `~/.workbuddy/MEMORY.md` 等会被注入模型上下文的文件
+> 3. Python 解释器路径通过 `TOTALLINK_PYTHON` 环境变量覆盖，仓库不内置机器相关的绝对路径
 
 # TotalLINK 报销单审计
 
@@ -29,9 +34,14 @@ metadata:
 
 - **TotalLINK 项目选择**：参照 [基础 Skill](../SKILL.md) 完成项目选择和认证配置
 - **API 调用**：通过 `../scripts/totallink_api.py` 调用
-- 邮件 SMTP 授权码：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)，首次使用时向用户索取，保存到 `~/.workbuddy/MEMORY.md`
+- 邮件 SMTP 配置：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)。首次使用向用户索取发件人邮箱与 SMTP 授权码，保存到 `~/.totallink/smtp.json`（权限 600）；**收件人每次执行时向用户确认**
 - PDF 生成工具链：Pandoc CLI + WeasyPrint，参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)
-- Python 环境：venv 下安装有 pdfplumber（`/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3`）
+- Python 环境：需准备装有 `pdfplumber` / `weasyprint` 的 Python，路径导出为 `TOTALLINK_PYTHON`（见 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)）
+
+> 为简化下文命令，先执行：
+> ```bash
+> export TOTALLINK_PYTHON="${TOTALLINK_PYTHON:-<装有 pdfplumber/weasyprint 的 python3 绝对路径>}"
+> ```
 
 ---
 
@@ -121,7 +131,7 @@ with open(local_path, 'wb') as f:
 **PDF 发票 → 读取文本（pdfplumber）：**
 
 ```bash
-/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3 -c "
+"$TOTALLINK_PYTHON" -c "
 import pdfplumber
 with pdfplumber.open('path.pdf') as pdf:
     for page in pdf.pages:
@@ -211,7 +221,7 @@ CSS_EOF
 
 pandoc 审计报告.md -o temp_report.html --embed-resources --standalone
 
-/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3 -c "
+"$TOTALLINK_PYTHON" -c "
 from weasyprint import HTML
 HTML('temp_report.html').write_pdf('审计报告.pdf', stylesheets=['temp-style.css'])
 print('PDF generated successfully')
@@ -220,18 +230,37 @@ print('PDF generated successfully')
 rm -f temp_report.html temp-style.css
 ```
 
-**发送邮件（仅 PDF 附件，自动发送无需确认）：**
+**发送邮件（仅 PDF 附件）：**
+
+> ⚠️ **发送前必须向用户确认收件人地址**，不得使用任何硬编码地址。邮件是不可逆的外部动作，未取得明确同意前禁止调用 `send_message`。
+
+配置读取优先级：`~/.totallink/smtp.json`（权限 600）→ 缺失则向用户索取发件人邮箱与 SMTP 授权码。
+
+`~/.totallink/smtp.json` 格式：
+
+```json
+{
+  "host": "smtp.163.com",
+  "port": 465,
+  "from_addr": "your邮箱@example.com",
+  "password": "SMTP授权码"
+}
+```
 
 ```python
-import smtplib
+import json, os, smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 
-from_addr = "lycurgus@163.com"
-to_addr = "randy.liu@sagesoft.cn"
-password = "<从 ~/.workbuddy/MEMORY.md 读取>"
+SMTP_CFG = os.path.expanduser("~/.totallink/smtp.json")
+if not os.path.exists(SMTP_CFG):
+    raise SystemExit("未配置 SMTP，请向用户索取发件人邮箱与授权码后写入 ~/.totallink/smtp.json（chmod 600）")
+cfg = json.load(open(SMTP_CFG, encoding="utf-8"))
+
+from_addr = cfg["from_addr"]
+to_addr = "<用户本次确认的收件人地址>"   # 必须经用户确认，禁止硬编码
 
 msg = MIMEMultipart()
 msg["From"] = from_addr
@@ -246,11 +275,11 @@ with open("审计报告.pdf", "rb") as f:
     attachment.add_header("Content-Disposition", "attachment", filename=("utf-8", "", "审计报告.pdf"))
     msg.attach(attachment)
 
-with smtplib.SMTP_SSL("smtp.163.com", 465, timeout=30) as server:
-    server.login(from_addr, password)
+with smtplib.SMTP_SSL(cfg.get("host", "smtp.163.com"), cfg.get("port", 465), timeout=30) as server:
+    server.login(from_addr, cfg["password"])
     server.send_message(msg)
 
-print("邮件已自动发送至 randy.liu@sagesoft.cn")
+print(f"邮件已发送至 {to_addr}")
 ```
 
 ---
@@ -263,9 +292,9 @@ print("邮件已自动发送至 randy.liu@sagesoft.cn")
 4. **并行调用**：Step 2 中多张报销单的详情可并行请求
 5. **附件 URL**：含中文时需对路径部分做 URL-encode
 6. **JPG vs PDF**：JPG 用多模态直接读取，PDF 用 pdfplumber
-7. **所有 Python 命令**：通过 venv 执行
-8. **SMTP 授权码**：首次向用户索取，保存到 `~/.workbuddy/MEMORY.md` 复用
-9. **收件人固定**：`randy.liu@sagesoft.cn`，无需询问用户，直接发送
+7. **所有 Python 命令**：通过 venv 执行（`$TOTALLINK_PYTHON`）
+8. **SMTP 凭据**：首次向用户索取发件人邮箱与授权码，保存到 `~/.totallink/smtp.json`（chmod 600）；**禁止**写入 `MEMORY.md`
+9. **收件人**：每次执行前向用户确认，**禁止**硬编码、禁止免确认自动发送
 
 ## Resources
 

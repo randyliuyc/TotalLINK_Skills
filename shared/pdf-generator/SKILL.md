@@ -22,8 +22,14 @@ metadata:
 ## 前置条件
 
 - Pandoc CLI 已安装
-- WeasyPrint 已安装：`/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3 -c "import weasyprint"`
+- WeasyPrint 已安装：`"$TOTALLINK_PYTHON" -c "import weasyprint"`
 - 中文字体可用：PingFang SC / STHeiti / Microsoft YaHei
+
+> **`TOTALLINK_PYTHON`**：指向装有 `weasyprint` / `pdfplumber` 的 Python 解释器，先导出：
+> ```bash
+> export TOTALLINK_PYTHON="${TOTALLINK_PYTHON:-<装有 weasyprint/pdfplumber 的 python3 绝对路径>}"
+> ```
+> 仓库不内置任何机器相关的绝对路径——各使用者按自己环境配置。
 
 ## CSS 样式模板
 
@@ -96,7 +102,7 @@ CSS_EOF
 pandoc 审计报告.md -o temp_report.html --embed-resources --standalone
 
 # 3. WeasyPrint 生成 PDF
-/Users/liuyongchao/.workbuddy/binaries/python/envs/default/bin/python3 -c "
+"$TOTALLINK_PYTHON" -c "
 from weasyprint import HTML
 HTML('temp_report.html').write_pdf('审计报告.pdf', stylesheets=['temp-style.css'])
 print('PDF generated')

@@ -16,10 +16,10 @@ TotalLINK API 调用封装：认证、Payload 构造、请求与错误处理。
 
   # 指定项目调用（查询，script-type=0）
   python3 scripts/totallink_api.py --project my-project \\
-    --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" "" --script-type 0
+    --dm-code LINKAI20 --dm-num 10 --params "" "2026-06-01" "" --script-type 0
 
   # 使用活跃项目调用（提交，含 row_data）
-  python3 scripts/totallink_api.py --dm-code LINKEXP01 --dm-num 10 \\
+  python3 scripts/totallink_api.py --dm-code LINKAI2010X --dm-num 10 \\
     --params "param1" --script-type 1 --row-data '{"field": "value"}'
 """
 
@@ -138,8 +138,8 @@ def call(dm_code, dm_num, params=None,
     调用 TotalLINK API，统一走 /api/DataModel/linkDMAIAction。
 
     参数:
-        dm_code:     工具代码，如 "LINKEXP01"
-        dm_num:      工具编号，如 9
+        dm_code:     工具代码，如 "LINKAI2010X"
+        dm_num:      工具编号，如 10
         params:      Para 参数列表（字符串数组）
         script_type: 工具的 call_type 值（整数），服务端据此自动区分查询/提交
         row_data:    rowData 字典（按工具说明按需传入）
@@ -227,15 +227,15 @@ def main():
   %(prog)s --add-project my-project --token "tlk_xxx" --url "http://host:8088"
 
   # 查询（script-type=0，无需 row-data / table-data）
-  %(prog)s --dm-code LINKEXP01 --dm-num 9 --params "" "2026-06-01" "" --script-type 0
+  %(prog)s --dm-code LINKAI20 --dm-num 10 --params "" "2026-06-01" "" --script-type 0
 
   # 行提交
-  %(prog)s --project my-project --dm-code LINKEXP01 --dm-num 10 \\
+  %(prog)s --project my-project --dm-code LINKAI2010X --dm-num 10 \\
       --params "EXP001" --script-type 1 --row-data '{"amount":"100"}'
 
   # 批量提交
-  %(prog)s --dm-code LINKEXP02 --dm-num 15 \\
-      --params "" --script-type 2 --row-data '{"key":"val"}' \\
+  %(prog)s --dm-code LINKAI2010X --dm-num 20 \\
+      --params "EXP001" --script-type 1 --row-data '{"key":"val"}' \\
       --table-data '[{"col1":"val1"}]'
         """,
     )

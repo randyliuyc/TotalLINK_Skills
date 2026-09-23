@@ -111,16 +111,23 @@ python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
   --params "<搜索关键字>" --script-type 0 | python3 scripts/parse_tools.py
 ```
 
-输出格式：
+输出格式（示例取自关键字「报销」的实际返回）：
 
 ```json
 [
   {
-    "code": "LINKEXP01",
-    "num": 9,
-    "name": "驳回报销单",
-    "desc": "params: [\"单号\"] rowdata: {\"DOCNUM\":\"单号\",\"REMARK\":\"原因\"}",
+    "code": "LINKAI20",
+    "num": 10,
+    "name": "报销单列表",
+    "desc": "查询报销单列表（按日期范围与关键词）\r\nparams: [\"搜索关键字(可空)\", \"起始日期(YYYY-MM-DD)\", \"结束日期(YYYY-MM-DD)\", \"单据状态(可空)\"]",
     "script_type": 0
+  },
+  {
+    "code": "LINKAI2010X",
+    "num": 501,
+    "name": "驳回报销单",
+    "desc": "根据报销单号执行驳回操作并记录驳回原因。\r\nrowdata: {\"DOCNUM\": \"单据号\", \"REMARK\": \"驳回原因\"}",
+    "script_type": 4
   }
 ]
 ```
@@ -128,6 +135,8 @@ python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
 - `code` → dmCode，`num` → dmNum
 - `name` / `desc` → 工具语义描述（含参数列表）
 - `script_type` → 作为 `--script-type` 参数传入
+
+> **工具编号以服务端 SEARCHLIST 为准。** 平台编号会随服务端调整变化，场景 Skill 中硬编码的编号仅代表核对时的状态；一旦调用报「工具不存在」或返回空数据，先用 SEARCHLIST 复核再调用，不要沿用历史编号。
 
 ### 未找到功能工具的处理
 

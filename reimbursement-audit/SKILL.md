@@ -6,8 +6,8 @@ description:
 metadata:
   dependencies:
     - totallink-base
-    - totallink-email
-    - totallink-pdf
+    - totallink-email-sender
+    - totallink-pdf-generator
   workbuddy:
     env:
       TOTALLINK_AUTH_TOKEN: ""
@@ -30,17 +30,19 @@ metadata:
 
 从 TotalLINK 后端直接查询报销单数据，逐单下载附件并识别发票内容，生成合规审计报告（Markdown + PDF），自动发送邮件。所有 API 调用直连 TotalLINK 后端。
 
+**默认执行节奏（分段确认制）**：Step 1~5 生成 Markdown 报告后**必须停下**，等用户检查确认后才可进入 Step 6（PDF + 邮件）。邮件是不可逆动作，禁止跳过 md 确认点直接发送。
+
 ## 前置条件
 
 - **TotalLINK 项目选择**：参照 [基础 Skill](../SKILL.md) 完成项目选择和认证配置
 - **API 调用**：通过 `../scripts/totallink_api.py` 调用
 - 邮件 SMTP 配置：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)。首次使用向用户索取发件人邮箱与 SMTP 授权码，保存到 `~/.totallink/smtp.json`（权限 600）；**收件人每次执行时向用户确认**
-- PDF 生成工具链：Pandoc CLI + WeasyPrint，参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)
-- Python 环境：需准备装有 `pdfplumber` / `weasyprint` 的 Python，路径导出为 `TOTALLINK_PYTHON`（见 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md)）
+- PDF 生成工具链：由 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 承担，渲染统一走 Chrome headless（本机 WeasyPrint 缺 gobject 不可用，已废弃）
+- Python 环境：需准备装有 `pdfplumber`、`requests` 的 Python，路径导出为 `TOTALLINK_PYTHON`
 
 > 为简化下文命令，先执行：
 > ```bash
-> export TOTALLINK_PYTHON="${TOTALLINK_PYTHON:-<装有 pdfplumber/weasyprint 的 python3 绝对路径>}"
+> export TOTALLINK_PYTHON="${TOTALLINK_PYTHON:-<装有 pdfplumber 的 python3 绝对路径>}"
 > ```
 
 ---
@@ -63,6 +65,22 @@ metadata:
 ---
 
 ## Workflow
+
+### 产物归档结构（固定，全程使用）
+
+```text
+outputs/exp_audit_<yyyymm>/
+├── attachments/          # 下载的原始附件（按 单号__原文件名 命名）
+├── evidence/             # 审计底稿（可追溯、供跨月查重复用）
+│   ├── docs_index.json       # 单据索引：表头/明细/附件摘要
+│   ├── invoices_index.json   # 发票索引：单号、发票号、开票日期、价税合计、来源(pdf/jpg)
+│   └── invoice_texts/        # PDF 发票文本提取结果（JPG 无文本，写 _README 说明）
+├── 审计报告.md
+├── 审计报告.pdf
+└── （可选）duplicate-report.json / render-notes.html
+```
+
+中间数据（API 原始返回、发票提取文本）**必须落盘到 evidence/**，不要留在 /tmp——跨月查重依赖历史 invoices_index.json。
 
 ### Step 1：查询报销单列表
 
@@ -189,6 +207,41 @@ with pdfplumber.open('path.pdf') as pdf:
 | 行程佐证 | 网约车/机票类是否附行程单，出行人与报销人是否一致 |
 | 明细勾稽 | 明细各行金额合计是否等于表头总金额；明细拆分与各张发票能否对应 |
 
+**占位值与异常字段规则（2026-06 实测新增）：**
+
+- 明细「开始/结束日期」出现 `1900-01-01` → 视为**费用日期未填**，直接列入问题清单，报告中不显示原始占位值。
+- 附件中混入**非发票文件**（付款申请单 xlsx、行程单图片以外的文档等）→ 标注「非合规报销票据」列入问题清单，不尝试解析其内容，也不计入票据合计。
+- 明细填报费用期间与票据实际日期（乘车日/开票日）不吻合 → 列为「费用期间填报有误」，中风险。
+
+### Step 4.5：跨单发票查重（强制）
+
+全部单据发票识别完成后，必须做跨单比对——历史上同一张发票被拆到多张单据重复提交过（2026-06 实测：007/008 与 011 交叉重复 ¥84.21）。
+
+1. 识别过程中将每张发票登记到 `evidence/invoices_index.json`。**顶层为 `{"period": "2026-06", "note": "…", "invoices": […]}` 包装**，发票条目字段：`doc` / `invoice_no` / `issue_date` / `total` / `source`；非发票附件不登记。
+2. 运行查重脚本：
+
+```bash
+"$TOTALLINK_PYTHON" scripts/dedup_check.py \
+  outputs/exp_audit_<当月>/evidence/invoices_index.json \
+  [outputs/exp_audit_<历史月>/evidence/invoices_index.json ...]
+```
+
+- 传多个月份的索引即实现**跨月查重**（渐进式：有历史底稿就带上，不为查重专门回溯取数）。
+- 退出码 2 = 发现重复，输出 JSON 中每组含涉及单据、金额、是否金额冲突、是否跨期。
+3. 查重结果写入报告「共性问题汇总」的**重复发票专项**小节，并计入风险评级。建议去重归属时给出明确指向（如「该票保留在 EXP260600011 中提交，007/008 重新提交时须剔除」）。
+
+### Step 4.6：风险评级（按固化标准）
+
+按以下对照表定级，保证每次报告口径一致：
+
+| 风险等级 | 判定标准（命中其一即定级） |
+|---------|--------------------------|
+| 高 | 购买方抬头不属于可报销公司；票据合计与报销金额不符；跨单/跨期重复发票；发票开票早于费用 6 个月以上或已超一般报销时效 |
+| 中 | 费用归类与票据内容不匹配；开票/乘车日期与填报费用期间逻辑不符；含负数冲销行待确认退款；附件含非发票文件；费用日期未填 |
+| 低 | 仅缺行程佐证（出行人/行程栏位空白）；部门等字段未填；票据合规但驳回原因不明 |
+
+多问题取最高级。评级表写入报告「风险评级」章节（等级 / 单据 / 核心问题 / 建议处理）。
+
 ---
 
 ### Step 5：生成审计报告（Markdown）
@@ -207,6 +260,12 @@ with pdfplumber.open('path.pdf') as pdf:
 
 ## 三、共性问题汇总
 （发票日期问题/金额问题/归类问题/抬头问题）
+
+### 重复发票专项（查重发现重复时必写）
+（重复发票号码 / 涉及单据 / 合计金额 / 去重归属建议）
+
+### 提交人画像
+（按报销人汇总问题类型分布；对外场合可隐去姓名只按问题类型统计）
 
 ## 四、风险评级
 （风险表 + 建议处理）
@@ -259,35 +318,26 @@ with pdfplumber.open('path.pdf') as pdf:
 
 参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 和 [邮件发送 Skill](../shared/email-sender/SKILL.md)。
 
-**生成 PDF：**
+**生成 PDF（Chrome headless）：**
+
+> 排版与渲染统一由 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 承担。WeasyPrint 路径已废弃（本机缺 `libgobject-2.0-0`，`import weasyprint` 直接报错），不要尝试。Chrome 不支持 @page 页码计数器，PDF 无页码（已接受此限制；需要页码时在 Chrome 打印对话框勾选「页眉和页脚」）。
 
 ```bash
-cd /path/to/working/dir
+cd /path/to/outputs/exp_audit_<yyyymm>
+# <SKILL_DIR> = TotalLINK skill 安装目录，如 ~/.workbuddy/skills/TotalLINK
 
-cat > temp-style.css << 'CSS_EOF'
-@page { size: A4; margin: 2cm 2.5cm; }
-body { font-family: -apple-system, 'PingFang SC', 'STHeiti', 'Microsoft YaHei', sans-serif; font-size: 11pt; line-height: 1.7; color: #222; }
-h1 { font-size: 18pt; color: #1a1a2e; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; margin-top: 1.2em; }
-h2 { font-size: 14pt; color: #16213e; margin-top: 1em; }
-h3 { font-size: 12pt; color: #0f3460; margin-top: 0.8em; }
-table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 9.5pt; }
-th { background-color: #e8e8e8; border: 1px solid #999; padding: 5px 8px; text-align: center; font-weight: bold; }
-td { border: 1px solid #999; padding: 4px 8px; }
-td strong { color: #c0392b; }
-code { font-family: 'SF Mono', 'Menlo', monospace; font-size: 9pt; background: #f0f0f5; padding: 1px 4px; border-radius: 3px; }
-hr { border: none; border-top: 1px solid #ddd; margin: 1.5em 0; }
-CSS_EOF
+# 1. 按 PDF 生成 Skill 的排版规范生成自包含 HTML（见其工作流第 4 步，
+#    排版依据 references/print-css.md 与 references/visual-design.md）
 
-pandoc 审计报告.md -o temp_report.html --embed-resources --standalone
+# 2. 渲染 PDF（脚本自动探测 Chrome，不硬编码浏览器路径）
+"<SKILL_DIR>/shared/pdf-generator/scripts/render_pdf.sh" 审计报告.html 审计报告.pdf
 
-"$TOTALLINK_PYTHON" -c "
-from weasyprint import HTML
-HTML('temp_report.html').write_pdf('审计报告.pdf', stylesheets=['temp-style.css'])
-print('PDF generated successfully')
-"
-
-rm -f temp_report.html temp-style.css
+# 3. 校验页数与关键内容（NFKC 归一化已内置于脚本）
+"$TOTALLINK_PYTHON" "<SKILL_DIR>/shared/pdf-generator/scripts/verify_pdf.py" \
+  审计报告.pdf --expect "执行摘要" "结论" --max-pages 30
 ```
+
+校验提示：用 pdfplumber 检查页数与关键内容时，Chrome 嵌入字体的 ToUnicode 会把「一/风/车」等映射为康熙部首码位（U+2E80~2FDF），提取文本需先做 NFKC 归一化再比对，否则会误判缺内容；视觉渲染不受影响。
 
 **发送邮件（仅 PDF 附件）：**
 
@@ -357,10 +407,17 @@ print(f"邮件已发送至 {to_addr}")
 10. **所有 Python 命令**：通过 venv 执行（`$TOTALLINK_PYTHON`）
 11. **SMTP 凭据**：首次向用户索取发件人邮箱与授权码，保存到 `~/.totallink/smtp.json`（chmod 600）；**禁止**写入 `MEMORY.md`
 12. **收件人**：每次执行前向用户确认，**禁止**硬编码、禁止免确认自动发送
+13. **分段确认**：md 报告生成后必须停下等用户确认，才可生成 PDF / 发邮件
+14. **跨单查重**：Step 4.5 强制执行，结果写入报告重复发票专项
+15. **底稿归档**：API 中间数据与发票提取文本一律落盘 `evidence/`，禁止只留 /tmp
+16. **占位值**：明细日期 1900-01-01 = 未填；非发票附件不计入票据合计、不解析内容
 
 ## Resources
+
+### scripts/
+- [dedup_check.py](scripts/dedup_check.py) — 跨单/跨月发票查重（输入 invoices_index.json，输出重复分组 JSON，退出码 2=有重复）
 
 ### references/
 - [TotalLINK 基础 Skill](../SKILL.md) — 认证管理、API 格式
 - [邮件发送 Skill](../shared/email-sender/SKILL.md) — SMTP 发送规范
-- [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) — Pandoc + WeasyPrint 工具链
+- [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) — Markdown → HTML → PDF 自动流程（Chrome headless）

@@ -22,7 +22,7 @@ git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git <目标目录>
 | totallink-base | 认证、工具发现、API 调用、数据预处理 | 通用 |
 | reimbursement-audit | 报销单全流程审计 | TotalLINK Development |
 | shared/email-sender | SMTP 邮件发送（SSL 465） | 通用 |
-| shared/pdf-generator | Markdown → PDF | 通用 |
+| shared/pdf-generator | Markdown → 精美 HTML → A4 PDF（自动，Chrome headless 渲染） | 通用 |
 
 ## 目录结构
 
@@ -38,14 +38,17 @@ totallink-base/
 │   └── SKILL.md
 └── shared/                  # 通用 Skill
     ├── email-sender/SKILL.md
-    └── pdf-generator/SKILL.md
+    └── pdf-generator/       # Markdown → HTML → PDF
+        ├── SKILL.md
+        ├── references/      # 打印 CSS / 视觉方向 / 交付前检查
+        └── scripts/         # 重复检测 / Chrome 渲染 / PDF 校验
 ```
 
 ## 前置条件
 
 - Python 3.9+
 - TotalLINK 账户及授权令牌（`tlk_` 开头）
-- 报销单审计额外依赖：`pdfplumber`、`pandoc`、`weasyprint`
+- 报销单审计额外依赖：`pdfplumber`（PDF 校验）、Chrome / Chromium / Edge（PDF 渲染，脚本自动探测）
 
 ## 使用
 

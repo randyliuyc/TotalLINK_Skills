@@ -2,30 +2,25 @@
 """
 解析 TotalLINK SEARCHLIST 返回的 Table 数据，转换为结构化工具列表。
 
-输入（stdin）：totallink_api.py 的 JSON 输出
+输入（stdin）：linkDMAIAction 的 JSON 响应
 输出（stdout）：[{ code, num, name, desc, script_type }, ...]
-script_type 字段为工具的 call_type 值，直接作为 --script-type 参数传入。
+script_type 字段为工具的 script_type 值，直接作为 --script-type 参数传入。
+
+parse_response() 供 scripts/tlk.py 的 `tools search` 复用（不经过 stdin 管道）。
 
 用法：
-  python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 --params "报销" --script-type 0 \\
-    | python3 scripts/parse_tools.py
+  python3 scripts/tlk.py tools search "报销"
 """
 
 import sys
 import json
 
 
-def main():
-    raw = json.load(sys.stdin)
-
-    if "error" in raw:
-        print(json.dumps(raw, ensure_ascii=False, indent=2))
-        sys.exit(1)
-
+def parse_response(raw):
+    """把 linkDMAIAction 的响应 dict 解析为工具列表（无结果时返回空列表）。"""
     table = raw.get("data", {}).get("Table")
     if not table:
-        print(json.dumps([], ensure_ascii=False, indent=2))
-        return
+        return []
 
     schema = table.get("schema", [])
     rows = table.get("data", [])
@@ -41,7 +36,17 @@ def main():
             "script_type": item.get("TOOL_TYPE", "0"),
         })
 
-    print(json.dumps(items, ensure_ascii=False, indent=2))
+    return items
+
+
+def main():
+    raw = json.load(sys.stdin)
+
+    if "error" in raw:
+        print(json.dumps(raw, ensure_ascii=False, indent=2))
+        sys.exit(1)
+
+    print(json.dumps(parse_response(raw), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

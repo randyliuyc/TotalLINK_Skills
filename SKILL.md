@@ -45,6 +45,21 @@ setup:
 - 仅在内网 / 可信链路下使用 `http://`
 - 配置文件的 `auth_token` 等价于账号口令，`~/.totallink/config.json` 不应提交到任何仓库或外发
 
+## 命令总览
+
+单一入口 `scripts/tlk.py`，base 四组命令：
+
+| 命令 | 作用 |
+|------|------|
+| `env list` | 列出所有项目，标出活跃项目 |
+| `env add <项目名> --token "tlk_..." --url "<服务地址>"` | 新增/更新项目令牌 |
+| `env use <项目名>` | 切换活跃项目（精确匹配项目名） |
+| `auth verify` | 环境自检：项目 / URL / 用户 / 额度 |
+| `call <dmCode> <dmNum> --script-type N --params-json '[...]'` | 调用工具 |
+| `tools search <关键字>` | 工具发现（SEARCHLIST） |
+
+下文一律写完整命令：`python3 scripts/tlk.py <命令组> ...`。
+
 ## 认证管理
 
 每个项目独立配置令牌和服务地址，持久化到 `~/.totallink/config.json`。
@@ -52,16 +67,15 @@ setup:
 ### 首次使用
 
 ```bash
-python3 scripts/totallink_api.py --list-projects
+python3 scripts/tlk.py env list
 ```
 
-- **有项目**：列出后请用户选择，执行 `--set-active <项目名>` 切换
+- **有项目**：列出后请用户选择，执行 `env use <项目名>` 切换
 - **无项目**：请用户提供项目名、令牌和地址：
   ```bash
-  python3 scripts/totallink_api.py --add-project <项目名> \
-    --token "tlk_..." --url "<服务地址>"
+  python3 scripts/tlk.py env add <项目名> --token "tlk_..." --url "<服务地址>"
   ```
-  `--url` 默认 `http://124.71.144.80:8088`，项目名默认 `default`。
+  `--url` 默认 `http://124.71.144.80:8088`，项目名必填。
 
 ### 配置文件格式
 
@@ -76,12 +90,12 @@ python3 scripts/totallink_api.py --list-projects
 
 ### 每次会话的项目选择
 
-1. 执行 `--list-projects` 获取项目列表
+1. 执行 `env list` 获取项目列表
 2. **单项目**：直接使用
 3. **多项目**：列出所有项目名和地址，请用户选择：
    - WorkBuddy 环境：使用 `AskUserQuestion` 弹窗，`label` 格式 `"<项目名> [(活跃)]"`，`description` 为 `base_url`
    - 其他环境：用文字列出选项，等待用户回复选择
-4. 所选项目非当前活跃则 `--set-active` 切换
+4. 所选项目非当前活跃则 `env use <项目名>` 切换
 
 ### 输入识别
 
@@ -93,12 +107,41 @@ python3 scripts/totallink_api.py --list-projects
 ### 命令参考
 
 ```bash
-# 创建/更新项目令牌（<URL> 为 --list-projects 中对应项目的 base_url）
-python3 scripts/totallink_api.py --add-project <项目名> \
-  --token "<auth_token>" --url "<base_url>"
+# 创建/更新项目令牌（<URL> 为 env list 中对应项目的 base_url）
+python3 scripts/tlk.py env add <项目名> --token "<auth_token>" --url "<base_url>"
+
+# 切换活跃项目（名称含空格时加引号）
+python3 scripts/tlk.py env use "<项目名>"
 ```
 
 > ⚠️ 更新令牌必须同时传 `--url`，不带会覆盖为默认值。
+
+### 环境自检
+
+```bash
+python3 scripts/tlk.py auth verify [--project <项目名>]
+```
+
+打 `SYSINFOMATION/220`（额度查询，在配额豁免组、cost=0），成功时四项齐全：
+
+```json
+{
+  "status": "ok",
+  "project": "TotalLINK 开发环境",
+  "base_url": "http://124.71.144.80:8088",
+  "user": "TotalLINK",
+  "quota": {
+    "months": [
+      { "month": "202611", "quota": 3000, "used": 4, "avail": 2996 }
+    ]
+  }
+}
+```
+
+- **用户**固定为 `TotalLINK`：额度按环境统一管理（池账户），不按人拆分
+- 失败分两类，据此判断该改令牌还是改地址：
+  - `{"error": "AUTH"}` → 令牌无效或过期（服务端 `isSuccess=false` + `TotalLINK AI token is invalid.`）
+  - `{"error": "NETWORK"}` → 连不上 `base_url`（DNS / 端口 / 网络）
 
 ---
 
@@ -107,8 +150,7 @@ python3 scripts/totallink_api.py --add-project <项目名> \
 已知工具直接硬编码 `dmCode`/`dmNum`，仅探索未知工具时调用 SEARCHLIST。
 
 ```bash
-python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
-  --params "<搜索关键字>" --script-type 0 | python3 scripts/parse_tools.py
+python3 scripts/tlk.py tools search "<搜索关键字>"
 ```
 
 输出格式（示例取自关键字「报销」的实际返回）：
@@ -142,7 +184,7 @@ python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
 
 用户请求的功能经关键字搜索（SEARCHLIST）无匹配工具时，说明该功能模块**未开通或不存在**。处理规则：
 
-1. **不尝试切换项目**——切换项目仅用于多项目间的正常选择（如 `--list-projects` 后按需选择），不用于规避功能缺失或权限问题
+1. **不尝试切换项目**——切换项目仅用于多项目间的正常选择（如 `env list` 后按需选择），不用于规避功能缺失或权限问题
 2. **不自行设计功能实现**——平台无对应工具时，禁止写脚本/造数据/发明接口去"实现"业务功能（如创建销售订单、改库存等），也不要在回复中编造不存在的工具
 3. **直接如实报告**——告知用户：当前账号/项目未开通该功能，建议**联系管理员在服务端功能授权中开通**，或询问用户如何处理，等待用户指引
 
@@ -160,44 +202,46 @@ python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
 
 ## API 调用
 
-统一通过脚本调用，POST `/api/DataModel/linkDMAIAction`。
+统一通过 `tlk call` 调用，POST `/api/DataModel/linkDMAIAction`。
 
 ### 参数传递规则（重要）
 
-`--params` 参数按**严格位置匹配**，空位用 `""` 占位，不可跳过；
-每个参数是一个独立的字符串，不可把 params 写成 JSON 数组字符串整体传入。
+`--params-json` 收 **JSON 数组**，一项一个参数字符串，位置**严格匹配**工具说明；
+空位必须用 `""` 占位，不可跳过、不可省略。
 
 ```bash
-# ✅ 正确：4 个参数全部传入，每个参数一个独立的字符串
---params "" "2026-06-18" "2026-07-18" ""
+# ✅ 正确：4 个参数按位置传齐，空位是空字符串
+--params-json '["", "2026-06-18", "2026-07-18", ""]'
 
 # ❌ 错误：只传 2 个，后端参数错位
---params "2026-06-18" "2026-07-18"
+--params-json '["2026-06-18", "2026-07-18"]'
 
-# ❌ 错误：把 params 写成 JSON 数组字符串整体传入
---params '["", "2026-06-18", "2026-07-18", ""]'
+# ❌ 错误：不是 JSON 数组
+--params-json "2026-06-18"
 ```
 
 ### 统一调用模板
 
 ```bash
-python3 scripts/totallink_api.py \
-  --dm-code <dmCode> --dm-num <dmNum> \
-  --params "<参数1>" "<参数2>" "..." \
+python3 scripts/tlk.py call <dmCode> <dmNum> \
   --script-type <script_type> \
+  --params-json '["<参数1>", "<参数2>"]' \
   [--project <项目名>] \
-  [--row-data '{"字段":"值"}'] [--table-data '[...]']
+  [--row-data '{"字段":"值"}'] [--table-data '[...]'] \
+  [--timeout <秒>]
 ```
 
 - `--script-type`：必传，取工具声明中的 `script_type`
+- `--params-json`：无参数工具传 `'[]'`（默认值）
 - `--project`：省略使用活跃项目
+- `--timeout`：省略用默认 180 秒
 
 ### 大数据预处理
 
 数据量 >50KB 或用户提到分析/统计时，管道接入 `preprocess.py --smart`：
 
 ```bash
-python3 scripts/totallink_api.py ... | python3 scripts/preprocess.py --smart
+python3 scripts/tlk.py call ... | python3 scripts/preprocess.py --smart
 ```
 
 - < 50KB → 透传
@@ -220,6 +264,9 @@ preprocess.py data.json --head 10            # 前 N 行预览
 | error | 含义 | 处理 |
 |-------|------|------|
 | `CONFIG` | 配置文件缺失 | 引导创建项目 |
+| `AUTH` | 令牌无效/过期（HTTP 401/403，或 `auth verify` 判定令牌无效） | 提示用户更新令牌 |
+| `NETWORK` | 连不上 `base_url` | 检查地址与网络；用 `auth verify` 定向排查 |
+| `PARAM` | 命令行参数不合法（如 `--params-json` 不是数组） | 按提示修正命令 |
 | `BIZ: TotalLINK AI 令牌无效` | 令牌无效 | 提示用户更新令牌 |
 | `BIZ: 没有操作权限` | 服务端功能授权管理 | 告知用户该账号对此功能模块无权限，需联系管理员开通。**禁止尝试切换项目** |
 | `BIZ` | 其他业务错误 | 告知用户 `message` 内容 |
@@ -233,7 +280,7 @@ preprocess.py data.json --head 10            # 前 N 行预览
 
 ### 识别方式
 
-响应 `action` 字段为 `"warning"` 即为服务端警告（`totallink_api.py` 已自动识别，**只看 action，不解析 message**）：
+响应 `action` 字段为 `"warning"` 即为服务端警告（`tlk` 已自动识别，**只看 action，不解析 message**）：
 
 ```json
 {
@@ -273,5 +320,5 @@ preprocess.py data.json --head 10            # 前 N 行预览
 ```markdown
 ## 前提
 - 已配置 TotalLINK 项目（参见 totallink-base Skill）
-- API 调用通过 `scripts/totallink_api.py` 执行
+- API 调用通过 `scripts/tlk.py` 执行
 ```

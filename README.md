@@ -31,7 +31,8 @@ totallink-base/
 ├── SKILL.md                 # totallink-base（多平台通用）
 ├── README.md
 ├── scripts/                 # Python 脚本
-│   ├── totallink_api.py     #   统一 API 调用
+│   ├── tlk.py               #   CLI 单入口（env / auth / call / tools）
+│   ├── tlk_core.py          #   配置、请求、错误映射
 │   ├── parse_tools.py       #   工具列表解析
 │   └── preprocess.py        #   大数据自动摘要
 ├── reimbursement-audit/     # 报销审计 Skill
@@ -54,13 +55,14 @@ totallink-base/
 
 ```bash
 # 查询项目列表
-python3 scripts/totallink_api.py --list-projects
+python3 scripts/tlk.py env list
+
+# 环境自检（项目 / URL / 用户 / 额度）
+python3 scripts/tlk.py auth verify
 
 # 搜索可用工具
-python3 scripts/totallink_api.py --dm-code SEARCHLIST --dm-num 100 \
-  --params "" --script-type 0 | python3 scripts/parse_tools.py
+python3 scripts/tlk.py tools search 报销
 
-# 查询积分
-python3 scripts/totallink_api.py --dm-code SYSINFOMATION --dm-num 220 \
-  --script-type 0
+# 调用工具
+python3 scripts/tlk.py call TMESCOM01 9 --script-type 0 --params-json '[""]'
 ```

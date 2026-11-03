@@ -2,7 +2,7 @@
 """TotalLINK 通用数据预处理 — 业务无关的大数据量自动摘要工具。
 
 用法:
-  totallink_api.py ... | preprocess.py --smart      # 自动检测大小
+  tlk.py call ... | preprocess.py --smart           # 自动检测大小
   preprocess.py data.json --describe               # 列描述
   preprocess.py data.json --group <列名>            # 按列分组计数
   preprocess.py data.json --filter <列名>=<值>      # 过滤

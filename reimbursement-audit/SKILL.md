@@ -35,7 +35,7 @@ metadata:
 ## 前置条件
 
 - **TotalLINK 项目选择**：参照 [基础 Skill](../SKILL.md) 完成项目选择和认证配置
-- **API 调用**：通过 `../scripts/totallink_api.py` 调用
+- **API 调用**：通过 `../scripts/tlk.py call` 调用
 - 邮件 SMTP 配置：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)。首次使用向用户索取发件人邮箱与 SMTP 授权码，保存到 `~/.totallink/smtp.json`（权限 600）；**收件人每次执行时向用户确认**
 - PDF 生成工具链：由 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 承担，渲染统一走 Chrome headless（本机 WeasyPrint 缺 gobject 不可用，已废弃）
 - Python 环境：需准备装有 `pdfplumber`、`requests` 的 Python，路径导出为 `TOTALLINK_PYTHON`
@@ -85,12 +85,11 @@ outputs/exp_audit_<yyyymm>/
 ### Step 1：查询报销单列表
 
 ```bash
-python3 ../scripts/totallink_api.py \
-  --dm-code LINKAI20 --dm-num 10 \
-  --params "" "2026-06-01" "2026-07-11" "" --script-type 0
+python3 ../scripts/tlk.py call LINKAI20 10 \
+  --script-type 0 --params-json '["", "2026-06-01", "2026-07-11", ""]'
 ```
 
-`--params` 按位置传入：`"搜索内容(可空)"` `"开始日期"` `"结束日期"` `"状态(可空)"`。
+`--params-json` 数组按位置传入：`"搜索内容(可空)"` `"开始日期"` `"结束日期"` `"状态(可空)"`。
 默认时间范围：上月至今（用户可指定起止日期）。
 
 **返回数据（字段为中文列名）：**
@@ -123,16 +122,16 @@ python3 ../scripts/totallink_api.py \
 
 ```bash
 # 表头信息
-python3 ../scripts/totallink_api.py \
-  --dm-code LINKAI2010X --dm-num 10 --params "EXP260600009" --script-type 0
+python3 ../scripts/tlk.py call LINKAI2010X 10 \
+  --script-type 0 --params-json '["EXP260600009"]'
 
 # 费用明细
-python3 ../scripts/totallink_api.py \
-  --dm-code LINKAI2010X --dm-num 20 --params "EXP260600009" --script-type 0
+python3 ../scripts/tlk.py call LINKAI2010X 20 \
+  --script-type 0 --params-json '["EXP260600009"]'
 
 # 附件列表
-python3 ../scripts/totallink_api.py \
-  --dm-code LINKAI2010X --dm-num 30 --params "EXP260600009" --script-type 0
+python3 ../scripts/tlk.py call LINKAI2010X 30 \
+  --script-type 0 --params-json '["EXP260600009"]'
 ```
 
 三个接口均**按单据编号精确过滤**。取数时注意：
@@ -398,7 +397,7 @@ print(f"邮件已发送至 {to_addr}")
 1. **认证**：脚本自动从 `~/.totallink/config.json` 读取令牌，无需手动传
 2. **dmCode/dmNum**：已按最新核对结果硬编码（见「本次场景所需工具」），无需工具发现步骤；编号若失效先用 SEARCHLIST 复核
 3. **列名**：返回数据为中文列名，按 `schema`/`captions` 的中文标签取值，不要按英文列名取数
-4. **直参**：`--params` 空位传 `""`（空字符串），不是 `null`/`undefined`
+4. **直参**：`--params-json` 数组空位传 `""`（空字符串），不是 `null`/`undefined`
 5. **并行调用**：Step 2 中多张报销单的详情可并行请求
 6. **附件 URL**：含中文时需对路径部分做 URL-encode；下载须带 `User-Agent` 头
 7. **附件瞬时 404**：**必须重试至少 2 轮再判定缺失**，一次 404 不代表文件不存在

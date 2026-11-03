@@ -20,7 +20,17 @@ CONFIG_PATH = os.path.expanduser("~/.totallink/config.json")
 
 ENDPOINT = "/api/DataModel/linkDMAIAction"
 
+# 设计态端点（ADR-0006）：导出 / 设计态运行 / 导入，均 POST，均收 loginID。
+# 与 linkDMAIAction 的区别：不计配额、不校验 AccessFlag；import 走事务并重算 MD5HASH。
+ENDPOINT_EXPORT = "/api/DataModel/linkDMExport"
+ENDPOINT_RUN = "/api/DataModel/linkDMRun"
+ENDPOINT_IMPORT = "/api/DataModel/linkDMImport"
+
 DEFAULT_BASE_URL = "http://124.71.144.80:8088"
+
+# 设计态运行的返回行数：默认 20，服务端上限 200（超出会被服务端截断，这里提前拦住）
+DEFAULT_MAX_ROWS = 20
+MAX_ROWS_LIMIT = 200
 
 # 服务端警告机制：响应 action="warning" 时表示服务端主动发出警告
 # （如配额预检查失败后降速、额度已用完等），警告后仍会返回正常结果。
@@ -338,3 +348,108 @@ def search_tools(keyword, project=None, timeout=DEFAULT_TIMEOUT):
     if "error" in resp:
         return resp
     return parse_response(resp)
+
+
+# ---------------------------------------------------------------- 设计态端点
+
+def _design_call(endpoint, body, project=None, timeout=DEFAULT_TIMEOUT):
+    """
+    设计态端点通用请求：body 是业务字段，loginID 由本函数补。
+
+    与 call() 一样：网络层/业务层失败统一转 {"error": ...}，成功时原样返回响应 dict。
+    端点缺失（旧版服务端）时 404 单独提示，避免被当成地址写错。
+    """
+    project_key, proj_cfg, error = _resolve_project(project)
+    if error:
+        return error
+
+    url = proj_cfg["base_url"].rstrip("/") + endpoint
+    payload = {"loginID": proj_cfg["auth_token"]}
+    payload.update(body)
+
+    resp = _post(url, payload, project_key, timeout)
+    if "error" in resp:
+        if resp.get("error") == "HTTP" and resp.get("code") == 404:
+            return {
+                "error": "HTTP",
+                "code": 404,
+                "reason": resp.get("reason"),
+                "message": f"服务端未提供 {endpoint}，该环境版本不支持此操作",
+                "_project": project_key,
+            }
+        resp.setdefault("_project", project_key)
+        return resp
+
+    resp["_project"] = project_key
+    if resp.get("isSuccess") == "false":
+        detail = resp.get("data")
+        return {
+            "error": "BIZ",
+            "message": resp.get("message") or "未知业务错误",
+            "detail": detail if isinstance(detail, str) else "",
+            "_project": project_key,
+        }
+    return resp
+
+
+def dm_export(code, num, project=None, timeout=DEFAULT_TIMEOUT):
+    """
+    导出模型 XML（POST linkDMExport）。
+
+    code/num 是导出源的编号；系统级模型也允许导出。
+    成功时响应 data 字段即模型 XML 文本。
+    """
+    return _design_call(
+        ENDPOINT_EXPORT,
+        {"code": code, "num": num},
+        project=project,
+        timeout=timeout,
+    )
+
+
+def dm_run(code, num, params=None, script_type=0,
+           max_rows=DEFAULT_MAX_ROWS, row_data=None, project=None,
+           timeout=DEFAULT_TIMEOUT):
+    """
+    设计态运行模型（POST linkDMRun）。
+
+    script_type=0 真执行 BaseScript（返回 columns/captions/rows/rowCount/elapsedMs）；
+    其他值不执行数据库，只返回占位符展开后的 formattedScript。
+    params 按位置对应模型参数 1..N；row_data 替换脚本里的 #列名#。
+    """
+    if max_rows < 1 or max_rows > MAX_ROWS_LIMIT:
+        return {
+            "error": "PARAM",
+            "message": f"--max-rows 须在 1~{MAX_ROWS_LIMIT} 之间（服务端上限 {MAX_ROWS_LIMIT}）",
+        }
+
+    return _design_call(
+        ENDPOINT_RUN,
+        {
+            "code": code,
+            "num": num,
+            "params": params or [],
+            "scriptType": script_type,
+            "maxRows": max_rows,
+            "rowData": row_data or {},
+        },
+        project=project,
+        timeout=timeout,
+    )
+
+
+def dm_import(xml, code=None, num=None, force=False, project=None,
+              timeout=DEFAULT_TIMEOUT):
+    """
+    导入模型 XML 落库（POST linkDMImport）。
+
+    code/num 缺省时用 XML 内嵌编号；force=False 时目标已存在会被拒绝。
+    MD5HASH 由服务端重算，XML 里留空即可。
+    """
+    body = {"xml": xml, "force": bool(force)}
+    if code:
+        body["code"] = code
+    if num is not None:
+        body["num"] = num
+
+    return _design_call(ENDPOINT_IMPORT, body, project=project, timeout=timeout)

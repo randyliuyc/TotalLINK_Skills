@@ -60,6 +60,8 @@ setup:
 
 下文一律写完整命令：`python3 scripts/tlk.py <命令组> ...`。
 
+场景化 Skill 可在与本文件同级的目录里放 `tlk_group.py` 注册额外命令组（本目录有该插件时才会出现）。**以 `python3 scripts/tlk.py --help` 的实际输出为准**，本表只列 base 自带的四组。
+
 ## 认证管理
 
 每个项目独立配置令牌和服务地址，持久化到 `~/.totallink/config.json`。

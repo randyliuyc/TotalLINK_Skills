@@ -1,0 +1,1017 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA1010</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>Grade Export</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE
+SELECT G.GRDCOD
+      ,G.CUSCOD
+      ,G.GRDNAM
+      ,G.DENSITY
+      ,G.DENUNIT
+      ,CAST(G.HDANNEAL AS DECIMAL(18, 2)) HDANNEAL
+      ,G.HDUNIT1
+      ,G.HDDRAWN
+      ,G.HDUNIT2
+      ,CAST(G.TENSILE AS DECIMAL(18, 2))  TENSILE
+      ,G.TENUNIT
+      ,G.COMMENT
+      ,G.EUSTD
+      ,G.ENSTD
+      ,G.STD1
+      ,G.STD2
+      ,G.SUPCOD
+      ,G.STA
+      ,[C_Min]
+      ,[C_Max]
+      ,[Si_Min]
+      ,[Si_Max]
+      ,[Mn_Min]
+      ,[Mn_Max]
+      ,[P_Min]
+      ,[P_Max]
+      ,[S_Min]
+      ,[S_Max]
+      ,[Cr_Min]
+      ,[Cr_Max]
+      ,[Ni_Min]
+      ,[Ni_Max]
+      ,[Mo_Min]
+      ,[Mo_Max]
+      ,[W_Min]
+      ,[W_Max]
+      ,[Co_Min]
+      ,[Co_Max]
+      ,[V_Min]
+      ,[V_Max]
+      ,[Ti_Min]
+      ,[Ti_Max]
+      ,[Cu_Min]
+      ,[Cu_Max]
+      ,[Pb_Min]
+      ,[Pb_Max]
+      ,[Sn_Min]
+      ,[Sn_Max]
+      ,[Al_Min]
+      ,[Al_Max]
+      ,[Nb_Min]
+      ,[Nb_Max]
+      ,[N_Min]
+      ,[N_Max]
+      ,[O_Min]
+      ,[O_Max]
+      ,[B_Min]
+      ,[B_Max]
+      ,[Bi_Min]
+      ,[Bi_Max]
+      ,[Sb_Min]
+      ,[Sb_Max]
+      ,[H_Min]
+      ,[H_Max]
+      ,G.CREUSR
+      ,G.UPDUSR
+      ,G.CRETIM
+      ,G.UPDTIM
+FROM   QAGRADE G
+       INNER JOIN (SELECT GRDCOD
+                         ,[C_MIN]
+                         ,[C_MAX]
+                         ,[Si_MIN]
+                         ,[Si_MAX]
+                         ,[Mn_MIN]
+                         ,[Mn_MAX]
+                         ,[P_MIN]
+                         ,[P_MAX]
+                         ,[S_MIN]
+                         ,[S_MAX]
+                         ,[Cr_MIN]
+                         ,[Cr_MAX]
+                         ,[Ni_MIN]
+                         ,[Ni_MAX]
+                         ,[Mo_MIN]
+                         ,[Mo_MAX]
+                         ,[W_MIN]
+                         ,[W_MAX]
+                         ,[Co_MIN]
+                         ,[Co_MAX]
+                         ,[V_MIN]
+                         ,[V_MAX]
+                         ,[Ti_MIN]
+                         ,[Ti_MAX]
+                         ,[Cu_MIN]
+                         ,[Cu_MAX]
+                         ,[Pb_MIN]
+                         ,[Pb_MAX]
+                         ,[Sn_MIN]
+                         ,[Sn_MAX]
+                         ,[Al_MIN]
+                         ,[Al_MAX]
+                         ,[Nb_MIN]
+                         ,[Nb_MAX]
+                         ,[N_MIN]
+                         ,[N_MAX]
+                         ,[O_MIN]
+                         ,[O_MAX]
+                         ,[B_MIN]
+                         ,[B_MAX]
+                         ,[Bi_MIN]
+                         ,[Bi_MAX]
+                         ,[Sb_MIN]
+                         ,[Sb_MAX]
+                         ,[H_MIN]
+                         ,[H_MAX]
+                   FROM   (SELECT GRDCOD
+                                 ,ELECOD + '_MIN'                AS ElementType
+                                 ,CAST(ELEMIN AS DECIMAL(18, 3)) AS ElementValue
+                           FROM   QAGRADEELE
+                           UNION ALL
+                           SELECT GRDCOD
+                                 ,ELECOD + '_MAX' AS ElementType
+                                 ,CAST(ELEMAX AS DECIMAL(18, 3))         AS ElementValue
+                           FROM   QAGRADEELE) AS SourceTable
+                          PIVOT(MAX(ElementValue)
+                               FOR ElementType IN ( [C_MIN],
+                                                    [C_MAX],--
+                                                    [Si_MIN],
+                                                    [Si_MAX],--
+                                                    [Mn_MIN],
+                                                    [Mn_MAX],--
+                                                    [P_MIN],
+                                                    [P_MAX],--
+                                                    [S_MIN],
+                                                    [S_MAX],--
+                                                    [Cr_MIN],
+                                                    [Cr_MAX],--
+                                                    [Ni_MIN],
+                                                    [Ni_MAX],--
+                                                    [Mo_MIN],
+                                                    [Mo_MAX],--
+                                                    [W_MIN],
+                                                    [W_MAX],--
+                                                    [Co_MIN],
+                                                    [Co_MAX],--
+                                                    [V_MIN],
+                                                    [V_MAX],--
+                                                    [Ti_MIN],
+                                                    [Ti_MAX],--
+                                                    [Cu_MIN],
+                                                    [Cu_MAX],--
+                                                    [Pb_MIN],
+                                                    [Pb_MAX],--
+                                                    [Sn_MIN],
+                                                    [Sn_MAX],--
+                                                    [Al_MIN],
+                                                    [Al_MAX],--
+                                                    [Nb_MIN],
+                                                    [Nb_MAX],--
+                                                    [N_MIN],
+                                                    [N_MAX],--
+                                                    [O_MIN],
+                                                    [O_MAX],--
+                                                    [B_MIN],
+                                                    [B_MAX],--
+                                                    [Bi_MIN],
+                                                    [Bi_MAX],--
+                                                    [Sb_MIN],
+                                                    [Sb_MAX],--
+                                                    [H_MIN],
+                                                    [H_MAX] --
+                          )) AS PivotTable) E
+               ON E.GRDCOD = G.GRDCOD</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#73</ImageFile>
+  <ListPrint />
+  <MD5HASH>f9fe4d9669482623426c0cad8c94b2bf</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Al_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Al_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>B_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>B_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Bi_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Bi_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>C_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>C_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Co_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Co_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>COMMENT</COLNAME>
+      <CAPTION>Comments</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Cr_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Cr_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Cu_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Cu_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CUSCOD</COLNAME>
+      <CAPTION>Customer</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>DENSITY</COLNAME>
+      <CAPTION>Density</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>DENUNIT</COLNAME>
+      <CAPTION>Density unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>ENSTD</COLNAME>
+      <CAPTION>EN standard</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>EUSTD</COLNAME>
+      <CAPTION>EU standard</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>GRDCOD</COLNAME>
+      <CAPTION>Grade code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>GRDNAM</COLNAME>
+      <CAPTION>Grade name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>H_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>H_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>HDANNEAL</COLNAME>
+      <CAPTION>Hardness annealed</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>HDDRAWN</COLNAME>
+      <CAPTION>Hardness drawn</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>HDUNIT1</COLNAME>
+      <CAPTION>Hardness unit 1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>HDUNIT2</COLNAME>
+      <CAPTION>Hardness unit 2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Grade Export</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Mn_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Mn_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Mo_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Mo_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Nb_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Nb_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Ni_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Ni_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>O_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>O_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Pb_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Pb_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>S_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>S_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Sb_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Sb_MIN</COLNAME>
+      <CAPTION>Sb_Min</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Si_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Si_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Sn_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Sn_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>Stutas</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>STD1</COLNAME>
+      <CAPTION>Standard 1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>STD2</COLNAME>
+      <CAPTION>Standard 2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>SUPCOD</COLNAME>
+      <CAPTION>Supplier</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TENSILE</COLNAME>
+      <CAPTION>Tensile</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TENUNIT</COLNAME>
+      <CAPTION>Tensile unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Ti_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>Ti_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>V_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>V_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>W_MAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1010</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>W_MIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,700 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA1020</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>Standard Operation Export</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE
+SELECT OPESTD
+    , CONCAT (
+        VALTYP
+        , VALLIN
+        ) CTLNAM
+    , VALDES
+    , VALCTL
+INTO #TSTDCTL
+FROM QAOPESTDCTL
+
+-- Pivot for VALDES
+SELECT OPESTD
+    , [N1] AS N1_DES
+    , [N2] AS N2_DES
+    , [N3] AS N3_DES
+    , [N4] AS N4_DES
+    , [N5] AS N5_DES
+    , [N6] AS N6_DES
+    , [N7] AS N7_DES
+    , [N8] AS N8_DES
+    , [L1] AS L1_DES
+    , [L2] AS L2_DES
+    , [P1] AS P1_DES
+    , [P2] AS P2_DES
+    , [P3] AS P3_DES
+    , [P4] AS P4_DES
+    , [P5] AS P5_DES
+INTO #VALDES_PIVOT
+FROM (
+    SELECT OPESTD
+        , CTLNAM
+        , VALDES
+    FROM #TSTDCTL
+    ) AS SourceTable
+PIVOT(MAX(VALDES) FOR CTLNAM IN ([N1], [N2], [N3], [N4], [N5], [N6], [N7], [N8], [L1], [L2], [P1], [P2], [P3], [P4], [P5])) AS PivotTable;
+
+-- Pivot for VALCTL
+SELECT OPESTD
+    , [N1] AS N1_CTL
+    , [N2] AS N2_CTL
+    , [N3] AS N3_CTL
+    , [N4] AS N4_CTL
+    , [N5] AS N5_CTL
+    , [N6] AS N6_CTL
+    , [N7] AS N7_CTL
+    , [N8] AS N8_CTL
+    , [L1] AS L1_CTL
+    , [L2] AS L2_CTL
+    , [P1] AS P1_CTL
+    , [P2] AS P2_CTL
+    , [P3] AS P3_CTL
+    , [P4] AS P4_CTL
+    , [P5] AS P5_CTL
+INTO #VALCTL_PIVOT
+FROM (
+    SELECT OPESTD
+        , CTLNAM
+        , VALCTL
+    FROM #TSTDCTL
+    ) AS SourceTable
+PIVOT(MAX(VALCTL) FOR CTLNAM IN ([N1], [N2], [N3], [N4], [N5], [N6], [N7], [N8], [L1], [L2], [P1], [P2], [P3], [P4], [P5])) AS PivotTable;
+
+-- Join the two pivot tables
+SELECT S.OPESTD
+    , S.OPEDES1
+    , S.OPEDES2
+    ,S.MATTYP
+    ,S.RPTGRP1
+    ,S.RPTTTL1
+    ,S.RPTGRP2
+    ,S.RPTTTL2
+    , S.INSTRUCTION
+    , S.OPEUNT
+    , S.CTLTYP
+    , S.MEAFRQ
+    , S.INSTCAT
+    , S.INSTCOD
+    -- , S.NTYP
+    , vd.N1_DES
+    , vc.N1_CTL
+    , vd.N2_DES
+    , vc.N2_CTL
+    , vd.N3_DES
+    , vc.N3_CTL
+    , vd.N4_DES
+    , vc.N4_CTL
+    , vd.N5_DES
+    , vc.N5_CTL
+    , vd.N6_DES
+    , vc.N6_CTL
+    , vd.N7_DES
+    , vc.N7_CTL
+    , vd.N8_DES
+    , vc.N8_CTL
+    , vd.L1_DES
+    , vc.L1_CTL
+    , vd.L2_DES
+    , vc.L2_CTL
+    , vd.P1_DES
+    , vc.P1_CTL
+    , vd.P2_DES
+    , vc.P2_CTL
+    , vd.P3_DES
+    , vc.P3_CTL
+    , vd.P4_DES
+    , vc.P4_CTL
+    , vd.P5_DES
+    , vc.P5_CTL
+FROM QAOPESTD S
+INNER JOIN #VALDES_PIVOT vd
+    ON S.OPESTD = vd.OPESTD
+INNER JOIN #VALCTL_PIVOT vc
+    ON vd.OPESTD = vc.OPESTD
+ORDER BY S.OPESTD;
+
+-- Clean up temporary tables
+DROP TABLE #TSTDCTL;
+
+DROP TABLE #VALDES_PIVOT;
+
+DROP TABLE #VALCTL_PIVOT;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#53</ImageFile>
+  <ListPrint />
+  <MD5HASH>0bf66d9c2d83243f1254325d7ac3aa89</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CTLTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION>Instrument Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>Instrument Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>Instruction</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L1_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L1_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L2_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L2_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Standard Operation Export</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>MATTYP</COLNAME>
+      <CAPTION>Operation Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>MEAFRQ</COLNAME>
+      <CAPTION>Measurement frequency</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N1_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N1_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N2_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N2_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N3_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N3_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N4_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N4_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N5_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N5_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N6_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N6_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N7_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N7_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N8_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N8_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>Description in English</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>Description in Chinese</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P1_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P1_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P2_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P2_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P3_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P3_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P4_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P4_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P5_CTL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>P5_DES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>RPTGRP1</COLNAME>
+      <CAPTION>Report Group-ENG</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>RPTGRP2</COLNAME>
+      <CAPTION>Report Title-ENG</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>RPTTTL1</COLNAME>
+      <CAPTION>Report Group-CHI</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>RPTTTL2</COLNAME>
+      <CAPTION>Report Title-CHI</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

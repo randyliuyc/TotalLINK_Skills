@@ -33,7 +33,7 @@ setup:
    ```bash
    diff -r /tmp/TotalLINK_Skill_update <本 Skill 的安装目录>
    ```
-   > `<本 Skill 的安装目录>` 视平台而定，例如 WorkBuddy 为 `~/.workbuddy-ai/skills/TotalLINK` 或 `~/.workbuddy/skills/TotalLINK`。
+   > `<本 Skill 的安装目录>` 视平台而定，WorkBuddy 为 `~/.workbuddy/skills/TotalLINK`（本机实测路径，`~/.workbuddy-ai/skills/TotalLINK` 不存在）。
 3. 把差异摘要报给用户，**等用户明确同意**后再复制落地
 4. 落地后重新比对，确认安全约定（SMTP 凭据位置、收件人确认、无自更新指令）未被上游回退；被回退则重新应用
 

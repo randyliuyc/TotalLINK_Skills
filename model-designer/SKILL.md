@@ -59,6 +59,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
    *完成判据：手上有 1 个可参照的模型 XML 或样例。*
 4. **生成 XML**：按 `references/fields.md` 的元素顺序与取值规范产出，文件名 `CODE#NUM-描述.xml`。
 5. **静态诊断**：`python3 scripts/tlk.py model validate <file.xml> [代码 编号]`，把 `error` 全部修掉；`warning` 逐条判定「是不是我这次的写法问题」。
+   模型已经能在设计态跑通之后（第 2 轮迭代起），先跑第 7 步拿到 `columns`，再 `validate <file> <代码> <编号> --columns <逗号分隔列名>` 把 CubeSetting 覆盖检查接上——首次生成时列名还是纸面设计，跳过这条即可。
    *完成判据：`summary.error == 0`。*
 6. **导入**：`python3 scripts/tlk.py model import <file.xml>`，成功返回 `action`（`created` / `updated`）与服务端重算的 `md5`、`cubeSettings` 条数。
    *完成判据：返回 `status: ok` 且 `action` 符合预期（新建应为 `created`）。*
@@ -72,6 +73,8 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 
 ## 错误怎么读
 
+`validate` 的顶层 `error`：`VALIDATE` = 有 error 级诊断（先修再导）；`IO` = 文件读不到或为空。
+
 `validate` 的诊断 `code`：
 
 | code | 含义 | 处理 |
@@ -79,8 +82,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | `STRUCTURE` 类（`UNKNOWN_ELEMENT` / `DUPLICATE_ELEMENT` / `BAD_INT` / `BAD_BOOL` / `ROOT_TAG` / `MISSING_FIELD`） | XML 结构或字段名不对，导入会失败或字段被丢弃 | 对照 `fields.md` 改元素名/类型 |
 | `SYSMODELFLAG` | 系统级标志为 true | 改 `false` |
 | `PARATYPE_ILLEGAL` | `ParaType` 不在 `STR/DROPDOWN/DROPRELOAD/MOREFUNC` | 改类型 |
-| `PARAM_INDEX_UNDEFINED` | 主模型脚本引用了不存在的参数位 | 补 `ParaLabel` 或改占位符 |
-| `PARAM_INDEX_EXTERNAL` | 附加模型引用了未定义参数（可能由调用方传入） | 确认调用链，必要时补参数 |
+| `PARAM_INDEX_UNDEFINED` | 脚本引用了未定义的参数位（主模型会原样留在脚本里；附加模型可能由调用方传参） | 主模型补 `ParaLabel` 或改占位符；附加模型确认调用链 |
 | `ROW_TOKEN_IN_QUERY` | 主模型 `SQLScript` 里用了行级 `#列名#` | 挪到编辑/新增/删除/动作脚本 |
 | `OLD_SEPARATOR` / `SEPARATOR_MIXED` | 旧 `~` 或混用分隔符 | 改用 `~<!>~` |
 | `FLAG_*` | `--LINKxxx` 标记未知、写错字段或格式不对 | 对照 `link-flags.md` |
@@ -92,12 +94,14 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 
 | error | 含义 | 处理 |
 |-------|------|------|
-| `BIZ: 功能模型不存在` | 编号写错或未导入 | 核对编号；未导入先 `import` |
-| `BIZ: 没有操作权限` | 角色闸门或功能授权 | 告知用户找管理员，不换项目重试 |
-| `BIZ`（含哈希不符、无结果集） | 脚本问题或 `MD5HASH` 不一致 | 按 `message` 修脚本；哈希问题重新 `import` 让服务端重算 |
+| `BIZ`，`message` 为「功能模型不存在」 | 编号写错或未导入（`detail` 是英文 `Function model does not exist.`） | 核对编号；未导入先 `import` |
+| `BIZ`，`message` 含「没有操作权限」 | 角色闸门或功能授权 | 告知用户找管理员，不换项目重试 |
+| `BIZ`，其他（哈希不符、无结果集） | 脚本问题或 `MD5HASH` 不一致 | 按 `message` 修脚本；哈希问题重新 `import` 让服务端重算 |
 | `AUTH` | 令牌无效 | 提示用户更新令牌 |
+| `CONFIG` | 没有可用项目配置 | 回到 base 的 `env add` / `env use` |
 | `NETWORK` | 连不上 `base_url` | 检查地址，用 base 的 `auth verify` 定向排查 |
 | `HTTP` | `404` = 该环境未部署该端点；5xx = 后端异常 | 404 告知用户版本不支持；5xx 稍后重试 |
+| `UNKNOWN` | 其他异常 | 把 `message` 原文报给用户 |
 
 ## 任务 → 必读文档
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""模型 XML 静态诊断（零网络）。
+"""模型 XML 静态诊断（零网络）。由 `tlk model validate` 调用，本身不提供命令行入口。
 
-用法:
-    python3 validate_model.py <model.xml> [code num] [--columns COL1,COL2]
+入口：
+    validate_file(path, expect_code=None, expect_num=None, columns=None) -> dict
 
 诊断在导入之前完成：找出「导入会被拒」「模型必然跑不通」的硬错误，
 以及「大概率不对」的警告。规则依据 references/ 与 21 个真实样例。
@@ -12,15 +12,15 @@
     warning  运行时大概率不对（旧分隔符、参数未定义、CubeSetting 未覆盖列等）
     info     写法提示，不影响执行
 
-退出码: 0 无 error / 1 存在 error / 2 用法或 IO 错误
+返回 dict：有 error 级诊断时带 error=VALIDATE，文件读不了带 error=IO，
+其余情况不带 error 字段（与 base「含 error 即失败」的约定一致）。
 
---columns 传 `tlk model run` 返回的 columns（逗号分隔），用于对齐
+columns 传 `tlk model run` 返回的 columns（列表），用于对齐
 「CubeSetting 是否覆盖实际返回列」；不传则跳过该检查。
 """
 
 import json
 import re
-import sys
 import xml.etree.ElementTree as ET
 
 ROOT_TAG = "SysDataModelXML"
@@ -56,6 +56,8 @@ USAGE_INT = {"DMNUM", "SCRIPT"}
 TOKEN_PREFIXES = ("LINKSCRIPTGET", "LINKSCRIPTRUN", "LINKRES", "LINKID_",
                   "SYSUSER", "LC.", "LINKDROP", "LINKLIST", "LINKTEXT", "LOAD")
 TOKEN_EXACT = {"LINKROWID", "LOGIN_USER", "TAG"}
+# 行级占位符大小写不敏感（脚本里既有 #LINKROWID# 也有 #LOGIN_USER#）
+TOKEN_PREFIXES_UPPER = tuple(p.upper() for p in TOKEN_PREFIXES)
 
 # --LINKxxx 标记：实证标记 + 应所在字段（None = 多字段通用）
 FLAG_FIELD = {
@@ -311,8 +313,9 @@ def check_placeholders(root, slots, last, is_main, d):
     """
     {N} / #列名# / 字面花括号。
 
-    附加模型（ModelNum 不在 1~10）由主模型或其他模型调用，参数与行数据可能
-    来自调用方，未定义的 {N} / #列名# 只提示不判错；主模型则判错。
+    未定义的 {N} 只报 warning：附加模型（#501、#1000 等）本来就可能由调用方传参，
+    样例 `ERAQA101010X501X#1000` 就是这样用 `{4}`/`{5}` 的，判 error 会误伤。
+    行级占位符出现在 SQLScript 只对主模型（#10）提示——附加模型的检查脚本能拿到行数据。
     """
     defined = {s["index"] - 1: s for s in slots if s["label"]}
     used = set()
@@ -329,13 +332,9 @@ def check_placeholders(root, slots, last, is_main, d):
                 d.error("PARAM_INDEX_UNDEFINED", field,
                         f"{{{idx}}} 超出参数上限（最大 {{9}}）")
             elif idx not in defined:
-                message = (f"{{{idx}}} 没有对应参数（ParaLabel{idx + 1:02d} 为空），"
-                           "运行时会原样留在脚本里")
-                if is_main:
-                    d.error("PARAM_INDEX_UNDEFINED", field, message)
-                else:
-                    d.warning("PARAM_INDEX_EXTERNAL", field,
-                              message + "；附加模型可能由调用方传参，确认调用链")
+                d.warning("PARAM_INDEX_UNDEFINED", field,
+                          f"{{{idx}}} 没有对应参数（ParaLabel{idx + 1:02d} 为空）："
+                          "主模型会把它原样留在脚本里；附加模型可能由调用方传参，确认调用链")
 
         leftover = BRACE_TOKEN_RE.sub("", text)
         if field in BRACE_FIELDS and ("{" in leftover or "}" in leftover):
@@ -356,9 +355,11 @@ def check_placeholders(root, slots, last, is_main, d):
 
 
 def is_runtime_token(name):
-    if name in TOKEN_EXACT:
+    """运行时占位符（非本模型列名）：大小写不敏感匹配前缀与白名单。"""
+    upper = name.upper()
+    if upper in TOKEN_EXACT:
         return True
-    return name.upper().startswith(TOKEN_PREFIXES) or name.startswith(TOKEN_PREFIXES)
+    return upper.startswith(TOKEN_PREFIXES_UPPER)
 
 
 def check_row_tokens(text, field, d):
@@ -616,7 +617,8 @@ def validate_tree(root, expect_code=None, expect_num=None, columns=None):
 
     check_structure(root, d)
     code, num = check_identity(root, d, expect_code, expect_num)
-    is_main = num is not None and 1 <= num <= 10
+    # 主模型 = 编号 10（samples/README：主模型之外每个 ModelNum 是附加模型）
+    is_main = num == 10
     slots = param_slots(root)
     last = check_params(root, slots, d)
     check_placeholders(root, slots, last, is_main, d)
@@ -663,45 +665,8 @@ def _result(path, code, num, diag):
     return result
 
 
-def _parse_columns(raw):
+def parse_columns(raw):
+    """把 `--columns COL1,COL2` 的原始字符串转成列名列表。"""
     if not raw:
         return None
     return [c.strip() for c in raw.split(",") if c.strip()]
-
-
-def main(argv):
-    args = [a for a in argv if not a.startswith("--")]
-    opts = [a for a in argv if a.startswith("--")]
-    columns = None
-    for opt in opts:
-        if opt.startswith("--columns="):
-            columns = _parse_columns(opt.split("=", 1)[1])
-        elif opt == "--columns":
-            print("用法: --columns=COL1,COL2", file=sys.stderr)
-            return 2
-        else:
-            print(f"未知选项 {opt}", file=sys.stderr)
-            return 2
-
-    if not args:
-        print(__doc__, file=sys.stderr)
-        return 2
-
-    expect_code = args[1] if len(args) > 1 else None
-    expect_num = None
-    if len(args) > 2:
-        try:
-            expect_num = int(args[2])
-        except ValueError:
-            print(f"编号必须是整数，实际 {args[2]!r}", file=sys.stderr)
-            return 2
-
-    result = validate_file(args[0], expect_code, expect_num, columns)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
-    if "error" in result:
-        return 1
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))

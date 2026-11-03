@@ -78,12 +78,9 @@ def cmd_auth_verify(args):
 
 def _parse_params_json(raw):
     try:
-        params = json.loads(raw)
-    except json.JSONDecodeError as e:
-        _emit({"error": "PARAM", "message": f"--params-json 不是合法 JSON：{e}"})
-    if not isinstance(params, list):
-        _emit({"error": "PARAM", "message": "--params-json 必须是 JSON 数组，如 '[\"\"]'"})
-    return params
+        return tlk_core.parse_params_json(raw)
+    except ValueError as e:
+        _emit({"error": "PARAM", "message": f"--params-json {e}"})
 
 
 def cmd_call(args):

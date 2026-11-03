@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """TotalLINK CLI 核心：配置管理、Payload 构造、请求与错误处理。
 
-职责边界：本模块只做「读配置 → 构造请求 → 发请求 → 归类错误」，不做命令行解析与输出格式。
+职责边界：本模块只做「读配置 → 构造请求 → 发请求 → 归类错误」，不做命令行解析与输出格式，
+报错文案里也不出现命令行选项名（选项由调用方翻译成自己的说法）。
 命令行入口见同目录 tlk.py。
 
 所有业务调用统一走 /api/DataModel/linkDMAIAction，服务端根据 scriptType 自动区分查询/提交。
+设计态端点（linkDMExport / linkDMRun / linkDMImport）见本文件末尾，同样只做请求与错误归类。
 
 配置：~/.totallink/config.json，形如
   {"active": "<项目名>", "projects": {"<项目名>": {"auth_token": "tlk_...", "base_url": "..."}}}
@@ -28,7 +30,7 @@ ENDPOINT_IMPORT = "/api/DataModel/linkDMImport"
 
 DEFAULT_BASE_URL = "http://124.71.144.80:8088"
 
-# 设计态运行的返回行数：默认 20，服务端上限 200（超出会被服务端截断，这里提前拦住）
+# 设计态运行的返回行数：默认 20，服务端上限 200（越界由命令行层拦，不静默截断）
 DEFAULT_MAX_ROWS = 20
 MAX_ROWS_LIMIT = 200
 
@@ -150,6 +152,22 @@ def _resolve_project(project_name=None):
             "message": f"配置文件不存在：{CONFIG_PATH}，请先运行首次认证配置",
         }
     return project_key, proj_cfg, None
+
+
+def parse_params_json(raw):
+    """
+    把 --params-json 的原始字符串解析成参数列表。
+
+    命令行层共用同一份校验与文案：非法时抛 ValueError（不含选项名，由调用方补前缀），
+    本模块不产出输出格式。
+    """
+    try:
+        params = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"不是合法 JSON：{e}") from e
+    if not isinstance(params, list):
+        raise ValueError("必须是 JSON 数组，如 '[\"\"]'")
+    return params
 
 
 def _post(url, payload, project_key, timeout=DEFAULT_TIMEOUT):
@@ -416,13 +434,8 @@ def dm_run(code, num, params=None, script_type=0,
     script_type=0 真执行 BaseScript（返回 columns/captions/rows/rowCount/elapsedMs）；
     其他值不执行数据库，只返回占位符展开后的 formattedScript。
     params 按位置对应模型参数 1..N；row_data 替换脚本里的 #列名#。
+    max_rows 的合法区间由调用方校验（本模块只管发请求）。
     """
-    if max_rows < 1 or max_rows > MAX_ROWS_LIMIT:
-        return {
-            "error": "PARAM",
-            "message": f"--max-rows 须在 1~{MAX_ROWS_LIMIT} 之间（服务端上限 {MAX_ROWS_LIMIT}）",
-        }
-
     return _design_call(
         ENDPOINT_RUN,
         {

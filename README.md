@@ -39,7 +39,7 @@ totallink-base/
 ├── model-designer/          # 数据模型设计 Skill
 │   ├── SKILL.md
 │   ├── tlk_group.py         #   注册 model 命令组（export / import / run / validate）
-│   ├── references/          #   字段表 / 占位符 / 标记 / 模型设置 / 环境差异
+│   ├── references/          #   字段表 / 占位符 / 脚本标记 / 动作脚本 / 模型设置 / 环境差异
 │   │   └── samples/         #   21 个真实模型 XML
 │   └── scripts/
 │       └── validate_model.py #  纯 XML 静态诊断

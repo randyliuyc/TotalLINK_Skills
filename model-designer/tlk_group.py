@@ -187,6 +187,11 @@ def cmd_dict(args):
         out["columns"] = cols            # 归一化清单：问卷/任务书直接用
         out["columnNames"] = [c["name"] for c in cols]
         out["normalized"] = True
+        if not cols:
+            out["note"] = ("列清单为空：该表可能不在当前字典模型覆盖的连接/库上"
+                           "（环境常多库并存，如 MES 表与 X3 表分属不同连接），"
+                           "或表名拼写不同。先确认表所在连接（问用户/查存量模型引用），"
+                           "再用 --conn/--db 重试；仍为空则改问用户列结构，不要猜。")
     else:
         out["normalized"] = False
         out["note"] = ("列映射未知（schema 与已知词汇表不匹配），以下为原始结构，"

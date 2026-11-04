@@ -15,3 +15,21 @@
 3. 模板型内容（H5LIST/H5PARA/500 表单 JSON）不从零手写：从 `samples-index.md` 或任务书 §6 指定的存量模型克隆，只替换 `#列名#` 与列名。
 4. 用户需求如果明确说「APP 上用」「FB 网页上用」，问卷按对应能力组走，交付时人工断言清单交用户实机确认（`model run` 验不了模板渲染）。
 5. 未来扩展：在此文档补环境差异，在 `endpoints.md` 补契约，不重构语法参考（fields/link-flags/callfunction-actions/placeholders 是环境无关的）。
+
+## 连接（ConnString）路由与多库事实
+
+`ConnString` 决定脚本在哪个数据库执行，**同一环境往往并存多个连接**，表必须挂对连接：
+
+- 各连接的表域不同：如 TotalLINK 开发环境中，`LINKDB` = MES 业务表（STKAPLH/STKAPL/ITM 等），
+  `LINKX3DEMO` = X3 ERP 表（DEMO.ITMMASTER 等）。哪个连接有哪些表**查不到静态清单**，
+  以 `model dict` 能否返回列 + 存量模型引用为证据，拿不准就问用户。
+- **跨连接不能 JOIN**：一条脚本只在一个连接上执行，SQL 里只能引用该连接库内的表。
+  需要跨库信息时拆成两个模型（各自挂自己的连接），或由业务侧冗余字段承担。
+- `dict` 对「不在当前字典模型覆盖内的表」会返回 `status ok` + 空列清单——**这不是表不存在**，
+  可能只是表在另一个连接的库上。空列时先怀疑连接归属，再问用户（CLI 侧已有对应提示）。
+- 问卷 L1-1（涉及哪些表）必须连带确认**每张表所在的连接**，并写进任务书 §1 的 ConnString 栏。
+
+### APP 与 Client 的传参模式差异
+
+同一段 SQLRemove/行定位脚本在两端行为不同：APP 按钮删除走模型参数 `{0}`，
+Client/运行器走行级令牌 `#LINKROWID#`。权威说明见 `app-buttons.md` §0。

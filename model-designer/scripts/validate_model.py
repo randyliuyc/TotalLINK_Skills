@@ -704,6 +704,174 @@ def check_family(root, env, d):
 
 # ---------------------------------------------------------------- 入口
 
+def _mask_sql(sql):
+    """注释与字符串字面量内容置空（保持长度），避免其内逗号/括号干扰扫描。"""
+    out = list(sql)
+    i, n = 0, len(sql)
+    while i < n:
+        c = sql[i]
+        if c == "'":
+            i += 1
+            while i < n:
+                if sql[i] == "'":
+                    if i + 1 < n and sql[i + 1] == "'":
+                        out[i] = out[i + 1] = " "
+                        i += 2
+                        continue
+                    break
+                out[i] = " "
+                i += 1
+            i += 1
+        elif c == "-" and i + 1 < n and sql[i + 1] == "-":
+            while i < n and sql[i] != "\n":
+                out[i] = " "
+                i += 1
+        elif c == "/" and i + 1 < n and sql[i + 1] == "*":
+            while i + 1 < n and not (sql[i] == "*" and sql[i + 1] == "/"):
+                out[i] = " "
+                i += 1
+            i += 2
+        else:
+            i += 1
+    return "".join(out)
+
+
+def _split_top_level(s):
+    """按顶层逗号切分（括号深度归零处才切），过滤空段。"""
+    out, depth, cur = [], 0, ""
+    for ch in s:
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        if ch == "," and depth == 0:
+            out.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    out.append(cur.strip())
+    return [x for x in out if x]
+
+
+def _balanced(sql, i):
+    """sql[i] 必须是 '('，返回与它配对的 ')' 下标。"""
+    depth = 0
+    n = len(sql)
+    while i < n:
+        if sql[i] == "(":
+            depth += 1
+        elif sql[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return -1
+
+
+def _iter_inserts(sql):
+    """逐条产出 (列清单文本, VALUES 值文本)。INSERT..SELECT 不产出。"""
+    for m in re.finditer(r"INSERT\s+INTO\s+[\w.\[\]]+", sql, re.I):
+        i = m.end()
+        while i < len(sql) and sql[i].isspace():
+            i += 1
+        if i >= len(sql) or sql[i] != "(":
+            continue
+        j = _balanced(sql, i)
+        if j < 0:
+            continue
+        cols_txt = sql[i + 1:j]
+        mv = re.match(r"\s*VALUES\s*\(", sql[j + 1:], re.I)
+        if not mv:
+            continue  # INSERT..SELECT / 其他形态，静态比对待人工
+        k0 = j + 1 + mv.end() - 1
+        k = _balanced(sql, k0)
+        if k < 0:
+            continue
+        yield cols_txt, sql[k0 + 1:k], m
+
+
+def check_sql_lint(root, d):
+    """脚本轻量 lint（best-effort，warning 级，复杂形态保守跳过）：
+    ① INSERT INTO .. (列) VALUES (..) 列/值数目比对（括号平衡扫描，逐 INSERT 语句）；
+    ② CubeSetting 列级 COLNAME 与 SQLScript 输出别名对齐（仅对纯投影 SQL 检查，
+       含 CASE/子查询等复杂形态整体跳过，避免误报）。"""
+    for tag in ("SQLScript", "SQLUpdateScript", "SQLNew", "SQLClear"):
+        sql = text_of(root, tag)
+        if not sql:
+            continue
+        masked = _mask_sql(sql)
+        for cols_txt, vals_txt, m in _iter_inserts(masked):
+            cols = _split_top_level(cols_txt)
+            groups = _split_top_level(vals_txt)
+            # 单行：groups == [内容]；多行：groups == ['(...)', '(...)', ...]
+            if len(groups) > 1 and all(g.startswith("(") and g.endswith(")") for g in groups):
+                rows = [g[1:-1] for g in groups]
+            else:
+                rows = [vals_txt]
+            for ri, row in enumerate(rows, 1):
+                nv = len(_split_top_level(row))
+                if len(cols) != nv:
+                    d.warning("INSERT_COLVAL_MISMATCH", tag,
+                              f"INSERT INTO 列数 {len(cols)} 与 VALUES 值数 {nv} 不一致"
+                              f"（第 {ri} 组；CONVERT(...) 等函数内逗号已按括号深度处理）；"
+                              f"实机报「列的数目大于 VALUES 子句中指定的值的数目」即此类问题")
+
+    # CubeSetting COLNAME vs SQLScript 别名（保守：仅纯投影 SQL 检查）
+    cube = root.find("CubeSetting")
+    colnames = []
+    if cube is not None:
+        for el in cube.iter("DMCubeSetting"):
+            cn = field_text(el, "COLNAME")
+            if cn and not cn.startswith("LINKRESERVE_") and not cn.startswith("LANGUAGE-"):
+                colnames.append(cn)
+    if colnames:
+        sql = _mask_sql(text_of(root, "SQLScript") or "")
+        names, legacy_alias, reliable = set(), False, True
+        for seg in re.split(r"\bUNION ALL\b|\bUNION\b", sql, flags=re.I):
+            mm = re.search(r"\bSELECT\b(.*?)(?:\bFROM\b|$)", seg, re.S | re.I)
+            if not mm:
+                reliable = False
+                break
+            head = mm.group(1)
+            if re.search(r"\bCASE\b|\bTOP\b|\(", head, re.I):
+                reliable = False
+                break  # 复杂投影：整体放弃，不误报
+            for item in _split_top_level(head):
+                m2 = re.match(r"^(\S+)\s+AS\s+(\w+)$", item, re.I)
+                if not m2:
+                    parts = item.split()
+                    if len(parts) == 2 and re.match(r"^[\w\u4e00-\u9fff]+$", parts[1]):
+                        m2 = re.match(r"^(\S+)\s+(\w+)$", item)
+                if m2:
+                    expr, alias = m2.group(1), m2.group(2)
+                    names.add(alias)
+                    if re.search(r"[\u4e00-\u9fff]", alias):
+                        legacy_alias = True
+                    # 底层列名候选：简单列引用取其名（带前缀取末段）
+                    if re.match(r"^\w+(\.\w+)*$", expr):
+                        names.add(expr.split(".")[-1])
+                    continue
+                if re.match(r"^\w+(\.\w+)*$", item):
+                    names.add(item.split(".")[-1])
+                else:
+                    reliable = False
+                    break
+            if not reliable:
+                break
+        if reliable and names:
+            stale = [c for c in colnames if c not in names]
+            if stale:
+                d.warning("CUBE_COLNAME_UNMATCHED", "CubeSetting",
+                          f"列级 COLNAME {stale} 未出现在 SQLScript 结果集列名"
+                          f"（别名或底层列名）中——开窗/列表按 COLNAME 匹配结果集，"
+                          f"对不上会渲染空行（见 datasearch-windows.md）")
+        if legacy_alias:
+            d.info("SQL_ALIAS_LEGACY", "SQLScript",
+                   "SELECT 含中文显示别名（早期样例风格）。新模型推荐：SQL 直接用表列名，"
+                   "多语言标题走 CubeSetting（COLNAME=结果集列名，运行器翻译）/"
+                   "H5 模板内联 label（APP）；计算列可用英文标识符别名。存量模型可保留不迁移。")
+
+
 def validate_tree(root, expect_code=None, expect_num=None, columns=None, env=None):
     d = Diagnostics()
 
@@ -721,6 +889,7 @@ def validate_tree(root, expect_code=None, expect_num=None, columns=None, env=Non
     check_placeholders(root, slots, last, is_main, d)
     check_separators(root, d)
     check_flags(root, d)
+    check_sql_lint(root, d)
     check_cube(root, d, columns)
     check_usage(root, d)
     check_modelsetting(root, d)

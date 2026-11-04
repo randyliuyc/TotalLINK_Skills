@@ -129,6 +129,8 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | 数据检查/防呆（LINKPREVENT/LINKCONFIRM） | `references/link-flags.md`、`references/samples/ERAQA101010X#1000-删除检查.xml` |
 | 附加模型/数据挖掘联动 | `references/samples/README.md`、`references/samples/ERAQA101010X#21-Release.xml` |
 | APP/FB 模板克隆来源 | `references/samples-index.md` |
+| APP 按钮怎么写（新建/动作/删除，`linkquick`/`btnid`/`para`/`script`、APP 与 Client 传参模式区别） | `references/app-buttons.md`（属性级细节见 `../totallink-app-help/references/linkquick.md`、`attributes.md`） |
+| 开窗选择窗（linkdatasearch 数据源模型，列表空白的排查） | `references/datasearch-windows.md` |
 | FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `../formbuilder-json-generator/`（布局/控件/按钮/表达式规则） |
 | APP 模型要写前端脚本（扫码/校验/刷新钩子） | `references/js-hooks.md` |
 | APP H5 模板的控件 class、link- 属性、取值/提交链路等客户端约定 | `../totallink-app-help/references/`（h5-guide / classes-ids / attributes / methods） |
@@ -139,6 +141,9 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 
 - 根元素 `<SysDataModelXML>`，字段全集与取值规范见 `references/fields.md`。
 - 两套参数占位符（勿混）：模型参数 `{N}`（0 基，`{0}` = 参数 01）；网格行级值 `#列名#`（数字列写 `0#列名#` 防 NULL/空串）。详见 `references/placeholders.md`。
+- **APP 按钮删除传参走 `{0}`**（`para="#LINKROWID#" script="3"` 把行 ID 当模型参数传入）；`#LINKROWID#` 行级令牌只在 Client/运行器行编辑上下文生效——见 `references/app-buttons.md` §0。
+- **SQL 列名风格（2026-11-04 定）**：新模型 SELECT 不为显示目的写中文别名（早期样例风格），直接用表列名；标题走 CubeSetting CAPTION（运行器）/ H5 模板内联 label（APP）；聚合列才用英文别名。validate 对中文别名报 `SQL_ALIAS_LEGACY`（info）。
+- 开窗选择窗契约：CubeSetting `COLNAME` 必须等于结果集列名，`text-value` 引用实际列名，对不上即 APP 列表「有行但空白」——见 `references/datasearch-windows.md`。
 - 参数四件套：`ParaLabel01~10` / `ParaType01~10` / `ParaSearchCode01~10` / `ParaDefVal01~10`，最多 10 个，存在 SYSSEARCH 表；`ParaDefVal` 写 `?` 表示必填（同时决定附加模型是否需人工补参）。
 - 恒填字段：`ImageFile = #LINKRES#数字`（数字取 0~99）；`MD5HASH` 留空。
 - 脚本注释标记（`--LINKEDITMODE`、`--LINKREQUIRED:` 等）见 `references/link-flags.md`。

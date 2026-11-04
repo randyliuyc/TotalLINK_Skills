@@ -3,6 +3,7 @@
 > 用途：问卷命中「界面形态」后，从这里找模板克隆来源（只替换 `#列名#` 与列名，不从零手写 HTML/JSON）。
 > 状态：**已填（2026-11-04）**——基于 `samples/` 43 个精选样例 + `samples-corpus/` 640 个全量语料（四个项目）盘点。
 > 分隔符注意：全部语料 0 处 `~<!>~`（旧 `~` 只出现在 CallFunction/SQLClear 动作语法里）；读样例容忍旧写法，**产出必须 `~<!>~`**。
+> **SQL 列名风格注意（2026-11-04 定）**：语料 SQL 普遍使用中文显示别名——这是早期设计风格，**不作新模型推荐**。克隆模板时 H5 模板骨架照抄（改占位符），SQL 列名改写为表列名 + CubeSetting CAPTION 翻译（见 `datasearch-windows.md`、`fields.md` CubeSetting 节）。
 
 ## 归类维度
 
@@ -25,9 +26,13 @@
 | APP | 表格模式+行内编辑 | 主模型 #5 | H5GRIDHDR+H5GRIDDTL/SQLUpdateScript | `KEEWAYZUP10#5-整单收货.xml` | 同 ModelCode 不同入口（#5/#7/#10）；行内编辑注释三件套（--LINKEDITMODE/--LINKSAVEONENTERKEY/--LINKDATAAUTOSAVE）+ `ModelSetting.EditCols`；表头放动作按钮 linkquick+btnid |
 | APP | 表格模式（第二证） | 主模型 #10 | H5GRIDHDR+H5GRIDDTL | `KEEWAYZUP20#10-存货变动.xml` | 与 #5 交叉验证 GRIDHDR 写法（语料中仅 2/139 用表格，**卡片是主流**） |
 | APP | 扫码解析 | 附加 #1522 | SQLScript | `KEEWAYZUP107X#1522-扫描解析.xml` | 托/箱分支、`|`/`/` 定界解析；报错范式 `SELECT N'lang:{…}' 数据检查 RETURN` |
-| APP | 参数区满配 | 附加 #501 | 参数四件套 01~10 | `KEEWAYZUP5010X#501-扫码检验.xml` | 10 槽全用 + 必填默认值（该文件用全角 `？`，生成仍按半角 `?`）+ SQLClear INSERT 提交 |
+| APP | 参数区满配 | 附加 #501 | 参数四件套 01~10 | `KEEWAYZUP5010X#501-扫码检验.xml` | 10 槽全用 + 必填默认值（该文件用全角 `？`，生成仍按半角 `?`）+ SQLClear INSERT 提交。**注意：该文件 H5Para 实际为空**——APP 框架可按 ParaLabel 自动渲染参数表单，但校验器要求显式 H5Para（服务端兜底已删除），生成时必须写 |
 | APP | 提交/动作双承载 | 附加 #21 | SQLClear+CallFunction | `KEEWAYZUP1010X#21-提交.xml` | `--LINKREFRESH:目标模型(参数)` 声明刷新 + `#LINKID_ACTION#` 批次 + `CALLFUNCTION~X3WEB~RUN`（旧分隔符→产出用 `~<!>~`） |
 | APP | 主从子表 | 附加 #700 | H5List | `KEEWAYZUP1010X#700-APP收货明细.xml` | 主模型 SQL 头 `--LINKDETAILLIST(code,num,para...)` 挂载；子 SQL 输出 `pid` 匹配父卡片 `id`；行级删除按钮；`AllDataTreatTitle`=批量操作标题；SQLRemove |
+| APP | 行删除传参范式 | 附加 #700 | SQLRemove | `KEEWAYZUP1010X#700-APP收货明细.xml`、`KEEWAYZUP2010X#700-移库明细.xml` | **APP 按钮删除：SQLRemove 用 `{0}` 不用 `#LINKROWID#`**——按钮 `para="#LINKROWID#" script="3"` 把行 ID 当模型参数传入；`#LINKROWID#` 行级令牌只在 Client/运行器行编辑上下文可用（详见 `app-buttons.md` §0） |
+| APP | 新建按钮范式 | 主模型 #10 | H5List | `KEEWAYZUP30#10-移库领料-工单-废弃.xml` | `linkquick="8" btnid="501" id="linknewrecord" linkparafill="1" linkrefresh="1"` 打开附加模型参数表单；`linkparafill` 参数预填疑似按位置对齐主模型参数【待源码核实】，设计时附加模型参数 01/02 与主模型同名同义 |
+| APP | 明细行内编辑 | 附加 #701 | SQLUpdateScript+SQLNew | `KEEWAYZUP1010X#701-批量导入粘贴收货明细.xml` | `--LINKEDITMODE` + `@列名@` 取新值 + `WHERE PK_0='#LINKROWID#'`；SQLNew 首行 `--LINKADDNEWROWS` |
+| APP | 开窗选择窗 | 独立模型 #10 | SQLScript | `KEEWAYZUP.LOC#10-选择库位.xml` | linkdatasearch 数据源范式：中文别名输出列、`LIKE '%{0}%'` 关键字过滤；**CubeSetting COLNAME 必须等于 SQL 别名**，否则 APP 列表有行但数据空白（契约详见 `datasearch-windows.md`） |
 | APP | 图片展示 | 附加 #703 | H5List/JavaScript | `KEEWAYZUP2010X#703-图片展示.xml` | BLOB→base64 + `linkMediaImages` + 双指缩放 JS |
 
 ### FB（TMESPUR，百隆越南采购）
@@ -35,7 +40,7 @@
 | 环境 | 形态 | 模型族角色 | 模板字段 | 样例文件 | 备注 |
 |------|------|-----------|---------|----------|------|
 | FB | 列表数据源 | 主模型 #9 | SQLScript/参数四件套 | `TMESPUR01#9-采购申请.xml` | 纯数据源样板：UseParameter + `{0}~{3}` 占位 + 权限过滤；H5 全空 |
-| FB | 详情卡片页 | 主模型 #10 | H5List/JavaScript | `TMESPUR01#10-采购申请详情.xml` | 按钮标志位列（SABFLG/DEBFLG…）+ `btnid` 按钮 + `--LINKDETAILLIST` 注释 + `contextTap` 钩子 |
+| FB | 详情卡片页 | 主模型 #10 | H5List/JavaScript | `TMESPUR01#10-采购申请详情.xml` | 按钮标志位列（SABFLG/DEBFLG…）+ `btnid` 按钮 + `--LINKDETAILLIST` 注释 + `contextTap` 钩子 + `#LINKDOCNUM({0},PRQ)#` 幂等取号（第一参已有单号非空则回填，空行才取新号，见 `placeholders.md`） |
 | FB | 明细（tableData 数据源） | 主模型 #20 | SQLUpdateScript | `TMESPUR01#20-采购申请明细.xml` | `pid` 关联 + MERGE INTO upsert（行编辑回写标准写法） |
 | FB | 参数投影最小模型 | 附加 #110 | SQLScript | `TMESPUR01#110-…查询参数.xml` | `SELECT '{0}' AS …` 纯参数投影 + UseParameter，3KB 极简形态 |
 | FB | 复杂查询/报表 | 附加 #120 | SQLScript/SQLUpdateScript/ParaDefVal | `TMESPUR01#120-申请明细查询.xml` | CTE 多源 JOIN + 可回写 MERGE + `#LINKDATE(0,-1,0,yyyy-MM-dd)#` 默认值 |
@@ -52,7 +57,7 @@
 | 运行器 | .A 子家族+文件超链 | 主模型 #10 | SQLRemove | `ERAQA205010X.A#10-Tracking Information.xml` | `.A` 子家族命名；LINKROWID 隐藏列；SQL 拼 `#LINKSERVER#` 文件超链接列（LINKDOCFIL） |
 | 运行器 | 打印/导出 | 附加 #501 | SQLClear+CallFunction | `ERAQA401010X#501-客户报告-英文.xml` | `#LINKSCRIPTGET` 前置校验 + SQLClear EXEC 存储过程出报表数据 + `CALLFUNCTION~FILEEXPORT` 出 PDF（fileType 换 EXCEL 即信封导出变体） |
 | 运行器 | ERP 回写 | 附加 #501 | CallFunction | `KEEWAYZUPSCH2010X#501-转采购订单.xml` | `CALLFUNCTION~X3WEB~RUN` 调 X3 Web 服务 + 三语 LINKPREVENT/LINKCONFIRM 三分支 |
-| 运行器 | 自动单号动作 | 附加 #21 | SQLClear | `KEEWAYZUPSCH1010X#21-新计划单.xml` | `#LINKDOCNUM(,{0})#` 自动单号 + 三语 LINKPREVENT |
+| 运行器 | 自动单号动作 | 附加 #21 | SQLClear | `KEEWAYZUPSCH1010X#21-新计划单.xml` | `#LINKDOCNUM(,{0})#` 自动单号（{0}=STOFCY 地点值直接当规则码 → 按地点分段流水）+ 三语 LINKPREVENT。占位符权威语义见 `placeholders.md`「单据编号占位符」 |
 
 ### 运行器基础形态（存量 21 个）
 

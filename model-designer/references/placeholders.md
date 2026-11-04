@@ -61,6 +61,39 @@ S.CTLTYP LINKDROPVALIDCTLTYP
 | `#LINKID_ACTION#` / `#LINKID_RESULT#` | 动作/结果 ID（`SysDataModel.vb:3723/3727`）。样例未出现【待核对】 |
 | `#SYSUSER.UDFxxx#` | 登录用户自定义字段。样例未出现【待核对】 |
 | `#TAG#` | 标签打印场景（`LinkDefine.cs:365`） |
+| `#LINKDOCNUM([已有单号,]规则码)#` | 单据自动编号（三种形态与取号规则见下节） |
+
+### 单据编号占位符：`#LINKDOCNUM` 三形态
+
+权威来源：`BaseLib/Modules/GlobalFormula.vb:337-410`（替换层）、`BaseLib/Models/LinkDocNum.vb`（取号），2026-11-04 源码核实。
+
+| 形态 | 语义 |
+|------|------|
+| `#LINKDOCNUM(已有单号,规则码)#` | **第一参非空 → 原样回填该值，不产生新号**（幂等）；第一参为空（写作 `(,规则码)`）→ 按规则取新号 |
+| `#LINKDOCNUM(规则码)#` | 单参 = 规则码，直接取新号 |
+| `#LINKDOCNUM.规则码#` / `#LINKDOCNUMBY(规则码)#` | 无条件取新号（`GlobalFormula.vb:337-352` / `:389-410`） |
+
+取号规则（`LinkDocNum.NewDocNum`）：
+
+- 规则码 = **LINKDOCNUM 表的 `NUMCODE`**（键 CUSCODE+NUMCODE），存 `NUMFORMULA`（公式）/`NUMLEN`（流水位数）/`RESETFMT`（重置周期）/`NUMLAST`（当前流水）；**不是前缀字面量**——前缀写在公式里。
+- 规则不存在时**自动创建默认规则**：公式 `{规则码}#LINK_THISMONTH4##LINKNUM#`、NUMLEN=5 → 生成 `规则码+yyMM+5位流水`，如 SAR261100001（TMESSTK2010X#501 实测吻合）。
+- 公式可嵌日期占位符（`#LINK_THISMONTH4#`=yyMM、`#LINK_THISYEAR#`=yyyy 等，`GlobalFormula.vb:771-777`）+ `#LINKNUM#`（NUMLEN 位左补零）。
+- 重置周期 `RESETFMT`：`Y`=按年 / `M`=按月 / `D`=按日，空缺省按月；周期切换后流水归 1。
+- 取号即 UPDATE 回写 `NUMLAST/DOCNUMLAST`：后续 INSERT 失败回滚**不回收**（会断号）；先读后写无锁，**并发可能重号**（内部系统可接受，高频写入口慎用）。
+- 替换时机：`{N}` 参数替换先于此处理（`GlobalFormula.vb:136` vs `:354`），所以参数槽里传的单号/规则码此时已是实际值。平台在跳转检查等场景置 `NoDOCNew` 跳过取号防重复消耗号段（`SysDataModel2.vb:1563`）。
+
+常见用法：
+
+```sql
+-- 按维度分段：把分组维度（如地点）的参数值直接当规则码传第二参
+'#LINKDOCNUM(,{0})#' --XMHNUM_0（KEEWAYZUPSCH1010X#21，{0}=STOFCY 地点）
+
+-- 固定规则码取新号
+#LINKDOCNUM(,SAR)#
+
+-- 幂等模式：FB 明细加行 UNION 空行场景，真实行 {0}=已取单号原样回填，空行才取新号
+N'#LINKDOCNUM({0},PRQ)#' AS [DOCNUM]（TMESPUR01#10）
+```
 
 ## 使用原则
 

@@ -1,0 +1,273 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR05</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>采购退货明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.ID                                 LINKROWID
+      ,S.DOCNUM
+      ,S.DOCLIN
+      ,S.ITMNO
+      ,ITM.ITMNAM
+      ,ITM.ITMNAM1
+      ,ITM.ITMNAM2
+      ,ITM.ITMSPEC
+      ,ITM.ITMSIZE
+      ,S.ITMVER
+      ,S.QTYSTU
+      ,S.STU
+      ,S.QTY
+      ,S.UOM
+      ,S.UOMCOE
+      ,S.REMARK                             LREMARK
+      ,S.PRJNUM                             LPRJNUM
+      ,S.CLOREA                             LCLOREA
+      ,SUBSTA.OPTDES                        SUBSTA
+      ,CONVERT(VARCHAR(16), S.[SUBTIM], 21) SUBTIM
+      ,S.BATCHID
+      ,S.SRCTYP
+      ,S.SRCDOC
+      ,S.SRCLIN
+      ,DOCSTA.OPTDES                        DOCSTA
+      ,S.CREUSR
+      ,S.UPDUSR
+      ,CONVERT(VARCHAR(16), S.[CRETIM], 21) CRETIM
+      ,CONVERT(VARCHAR(16), S.[UPDTIM], 21) UPDTIM
+      ,IIF(S.DOCSTA = '1', '', '1')         LDEBFLG
+      ,IIF(S.DOCSTA = '1', '', '1')         LCLBFLG
+FROM   PRETLIN S
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT SUBSTA
+              ON SUBSTA.OPTID = S.SUBSTA
+                 AND SUBSTA.OPTTYP = 'SUBSTA'
+WHERE  S.DOCNUM = '{0}'</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	PRETLIN
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO
+	[PRETLIN] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'PRT' DOCTYP
+,N'@ITMNO@' ITMNO
+,N'@ITMVER@' ITMVER
+,N'@WH@' WH
+,N'@LOC@' LOC
+,N'@PAL@' PAL
+,N'@CTR@' CTR
+,N'@LOT@' LOT
+,N'@SUBLOT@' SUBLOT
+,N'@BPSLOT@' BPSLOT
+,N'@SER@' SER
+,N'@STA@' STA
+,0#QTY#*#UOMCOE# QTYSTU
+,N'@STU@' STU
+,0@QTY@ QTY
+,N'@UOM@' UOM
+,0@UOMCOE@ UOMCOE
+,0@NETPRI@ NETPRI
+,N'@LREMARK@' REMARK
+,N'@LCLOREA@' CLOREA
+,N'@LPRJNUM@' PRJNUM
+,1 SUBSTA
+,N'' SUBTIM
+,NEWID() PK
+,'' BATCHID
+,N'@SRCTYP@' SRCTYP
+,N'@SRCDOC@' SRCDOC
+,0@SRCLIN@ SRCLIN
+,N'1' DOCSTA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   QTYSTU = S.QTY*S.UOMCOE
+,QTY = S.QTY
+,REMARK = S.REMARK
+,CLOREA=S.CLOREA
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+DOCNUM
+,DOCLIN
+,DOCTYP
+,ITMNO
+,ITMVER
+,WH
+,LOC
+,PAL
+,CTR
+,LOT
+,SUBLOT
+,BPSLOT
+,SER
+,STA
+,QTYSTU
+,STU
+,QTY
+,UOM
+,UOMCOE
+,NETPRI
+,REMARK
+,CLOREA
+,PRJNUM
+,SUBSTA
+,SUBTIM
+,PK
+,BATCHID
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+, CREUSR
+, CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCLIN
+,S.DOCTYP
+,S.ITMNO
+,S.ITMVER
+,S.WH
+,S.LOC
+,S.PAL
+,S.CTR
+,S.LOT
+,S.SUBLOT
+,S.BPSLOT
+,S.SER
+,S.STA
+,S.QTYSTU
+,S.STU
+,S.QTY
+,S.UOM
+,S.UOMCOE
+,S.NETPRI
+,S.REMARK
+,S.CLOREA
+,S.PRJNUM
+,S.SUBSTA
+,S.SUBTIM
+,S.PK
+,S.BATCHID
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.DOCSTA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>采购退货单</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM [PRETLIN] WHERE ID =0#LINKROWID#;</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#95</ImageFile>
+  <ListPrint />
+  <MD5HASH>58a3972d28e2b76d4ec4aeb8ab7e5387</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR05</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase return details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR05</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết trả lại hàng mua</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR05</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết mua hàng trả lại</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

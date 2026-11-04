@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5020X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>入库明细行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT 
+ XWS.SERNUM_0 车架码
+,XWS.XTXT_0 电池码  
+,XWS.XTXT_1 电机码
+,XWS.LOC_0 库位
+,XWS.CUSERID_0 操作人
+,CONVERT(VARCHAR(16),XWS.CREDATIM_0,21) 操作时间
+,XWS.RPNUM_0 入库单号
+,XWS.USERID_0 入库人
+,CASE WHEN CONVERT(VARCHAR(16),XWS.RPDATIM_0,21)='1900-01-01'  THEN '' ELSE CONVERT(VARCHAR(16),XWS.RPDATIM_0,21) END 入库时间
+,XWS.ROWID LINKROWID
+,CASE WHEN XWS.RPNUM_0&lt;&gt;'' THEN 'H02' ELSE '' END LINKAPPRROW
+,XWS.MFGNUM_0  pid
+FROM XWSMKI XWS
+INNER JOIN ITMMASTER ITM
+ON XWS.ITMREF_0=ITM.ITMREF_0
+WHERE XWS.STAT_0=9
+ORDER BY XWS.ROWID DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>UPDATE XWSMKI 
+SET STAT_0=1
+WHERE SERNUM_0='{0}' AND RPFLG_0&lt;&gt;3</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div&gt;&lt;button type="button" linkquick="12" linklocation="0" api="2" code="KEEWAYPDANEW1830X" num="700" para="#车架码#" script="3" confirm="lang:{zh:确认删除,en:confirm delete,de:Löschung bestätigen}?" style="width:30px;height:25px" class="mui-btn mui-btn-danger"&gt;
+&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;div&gt;#车架码#&lt;/div&gt;
+&lt;div&gt;#电池码#&lt;/div&gt;
+&lt;div&gt;#电机码#&lt;/div&gt;
+&lt;div&gt;#库位#&lt;/div&gt;
+&lt;div&gt;#操作人#&lt;/div&gt;
+&lt;div&gt;#操作时间#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#16</ImageFile>
+  <ListPrint />
+  <MD5HASH>c5f27466780b21d2dde7a25b5a13fa77</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Warehousing Detail Lines</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Warehousing Detail Lines</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

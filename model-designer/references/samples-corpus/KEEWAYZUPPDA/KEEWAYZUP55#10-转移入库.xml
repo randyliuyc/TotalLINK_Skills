@@ -1,0 +1,352 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP55</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>转移入库</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDETAILLIST(KEEWAYZUP5510X,700)
+--LINKMYROWDATA
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @STOFCY VARCHAR(30) = '{0}';
+SELECT N'总数量:'+CAST(ISNULL((SELECT COUNT(DISTINCT ITMREF_0 + SERNUM_0)
+               FROM   XWSSCS
+               WHERE  RPFLG_0 &lt;&gt; 3
+                      AND USERID_0 = @USER
+                      AND STOFCY_0 = @STOFCY), 0)AS nvarchar(20)) 数量
+      ,''                                       id
+      ,''                                       产品编码
+      ,'mui-hidden'                             HIDFLG
+      ,''                                       DISFLG
+UNION ALL
+SELECT N'数量:'+CAST(COUNT(DISTINCT ITMREF_0 + SERNUM_0)AS nvarchar(20)) 数量
+      ,ITMREF_0                          id
+      ,N'产品编码:'+ ITMREF_0               产品编码
+      ,''                              HIDFLG
+      ,'mui-hidden'                    DISFLG
+FROM   XWSSCS
+WHERE  RPFLG_0 &lt;&gt; 3
+       AND USERID_0 = @USER
+	   AND STOFCY_0 = @STOFCY
+GROUP  BY STOFCY_0
+          ,ITMREF_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>PICKERSTR</ParaType01>
+  <ParaSearchCode01>X3SITE</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>转入库位</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>INSERT INTO XWSSCS
+            ([MACHINEID_0],
+             [USERID_0],
+             [CUSERID_0],
+             [VCRTYP_0],
+             [PK_0],
+             [BATCHID_0],
+             [PKORI_0],
+             [CREDATIM_0],
+             [STAT_0],
+             [SUBDATIM_0],
+             [RPFLG_0],
+             [RPNUM_0],
+             [RPLIN_0],
+             [RPNOTE_0],
+             [RPDATE_0],
+             [RPDATIM_0],
+             [VCRNUM_0],
+             [VCRLIN_0],
+             [STOFCY_0],
+             [IPTDAT_0],
+             [VCRDES_0],
+             [PJT_0],
+             [TRSFAM_0],
+             [ITMREF_0],
+             [STU_0],
+             [QTYSTU_0],
+             [LOT_0],
+             [SLO_0],
+             [SERNUM_0],
+             [STOCOU_0],
+             [STA_0],
+             [STA_1],
+             [LOCTYP_0],
+             [LOCTYP_1],
+             [LOC_0],
+             [LOC_1],
+             [PALNUM_0],
+             [PALNUM_1],
+             [CTRNUM_0],
+             [CTRNUM_1],
+             [NOTE_0],
+             [NOTE_1],
+             [NOTE_2],
+             [NOTE_3],
+             [NOTE_4],
+             [BPRNUM_0],
+             [CREDATTIM_0],
+             [UPDDATTIM_0],
+             [AUUID_0],
+             [CREUSR_0],
+             [UPDUSR_0],
+             [WRH_0],
+             [STOFLD1_0],
+             [STOFLD2_0])
+SELECT '#LOGIN_ID#'            [MACHINEID_0]
+      ,'#LOGIN_USER#'          [USERID_0]
+      ,'#LOGIN_USER#'          [CUSERID_0]
+      ,6                       [VCRTYP_0]
+      ,NEWID()                 [PK_0]
+      ,''                      [BATCHID_0]
+      ,NEWID()                 [PKORI_0]
+      ,GETDATE()               [CREDATIM_0]
+      ,1                       [STAT_0]
+      ,''                      [SUBDATIM_0]
+      ,1                       [RPFLG_0]
+      ,''                      [RPNUM_0]
+      ,0                       [RPLIN_0]
+      ,''                      [RPNOTE_0]
+      ,''                      [RPDATE_0]
+      ,''                      [RPDATIM_0]
+      ,''                      [VCRNUM_0]
+      ,0                       [VCRLIN_0]
+      ,K.STOFCY_0              [STOFCY_0]
+      ,GETDATE()               [IPTDAT_0]
+      ,N'转移入库'             [VCRDES_0]
+      ,''                      [PJT_0]
+      ,'CHG'                   [TRSFAM_0]
+      ,K.ITMREF_0              [ITMREF_0]
+      ,K.PCU_0                 [STU_0]
+      ,K.QTYSTU_0                 [QTYSTU_0]
+      ,ISNULL(K.LOT_0,'')                 [LOT_0]
+      ,ISNULL(K.SLO_0,'')                 [SLO_0]
+      ,'#序列号#'                       [SERNUM_0]
+      ,ISNULL(K.STOCOU_0,0)               [STOCOU_0]
+      ,ISNULL(K.STA_0,'')                 [STA_0]
+      ,ISNULL(K.STA_0,'')                 [STA_1]
+      ,ISNULL(K.LOCTYP_0,'')              [LOCTYP_0]
+      ,(SELECT LOCTYP_0 FROM STOLOC WHERE LOC_0='#转入库位#' AND STOFCY_0=K.STOFCY_0)  [LOCTYP_1]
+      ,ISNULL(K.LOC_0,'')                     [LOC_0]
+      ,'#转入库位#'                           [LOC_1]
+      ,ISNULL(K.PALNUM_0,'')              [PALNUM_0]
+      ,ISNULL(K.PALNUM_0,'')              [PALNUM_1]
+      ,ISNULL(K.CTRNUM_0,'')              [CTRNUM_0]
+      ,ISNULL(K.CTRNUM_0,'')              [CTRNUM_1]
+      ,''                      [NOTE_0]
+      ,''                      [NOTE_1]
+      ,''                      [NOTE_2]
+      ,''                      [NOTE_3]
+      ,''                      [NOTE_4]
+      ,''                      [BPRNUM_0]
+      ,GETDATE()               [CREDATTIM_0]
+      ,''                      [UPDDATTIM_0]
+      ,NEWID()                 [AUUID_0]
+      ,'TTLNK'                 [CREUSR_0]
+      ,''                      [UPDUSR_0]
+      ,''                      [WRH_0]
+      ,K.STOFLD1_0             [STOFLD1_0]           
+      ,K.STOFLD2_0             [STOFLD2_0]  
+FROM   STOCK K
+WHERE K.SERNUM_0 = '#序列号#'</SQLNew>
+  <SQLRemove>DELETE FROM XWSSCS WHERE RPFLG_0 &lt;&gt;3 AND USERID_0='#LOGIN_USER#' AND ITMREF_0='#id#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+ &lt;div class='mui-card-footer'&gt;   
+ &lt;h4&gt;#产品编码# &lt;/br&gt;#数量#  &lt;/h4&gt;  
+&lt;button class="mui-btn mui-btn-blue #DISFLG# " style="width:80px;height:35px"  type="button" id="linknewrecord"&gt;
+ &lt;b style="font-size:16px"&gt;lang:{zh:添加行,en:add rows}&lt;/b&gt;&lt;/button&gt;
+
+&lt;button type="button" id="linkremove" linklocation="0" class="mui-btn mui-btn-danger #HIDFLG#"&gt;&lt;b style="font-size:16px"&gt;&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/b&gt;&lt;/button&gt;
+ &lt;/div&gt;
+&lt;ul class='mui-collapse-content #HIDFLG#' style="overflow: auto;padding:0"&gt;
+&lt;div class="link-table-default" style="margin:0"&gt; 
+&lt;div class="link-table-fixed" &gt; 
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作,en:operate}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:库存检查,en:Inventory checking}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:序列号,en:Production Plan Number}&lt;/div&gt;
+&lt;div style="min-width:100px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Tuo Hao}&lt;/div&gt;
+&lt;div style="min-width:80px;background-color:#546E7A;"&gt;lang:{zh:操作用户,en:Tuo Hao}&lt;/div&gt;
+&lt;div style="min-width:160px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Tuo Hao}&lt;/div&gt;
+&lt;/div&gt;#LINKDETAILLIST#&lt;/div&gt;
+&lt;/ul&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:已扫数量,en:Number of boxes scanned}&lt;/label&gt;
+&lt;input type="number"  not-reset class="mui-input-clear" placeholder="" 
+id="已扫数量" paratype="DEC" paradm=""  value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:转入库位,en:Transfer to storage location}&lt;/label&gt;
+&lt;input type="text" not-reset class=""  placeholder="" 
+id="转入库位" required  paratype="STR" paradm="" value="{1}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:序列号,en:Plan Number}&lt;/label&gt;
+&lt;input type="text" class=""  placeholder="" readonly="readonly"
+id="序列号" required  paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Plan Number}&lt;/label&gt;
+&lt;input type="text" class=""  placeholder="" readonly="readonly"
+id="产品编码" required  paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:箱数,en:Cases}&lt;/label&gt;
+&lt;input type="number"  not-reset class="mui-input-clear" placeholder="" readonly="readonly"
+id="箱数" paratype="DEC" paradm=""  value="1"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:数据检查,en:data check}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5NewRec>
+  <H5Para>&lt;div class="mui-input-row  linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site}&lt;/label&gt;
+&lt;input type="text" required class="mui-input" readonly="readonly" placeholder="lang:{zh:请输入地点,en:Please enter the location}" 
+id="地点" paratype="STR" paradm="" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:转入库位,en:Location}&lt;/label&gt;
+&lt;input type="text"  required class="mui-input-clear" placeholder="lang:{zh:请输入入库库位,en:Please enter the storage location}"
+id="转入库位" paratype="STR" paradm="" value="A010101"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+
+//扫码返回刷新
+Save_Data = function() {
+   if($("#已扫数量").length){
+    var index = plus.webview.getWebviewById("contentlist");
+    mui.fire(index, "contentlist_local", {
+        para: index.modelParams
+    });}
+}
+
+
+//扫描后自动保存
+scanAfterAction = function(r) {
+  var dataCheck = $("#数据检查").val();
+  
+  // 数据检查
+  if (dataCheck &amp;&amp; dataCheck.trim() !== "") {
+    alert(dataCheck);
+    keep_focus("linkinput");
+    return;
+  } else {
+    // 数据检查通过，执行自动保存
+    recSave(globleServer, globleDmCode, globleDmNum, dataSumitScriptType, "","autoSave","autoSave");
+  }
+}
+
+afterFunction = function (sta, id) {
+    if (id == "autoSave" &amp;&amp; sta == "autoSave")
+        setTimeout(function () {
+            keep_focus("linkinput");
+        }, 100);
+    if (sta == "linkquick12")
+        reloadModelData()
+};
+
+beforeFunction=function(sta,id){
+var a=$("#数据检查").val();
+if(a!=""&amp;&amp;( sta=="new"||sta=="autoSave")){
+alert(a);
+return true;
+}
+else
+{return false;}};
+
+repeatTime=function(id){
+   if(id=="linkpreprocess")
+    return 10
+    return 1
+}
+
+limitTimeAction=function(id){
+   if(id=="linkpreprocess")
+    alert("10秒内不可重复点击");
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#01</ImageFile>
+  <ListPrint />
+  <MD5HASH>34d37dc7610628cda32bc444dbee8909</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP55</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Transfer-In</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP55</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Transfer-In</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

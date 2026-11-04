@@ -1,0 +1,254 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0310X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>采购订单复制的数据插入</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript></SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>NEW</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>OLD</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--添加表头
+INSERT INTO PORDER
+(
+DOCNUM
+,DOCGRP
+,DOCSTA
+,DOCDAT
+,WFLSTA
+,DOCDES
+,SITE
+,FAC
+,DEPT
+,GRP
+,RESNO
+,PRJNUM
+,BPSNO
+,CUR
+,CURRAT
+,BVATTYP
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,REMARK
+,CLOREA
+,PRNCNT
+,CONTNOI
+,CONTNOE
+,POD
+,CONTDAT
+,CONTDES
+,COTTONLEN
+,COTTONMIC
+,COTTONSTR
+,LSD
+,LCNO
+,LCBANK
+,LCDATE
+,AGENT
+,AGENTREF
+,CLAIM
+,CONTMEMO
+,CONTSPEC
+,APPREASON
+,PAYMETHOD
+,GOODDESC
+,OTHERTERMS
+,CREUSR
+,CRETIM
+)
+SELECT 
+N'{0}'  DOCNUM
+,S.DOCGRP
+,'1'
+,S.DOCDAT
+,S.WFLSTA
+,S.DOCDES
+,S.SITE
+,S.FAC
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.PRJNUM
+,S.BPSNO
+,S.CUR
+,S.CURRAT
+,S.BVATTYP
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.REMARK
+,S.CLOREA
+,S.PRNCNT
+,S.CONTNOI
+,S.CONTNOE
+,S.POD
+,S.CONTDAT
+,S.CONTDES
+,S.COTTONLEN
+,S.COTTONMIC
+,S.COTTONSTR
+,S.LSD
+,S.LCNO
+,S.LCBANK
+,S.LCDATE
+,S.AGENT
+,S.AGENTREF
+,S.CLAIM
+,S.CONTMEMO
+,S.CONTSPEC
+,S.APPREASON
+,S.PAYMETHOD
+,S.GOODDESC
+,S.OTHERTERMS
+,N'#LOGIN_USER#'  CREUSR
+,GETDATE()    CRETIM
+FROM PORDER S WHERE S.DOCNUM=N'{1}'
+
+--复制明细
+INSERT INTO PORDLIN 
+(
+DOCNUM
+,DOCLIN
+,ITMNO
+,ITMVER
+,IVATTYP
+,FAC
+,REQDAT
+,STU
+,QTY
+,UOM
+,UOMCOE
+,PRCQTY
+,QTYSTU
+,PRCQTYSTU
+,PRTQTYSTU
+,NETPRI
+,GROPRI
+,TAXRT
+,NETAMT
+,TAXAMT
+,GRPAMT
+,REMARK
+,CLOREA
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+,CREUSR
+,CRETIM
+)
+SELECT 
+N'{0}' DOCNUM
+,DOCLIN
+,ITMNO
+,ITMVER
+,IVATTYP
+,FAC
+,REQDAT
+,STU
+,QTY
+,UOM
+,UOMCOE
+,PRCQTY
+,QTYSTU
+,PRCQTYSTU
+,PRTQTYSTU
+,NETPRI
+,GROPRI
+,TAXRT
+,NETAMT
+,TAXAMT
+,GRPAMT
+,REMARK
+,CLOREA
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,'1'
+,N'#LOGIN_USER#'    CREUSR
+,GETDATE()    CRETIM
+FROM PORDLIN  L
+WHERE L.DOCNUM=N'{1}'
+ORDER BY L.DOCNUM;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#56</ImageFile>
+  <ListPrint />
+  <MD5HASH>0d10ba6f32b8766020c3d70ae5030bef</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chèn dữ liệu sao chép đơn đặt hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

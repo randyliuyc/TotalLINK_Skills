@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP6010X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>APP发货明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @SOHNUM VARCHAR(30)='%{1}%';
+DECLARE @BPC NVARCHAR(100)=N'%{2}%';
+DECLARE @ITM NVARCHAR(100)=N'%{3}%';
+SELECT XWS.PK_0                                  LINKROWID
+      ,CAST(XWS.QTYPCU_0 AS REAL)                发货数量
+      ,XWS.LOC_0                                 发货库位
+      ,XWS.SERNUM_0                              序列号
+      ,XWS.RPNUM_0                               发货单号
+      ,CONVERT(VARCHAR(16), XWS.CREDATTIM_0, 21) 操作时间
+      ,XWS.USERID_0                              操作人员
+      ,CASE
+          WHEN XWS.RPFLG_0 = 3 THEN 'mui-hidden'
+          ELSE ''
+        END                                      LINKROWIDBTNFLG
+      ,XWS.SOHNUM_0
+        + CAST(XWS.SOPLIN_0 AS VARCHAR)          pid
+FROM   XWSSDH XWS
+       INNER JOIN ITMMASTER ITM
+               ON XWS.ITMREF_0 = ITM.ITMREF_0
+	   LEFT JOIN BPCUSTOMER BPC
+              ON XWS.BPCORD_0 = BPC.BPCNUM_0
+WHERE 
+       XWS.STOFCY_0= @FCY
+       AND XWS.SOHNUM_0 LIKE UPPER(@SOHNUM)
+       AND BPC.BPCNUM_0 + UPPER(BPC.BPCNAM_0) + UPPER(BPC.BPCSHO_0) LIKE UPPER(@BPC)
+       AND ITM.ITMREF_0 + UPPER(ITM.ITMDES1_0)
+           + UPPER(ITM.ITMDES2_0) + UPPER(ITM.ITMDES3_0) LIKE UPPER(@ITM) 
+ORDER  BY XWS.RPFLG_0
+          ,XWS.CREDATTIM_0 DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSSDH WHERE PK_0='{0}'AND RPFLG_0&lt;&gt;3</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div&gt;&lt;button type="button" linkquick="12" linklocation="0" api="2" code="KEEWAYPDANEW3010X" num="700" para="#LINKROWID#" script="3" confirm="lang:{zh:确认删除,en:confirm delete,de:Löschung bestätigen}?" style="width:30px;height:25px" class="mui-btn mui-btn-danger #LINKROWIDBTNFLG#"&gt;
+&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;div&gt;#发货数量#&lt;/div&gt;
+&lt;div&gt;#发货库位#&lt;/div&gt;
+&lt;div&gt;#操作人员#&lt;/div&gt;
+&lt;div&gt;#操作时间#&lt;/div&gt;
+&lt;div&gt;#序列号#&lt;/div&gt;
+&lt;div&gt;#发货单号#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle>批量删除</AllDataTreatTitle>
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#88</ImageFile>
+  <ListPrint />
+  <MD5HASH>855d961293ebb9c6c83681aeccd1b993</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP6010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>APP Shipping Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP6010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>APP Shipping Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

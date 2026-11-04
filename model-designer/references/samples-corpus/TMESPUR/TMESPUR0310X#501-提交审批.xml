@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0310X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>提交审批</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>UPDATE PORDER SET WFLSTA='SUBMIT',DOCSTA='3' WHERE DOCNUM='#DOCNUM#';
+EXECUTE [PORDLIN_SRCDEPT] '#DOCNUM#';</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~WFTASKCREATE~
+{
+ "RuleCode": "PORDER",
+ "rowData": {
+  "TASKUSER": "#LOGIN_USER#",
+  "TASKDESC": "采购订单审批",
+  "CREUSER": "#LOGIN_USER#",
+  "SRCTYPE": "PORDER",
+  "SRCKEY": "DOCNUM",
+  "SRCDOCNUM": "#DOCNUM#",
+  "SRCDOCLIN": 0, 
+  "FMDMCODE":"TMESPUR03",
+  "FMDMNUM": "10",
+  "FMCONN":"LINK01",
+  "S05":"#DOCGRP#"
+ }
+}</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#47</ImageFile>
+  <ListPrint />
+  <MD5HASH>7fb7f45e6754940f78f4253cb0bb3a3c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Submit for approval</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Nộp để được chấp nhận</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Gửi phê duyệt</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

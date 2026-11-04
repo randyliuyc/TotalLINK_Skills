@@ -1,0 +1,350 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA2040</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Date limit of Internal</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE
+SELECT S.[INSTCOD]  
+      ,S.[INSTNAM]
+      ,S.[BRAND]
+      ,H.DOCNUM
+      ,DATEDIFF(dd,GETDATE(),S.[INTCTLTO]) LIMITDAYS
+      ,S.[INTCTLPRD] 
+      ,IIF(S.[INTCTLFROM]='1900-01-01',NULL,S.[INTCTLFROM]) INTCTLFROM
+      ,IIF(S.[INTCTLTO]='1900-01-01',NULL,S.[INTCTLTO]) INTCTLTO
+      ,S.[INTCTLDAYS]
+      ,S.[INTCTLSTD]
+      ,S.[MODEL]
+      ,S.[SERNUM]
+      ,S.[LOC]
+      ,S.[INSTDES]
+      ,S.[INSTRNG]
+      ,S.[RESPONS]
+      ,S.[MANUSR]
+      ,S.[CREDAT]
+      ,S.[PURINF]
+      ,U.ROUCOD ROUCODCK
+      ,CASE WHEN DATEDIFF(dd,GETDATE(),S.[INTCTLTO])&lt;0 THEN 'D04'
+            WHEN DATEDIFF(dd,GETDATE(),S.[INTCTLTO])&lt;=S.[INTCTLDAYS] THEN 'E04'
+            ELSE 'H03' END LINKAPPRROW
+FROM [QAINSTLST] S
+   LEFT JOIN QAINSPH H
+              ON H.ITMNO=S.INSTCOD
+             AND H.ROUTYP = 'INE'
+   LEFT JOIN QAROU U
+              ON U.ROUCOD = CONCAT_WS('-','INE',S.INSTCOD)
+WHERE S.[INTCTLPRD]&lt;&gt;0 AND S.[INTCTLTO]&lt;&gt;'1900-01-01'
+ORDER BY DATEDIFF(dd,GETDATE(),S.[INTCTLTO])</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM QAINSPH WHERE DOCNUM = '#DOCNUM#';
+DELETE FROM QAINSTTRX WHERE DOCNUM='#DOCNUM#';</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#91</ImageFile>
+  <ListPrint />
+  <MD5HASH>f164d0fe8e0924bc77dcf77a95e1b18f</MD5HASH>
+  <ModelSetting>{
+    "DoubleClickDataMine": [
+        {
+            "DOCNUM": 10
+        }
+    ]
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BRAND</COLNAME>
+      <CAPTION>Brand</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREDAT</COLNAME>
+      <CAPTION>Date of creation</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Inspection Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTDES</COLNAME>
+      <CAPTION>Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTNAM</COLNAME>
+      <CAPTION>Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTRNG</COLNAME>
+      <CAPTION>Range</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTCTLDAYS</COLNAME>
+      <CAPTION>Alarm for control(days)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTCTLFROM</COLNAME>
+      <CAPTION>Internal control from</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTCTLPRD</COLNAME>
+      <CAPTION>Internal Control Period(Month)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTCTLSTD</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTCTLTO</COLNAME>
+      <CAPTION>Internal control to</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LIMITDAYS</COLNAME>
+      <CAPTION>Expired days</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Date limit of Internal</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOC</COLNAME>
+      <CAPTION>Location</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MANUSR</COLNAME>
+      <CAPTION>User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MODEL</COLNAME>
+      <CAPTION>Model</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PURINF</COLNAME>
+      <CAPTION>Purchase information</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RESPONS</COLNAME>
+      <CAPTION>Responsible</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUCODCK</COLNAME>
+      <CAPTION>Routing</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SERNUM</COLNAME>
+      <CAPTION>Serial number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

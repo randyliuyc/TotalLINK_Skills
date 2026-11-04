@@ -1,0 +1,832 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA1015</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Material</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDATAMINEOVERVIEW,VERTICAL,60,AUTOREFRESH
+DECLARE @GRDCOD VARCHAR(30)='%{0}%';
+DECLARE @LOT VARCHAR(30)='%{1}%';
+DECLARE @TV VARCHAR(30)='%{2}%';
+
+SELECT 
+       S.LOT
+      ,S.TV
+      ,'--&gt;'  LINKSUB30_客户检测指标
+      ,R.GRDNAM 
+      ,S.GRDCOD 
+      ,S.QAMATDOC
+      ,CAST(S.DECARB AS DECIMAL(18,2)) DECARB
+      ,CAST(S.HARDNESS AS DECIMAL(18,2)) HARDNESS
+      ,CAST(S.GRAINSIZE AS DECIMAL(18,2)) GRAINSIZE
+      ,CAST(S.TENSILE AS DECIMAL(18,2))  TENSILE
+     -- ,S.SUPCOD
+     -- ,S.COILREF
+     -- ,S.MATTYP LINKDROPVALIDMATTYP
+      ,S.DIA_WID
+      ,S.THICK
+      ,S.LEN
+      ,S.WEIGHT
+      ,S.STA
+    --  ,S.ITMNO
+      ,S.DOCNUM 
+      ,S.CREUSR
+      ,S.UPDUSR
+      ,CONVERT(VARCHAR(16), S.CRETIM, 21) CRETIM
+      ,CONVERT(VARCHAR(16), S.UPDTIM, 21) UPDTIM
+      ,S.ID                               LINKROWID
+FROM   QAMAT S
+     LEFT JOIN QAGRADE R
+	   ON S.GRDCOD=R.GRDCOD AND R.CUSCOD=''
+WHERE  S.GRDCOD+ISNULL(R.GRDNAM,'') LIKE @GRDCOD
+       AND S.LOT LIKE @LOT
+       AND S.TV LIKE @TV
+ORDER  BY S.LOT,S.TV</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKSAVEONENTERKEY
+UPDATE QAMAT SET
+ GRAINSIZE = 0#GRAINSIZE#
+,DECARB = 0#DECARB#
+,HARDNESS = 0#HARDNESS#
+,TENSILE = 0#TENSILE#
+--,SUPCOD = N'#SUPCOD#'
+--,COILREF = N'#COILREF#'
+--,MATTYP = N'#LINKDROPVALIDMATTYP#'
+,DIA_WID = 0#DIA_WID#
+,THICK = 0#THICK#
+,LEN = 0#LEN#
+,WEIGHT=0#WEIGHT#
+,QAMATDOC='#QAMATDOC#'
+,UPDUSR = N'#LOGIN_USER#'
+,UPDTIM = GETDATE()
+WHERE DOCNUM='#DOCNUM#';</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>GRDCOD</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>LOT</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>TV</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM QAMAT WHERE DOCNUM='#DOCNUM#';</SQLRemove>
+  <SQLClear>DELETE FROM QAMAT WHERE DOCNUM='#DOCNUM#';
+DELETE FROM QAMATELE WHERE DOCNUM='#DOCNUM#';</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#76</ImageFile>
+  <ListPrint />
+  <MD5HASH>1512d67089429b15bdbd7a3ca9397688</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+         "GRAINSIZE",
+           "DECARB",
+           "HARDNESS",
+           "TENSILE",
+           "SUPCOD1",
+           "COILREF1",
+           "LINKDROPVALIDMATTYP1",
+           "DIA_WID",
+           "THICK",
+           "LEN",
+           "WEIGHT",
+           "QAMATDOC",
+           "1GRDCOD",
+           "1LOT",
+           "1TV"
+      ]
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>COILREF</COLNAME>
+      <CAPTION>Coil reference</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DECARB</COLNAME>
+      <CAPTION>Decarb</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DECARB</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DIA_WID</COLNAME>
+      <CAPTION>Diameter or Width (mm)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DIA_WID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DLVINFO</COLNAME>
+      <CAPTION>Delivery info</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Key</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRAINSIZE</COLNAME>
+      <CAPTION>Grain size</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRAINSIZE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDCOD</COLNAME>
+      <CAPTION>Grade Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDCOD</COLNAME>
+      <CAPTION>钢号编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDNAM</COLNAME>
+      <CAPTION>Grade</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDNAM</COLNAME>
+      <CAPTION>钢号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>HARDNESS</COLNAME>
+      <CAPTION>Hardness (HB)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>HARDNESS</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Heat reference</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LEN</COLNAME>
+      <CAPTION>Length (mm)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LEN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDMATTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Grade</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>钢号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Heat No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>炉号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>TV No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>TV号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Material</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>物料</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKSUB_DOCNUM</COLNAME>
+      <CAPTION>单据号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKSUB30_客户检测指标</COLNAME>
+      <CAPTION>Customer check indicators</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOC</COLNAME>
+      <CAPTION>Location</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Heat No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>炉号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>Work order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QAMATDOC</COLNAME>
+      <CAPTION>Docnum</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QAMATDOC</COLNAME>
+      <CAPTION>证书编号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RESULT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SUPCOD</COLNAME>
+      <CAPTION>Supplier</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TENSILE</COLNAME>
+      <CAPTION>Tensile (Mpa)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TENSILE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>THICK</COLNAME>
+      <CAPTION>Thickness (mm)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>THICK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TV</COLNAME>
+      <CAPTION>TV No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TV</COLNAME>
+      <CAPTION>TV号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>修改时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>修改用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>WEIGHT</COLNAME>
+      <CAPTION>Weight (kg)</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1015</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>WEIGHT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

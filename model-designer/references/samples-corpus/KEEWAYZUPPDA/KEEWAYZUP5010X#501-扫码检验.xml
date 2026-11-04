@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5010X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>扫码检验</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>工单编号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02>？</ParaDefVal02>
+  <ParaLabel03>生产计划号</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>打印模板</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>打印份数</ParaLabel05>
+  <ParaType05>DEC</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>产品编码</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06>？</ParaDefVal06>
+  <ParaLabel07>产品名称</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07>？</ParaDefVal07>
+  <ParaLabel08>车架码</ParaLabel08>
+  <ParaType08>STR</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08>？</ParaDefVal08>
+  <ParaLabel09>电池码</ParaLabel09>
+  <ParaType09>STR</ParaType09>
+  <ParaSearchCode09 />
+  <ParaDefVal09>？</ParaDefVal09>
+  <ParaLabel10>电机码</ParaLabel10>
+  <ParaType10>STR</ParaType10>
+  <ParaSearchCode10 />
+  <ParaDefVal10>？</ParaDefVal10>
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+INSERT INTO XWSMKI
+(
+MACHINEID_0
+,USERID_0
+,CUSERID_0
+,VCRTYP_0
+,PK_0
+,BATCHID_0
+,PKORI_0
+,CREDATIM_0
+,STAT_0
+,SUBDATIM_0
+,RPFLG_0
+,RPNUM_0
+,RPLIN_0
+,RPNOTE_0
+,RPDATE_0
+,RPDATIM_0
+,MFGFCY_0
+,MFGNUM_0
+,ITMREF_0
+,UOMCPLQTY_0
+,UOM_0
+,UOMSTUCOE_0
+,MFGTRKNUM_0
+,PCU_0
+,QTYPCU_0
+,PCUSTUCOE_0
+,LOC_0
+,STA_0
+,LOT_0
+,SLO_0
+,PALNUM_0
+,CTRNUM_0
+,SHLDAT_0
+,XCREUSR_0
+,VCRLIN_0
+,YUOMCPLQTY_0
+,UOMCPLQTY2_0
+,YUOMCPLQTY2_0
+,UOM2_0
+,BPSLOT_0
+,CREDATTIM_0,UPDDATTIM_0,AUUID_0,CREUSR_0,UPDUSR_0,WRH_0,XTXT_0,XTXT_1,XTXT_2,
+XDCB_0,XDCB_1,XDCB_2,
+XDAT_0,XDAT_1,XDAT_2
+,SERNUM_0
+,XRMK1_0,XRMK2_0
+,XRMK3_0,XRMK4_0)
+SELECT
+'#LOGIN_ID#' AS MACHINEID_0
+,'' AS USERID_0
+,'#LOGIN_USER#' AS CUSERID_0
+,15 AS VCRTYP_0
+,'#LINKID_ACTION#' AS PK_0
+,'#LINKID_ACTION#' AS  BATCHID_0
+,' ' AS  PKORI_0
+,GETDATE() AS CREDATIM_0
+,1 AS STAT_0
+,'' AS SUBDATIM_0
+,1 AS RPFLG_0
+,' ' AS RPNUM_0
+,0 AS RPLIN_0
+,' ' AS RPNOTE_0
+,'1900-01-01' AS RPDATE_0
+,'1900-01-01' AS RPDATIM_0
+,O.MFGFCY_0 AS MFGFCY_0
+,O.MFGNUM_0 AS MFGNUM_0
+,O.ITMREF_0 AS ITMREF_0
+,1 UOMCPLQTY_0
+,ITM.STU_0 AS UOM_0
+,1 AS UOMSTUCOE_0
+,' ' AS MFGTRKNUM_0
+,ITM.STU_0 AS PCU_0
+,1  QTYPCU_0
+,1 AS PCUSTUCOE_0
+,'#默认库位#' AS LOC_0
+,'A' AS STA_0
+,'' AS LOT_0
+,' ' AS SLO_0
+,'' AS PALNUM_0 --#生产计划号#
+,'' AS CTRNUM_0
+,GETDATE() SHLDAT_0
+,''
+,0
+,0
+,0
+,0
+,0
+,0
+,GETDATE(),GETDATE(),NEWID(),LEFT('#LOGIN_USER#',5),' ',
+ISNULL((SELECT WRH_0 FROM STOLOC WHERE LOC_0='{6}'AND O.MFGFCY_0=STOFCY_0),''),
+'{8}' XTXT_0,
+'{9}' XTXT_1,
+'' XTXT_2,
+(SELECT COUNT(SERNUM_0)+1 FROM XWSMKI WHERE MFGNUM_0='#工单编号#')  XDCB_0,
+0,
+0,
+'1900-01-01',
+'1900-01-01',
+'1900-01-01',
+'{7}',
+'',
+'',
+'',
+''
+FROM MFGITM O
+       INNER JOIN MFGHEAD H
+               ON H.MFGNUM_0 = O.MFGNUM_0
+       LEFT JOIN ITMMASTER ITM ON ITM.ITMREF_0=O.ITMREF_0
+       LEFT JOIN ITMFACILIT ITF ON ITF.ITMREF_0=O.ITMREF_0 AND ITF.STOFCY_0=O.MFGFCY_0
+WHERE  O.MFGNUM_0 = '#工单编号#'
+       AND O.ITMREF_0 = '#产品编码#'
+       AND '{7}' NOT IN (SELECT SERNUM_0 FROM XWSMKI WHERE SERNUM_0='{7}' AND ITMREF_0='#产品编码#')
+       AND '{7}'&lt;&gt;''</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#46</ImageFile>
+  <ListPrint />
+  <MD5HASH>9be56de544df6a0d84b59f300b0f0fcc</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Inspection</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

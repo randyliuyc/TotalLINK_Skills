@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0120X</ModelCode>
+  <ModelNum>500</ModelNum>
+  <ModelDesc>表格设置</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>{
+"LINKROWID":"#LINKROWID#",
+"DOCNUM":"#DOCNUM#",
+"pid":"#pid#",
+"DOCLIN":"#DOCLIN#",
+"ITMNO":"#ITMNO#",
+"ITMNOORI":"#ITMNOORI#",
+"FAC":"#FAC#",
+"ITMNAM":"#ITMNAM#",
+"ITMNAM1":"#ITMNAM1#",
+"ITMNAM2":"#ITMNAM2#",
+"ITMVER":"#ITMVER#",
+"TSICOD1":"#TSICOD1#",
+"TSICOD2":"#TSICOD2#",
+"TSICOD3":"#TSICOD3#",
+"TSICOD4":"#TSICOD4#",
+"BPSNO":"#BPSNO#",
+"BPSNAM":"#BPSNAM#",
+"ITMSPEC":"#ITMSPEC#",
+"ITMSIZE":"#ITMSIZE#",
+"REQDAT":"#REQDAT#",
+"UOM":"#UOM#",
+"UOMCOE":"#UOMCOE#",
+"QTY":"#QTY#",
+"STU":"#STU#",
+"QTYSTU":"#QTYSTU#",
+"PRQLOT":"#PRQLOT#",
+"PRQITMBPC":"#PRQITMBPC#",
+"PRQYCOUNT":"#PRQYCOUNT#",
+"LREMARK":"#LREMARK#",
+"LCLOREA":"#LCLOREA#",
+"SRCTYP":"#SRCTYP#",
+"SRCDOC":"#SRCDOC#",
+"SRCLIN":"#SRCLIN#",
+"DOCSTA":"#DOCSTA#",
+"PRADEPT":"#PRADEPT#",
+"CREUSR":"#CREUSR#",
+"UPDUSR":"#UPDUSR#",
+"CRETIM":"#CRETIM#",
+"UPDTIM":"#UPDTIM#",
+"LDEBFLG":"#LDEBFLG#",
+"LCLBFLG":"#LCLBFLG#",
+"ITMVERFLG":"#ITMVERFLG#"
+}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#07</ImageFile>
+  <ListPrint />
+  <MD5HASH>7e3977ebcd45ebf75f55f216e747da58</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Table Settings</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Cài đặt bảng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Thiết lập bảng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR1020X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>退货选择</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--退货
+SELECT S.DOCNUM + '-'
+       + CAST(S.SRCLIN AS VARCHAR(16))    DOCKEY
+      ,S.DOCNUM                           SRCDOC
+      ,S.DOCLIN                           SRCLIN
+      ,S.DOCTYP                           SRCTYP
+      ,CONVERT(VARCHAR(16), S.DOCDAT, 23) DOCDAT
+      ,S.BPSNO
+      ,BPS.BPSNAM
+      ,S.PRJNUM
+      ,S.SITE
+      ,S.REMARK
+      ,S.ITMNO --产品编码
+      ,ITM.ITMNAM --中文名称
+      ,ITM.ITMNAM1 --越文名称
+      ,S.ITMVER --品名
+      ,ITM.ITMSIZE
+      ,ITM.ITMSPEC
+      ,ITM.IVATTYP
+      ,BPS.BVATTYP
+      ,VAT.TAXRT
+      ,S.QTY                              PRTQTY --退货数量
+      ,S.UOM --退货单位
+      ,S.NETPRI --单价
+      ,S.UOMCOE --换算系数
+      ,S.QTYSTU --库存数量
+      ,S.STU --库存单位
+      ,CAST(S.PIVQTY AS REAL)             PIVQTY --已开票数量
+      ,CAST(S.QTY - S.PIVQTY AS REAL)     QTY --剩余开票数量
+FROM   PRETLIN S
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN BPSUP BPS
+              ON BPS.BPSNO = S.BPSNO
+       LEFT JOIN VAT
+              ON VAT.IVATTYP = ITM.IVATTYP
+                 AND VAT.BVATTYP = BPS.BVATTYP
+WHERE  S.DOCSTA = 2
+       AND S.QTY - S.PIVQTY&gt;0
+       AND S.SITE = '{0}'
+       AND S.BPSNO = '{1}'
+       AND S.DOCNUM + S.ITMNO + ITM.ITMNAM + S.ITMVER LIKE '%{2}%'
+ORDER  BY S.DOCNUM DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>供应商</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>搜索</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#10</ImageFile>
+  <ListPrint />
+  <MD5HASH>de369f754efcc89c65bedd1547282c0e</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR1020X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Tùy chọn trả lại</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR1020X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lựa chọn hoàn trả</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

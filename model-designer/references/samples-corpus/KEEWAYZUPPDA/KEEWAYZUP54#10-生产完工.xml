@@ -1,0 +1,531 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP54</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>生产完工</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMYROWDATA
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @MFGNUM VARCHAR(30)=N'%{1}%';
+DECLARE @ITM NVARCHAR(100)='%{2}%';
+
+SELECT TOP 500 MFI.MFGNUM_0                                                            工单编号
+               ,MFI.MFGLIN_0                                                           行
+               ,MFI.ITMREF_0                                                           产品编码
+               --,Isnull(B.ITMDES, ITM.ITMDES1_0)                                        AS 产品名称
+               ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)                                         AS 产品描述1
+               ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)                                         AS 产品描述2
+               ,CAST(MFI.EXTQTY_0 AS REAL)                                             计划数量
+               ,CAST(MFI.CPLQTY_0 AS REAL)                                             已入数量
+               ,CAST(ISNULL(XWI.UOMCPLQTY_0, 0) AS REAL)                               未提交数量
+               ,CAST(MFI.EXTQTY_0 - MFI.CPLQTY_0 - ISNULL(XWI.UOMCPLQTY_0, 0) AS REAL) 可入库数量
+               ,ITM.STU_0                                                              单位
+/*
+               ,(SELECT TOP 1 LOC_0
+                 FROM   MFGMAT
+                 WHERE  MFGNUM_0 = MFI.MFGNUM_0)                                       产线库位
+*/
+,ITF.DEFLOC_3 产线库位
+               ,CASE
+                  WHEN ITF.QUAFLG_0 = 1 THEN 'A'
+                  ELSE 'Q'
+                END                                                                    AS 存货状态
+               ,MFI.MFGFCY_0                                                           生产地点
+               ,CASE
+                  WHEN ISNULL(XWI.UOMCPLQTY_0, 0) &gt; 0 THEN N'E02'
+                  WHEN MFI.EXTQTY_0 - MFI.CPLQTY_0 &gt; 0
+                       AND MFI.CPLQTY_0 &gt; 0 THEN N'A02'
+                  ELSE 'C01'
+                END                                                                    AS ROW_BACKCOLOR2
+               ,CASE
+                  WHEN ITM.SERMGTCOD_0 &gt;1 THEN '1'
+                  ELSE ''
+                END                                                                    AS SERQTY
+               ,CASE
+                  WHEN ISNULL(XWI.UOMCPLQTY_0, 0) &lt;&gt; 0 THEN N'lang:{zh:待提交,en:Submit,de:Zu übermitteln}'
+                  WHEN MFI.EXTQTY_0 - ISNULL(MFI.CPLQTY_0, 0) &gt; 0
+                       AND ISNULL(MFI.CPLQTY_0, 0) &lt;&gt; 0 THEN N'lang:{zh:部分入库,en:Partial,de:Teilweise}'
+                  WHEN MFI.EXTQTY_0 - ISNULL(MFI.CPLQTY_0, 0) = 0 THEN N'lang:{zh:入库完成,en:Completed,de:Fertiggestellt}'
+                  ELSE N'lang:{zh:待入库,en:To archived,de:Fürs Archiv}'
+                END                                                                    AS 入库状态
+FROM   MFGITM MFI
+       INNER JOIN MFGHEAD H
+               ON H.MFGNUM_0 = MFI.MFGNUM_0
+       INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = MFI.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       LEFT JOIN ITMFACILIT ITF
+              ON ITF.STOFCY_0 = MFI.MFGFCY_0
+                 AND ITF.ITMREF_0 = MFI.ITMREF_0
+       LEFT JOIN (SELECT MFGNUM_0
+                         ,VCRLIN_0
+                         ,SUM(UOMCPLQTY_0) UOMCPLQTY_0
+                  FROM   XWSMKI
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY MFGNUM_0
+                            ,VCRLIN_0) XWI
+              ON XWI.MFGNUM_0 = MFI.MFGNUM_0
+                 AND XWI.VCRLIN_0 = MFI.MFGLIN_0
+WHERE  ( MFI.EXTQTY_0 - MFI.CPLQTY_0 ) &gt; 0
+       AND H.MFGSTA_0 = 1
+       AND MFI.MFGFCY_0 = @FCY
+       AND MFI.MFGNUM_0 LIKE @MFGNUM
+       AND ITM.ITMREF_0 LIKE @ITM
+ORDER  BY ISNULL(XWI.UOMCPLQTY_0, 0)DESC
+          ,MFI.MFGNUM_0</SQLScript>
+  <SQLUpdateScript>--LINKEXECOUTPUT
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @RPTSTA INT = 1;
+DECLARE @RPTMSG NVARCHAR(300) = '';
+DECLARE @CanInsert BIT = 1; -- 新增标志变量
+
+-- 检查所有重复情况
+IF EXISTS(SELECT 1 FROM XWSMKI WHERE SERNUM_0 = '#车架序列号#' AND MFGFCY_0 = @FCY)
+BEGIN
+    SET @CanInsert = 0;
+    SET @RPTSTA = 0;
+    SET @RPTMSG = N'LINKPREVENT:lang:{zh:车架序列号重复,请检查,en:Frame serial number duplicate, please check,de:Rahmen-Seriennummer doppelt, bitte prüfen}';
+END
+ELSE IF EXISTS(SELECT 1 FROM XWSMKI WHERE XTXT_0 = '#电池序列号#' AND MFGFCY_0 = @FCY AND '#电池序列号#' &lt;&gt; '')
+BEGIN
+    SET @CanInsert = 0;
+    SET @RPTSTA = 0;
+    SET @RPTMSG = N'LINKPREVENT:lang:{zh:电池序列号重复,请检查,en:Battery serial number duplicate, please check,de:Batterie-Seriennummer doppelt, bitte prüfen}';
+END
+ELSE IF EXISTS(SELECT 1 FROM XWSMKI WHERE XTXT_1 = '#电机序列号#' AND MFGFCY_0 = @FCY AND '#电机序列号#' &lt;&gt; '')
+BEGIN
+    SET @CanInsert = 0;
+    SET @RPTSTA = 0;
+    SET @RPTMSG = N'LINKPREVENT:lang:{zh:电机序列号重复,请检查,en:Motor serial number duplicate, please check,de:Motor-Seriennummer doppelt, bitte prüfen}';
+END
+ELSE IF EXISTS(SELECT 1 FROM XWSMKI WHERE XTXT_2 = '#工单序号#' AND MFGFCY_0 = @FCY AND '#工单序号#' &lt;&gt; '')
+BEGIN
+    SET @CanInsert = 0;
+    SET @RPTSTA = 0;
+    SET @RPTMSG = N'LINKPREVENT:lang:{zh:工单序号重复,请检查,en:Work order serial duplicate, please check,de:Arbeitsauftragsseriennummer doppelt, bitte prüfen}';
+END
+
+-- 只有当所有检查都通过时才执行插入
+IF @CanInsert = 1
+BEGIN
+    INSERT INTO XWSMKI
+    (
+        MACHINEID_0, USERID_0, CUSERID_0, VCRTYP_0, PK_0, BATCHID_0, PKORI_0, CREDATIM_0, 
+        STAT_0, SUBDATIM_0, RPFLG_0, RPNUM_0, RPLIN_0, RPNOTE_0, RPDATE_0, RPDATIM_0, 
+        MFGFCY_0, MFGNUM_0, ITMREF_0, UOMCPLQTY_0, UOM_0, UOMSTUCOE_0, MFGTRKNUM_0, 
+        PCU_0, QTYPCU_0, PCUSTUCOE_0, LOC_0, STA_0, LOT_0, SLO_0, PALNUM_0, CTRNUM_0, 
+        SHLDAT_0, XCREUSR_0, VCRLIN_0, YUOMCPLQTY_0, UOMCPLQTY2_0, YUOMCPLQTY2_0, 
+        UOM2_0, BPSLOT_0, CREDATTIM_0, UPDDATTIM_0, AUUID_0, CREUSR_0, UPDUSR_0, WRH_0, 
+        XTXT_0, XTXT_1, XTXT_2, XDCB_0, XDCB_1, XDCB_2, XDAT_0, XDAT_1, XDAT_2, 
+        SERNUM_0, XRMK1_0, XRMK2_0, XRMK3_0, XRMK4_0
+    )
+    SELECT
+        '#LOGIN_ID#' AS MACHINEID_0,
+        '#LOGIN_USER#' AS USERID_0,
+        '' AS CUSERID_0,
+        15 AS VCRTYP_0,
+        '#LINKID_ACTION#' AS PK_0,
+        '#LINKID_ACTION#' AS BATCHID_0,
+        ' ' AS PKORI_0,
+        GETDATE() AS CREDATIM_0,
+        1 AS STAT_0,
+        '1900-01-01' AS SUBDATIM_0,
+        1 AS RPFLG_0,
+        ' ' AS RPNUM_0,
+        0 AS RPLIN_0,
+        ' ' AS RPNOTE_0,
+        '1900-01-01' AS RPDATE_0,
+        '1900-01-01' AS RPDATIM_0,
+        O.MFGFCY_0 AS MFGFCY_0,
+        O.MFGNUM_0 AS MFGNUM_0,
+        O.ITMREF_0 AS ITMREF_0,
+        CASE WHEN '#车架序列号#' = '' THEN 0#入库数量# ELSE 1 END AS UOMCPLQTY_0,
+        ITM.STU_0 AS UOM_0,
+        1 AS UOMSTUCOE_0,
+        ' ' AS MFGTRKNUM_0,
+        ITM.STU_0 AS PCU_0,
+        CASE WHEN '#车架序列号#' = '' THEN 0#入库数量# ELSE 1 END AS QTYPCU_0,
+        1 AS PCUSTUCOE_0,
+        '#产线库位#' AS LOC_0,
+        '#存货状态#' AS STA_0,
+        '' AS LOT_0,
+        ' ' AS SLO_0,
+        '' AS PALNUM_0,
+        '' AS CTRNUM_0,
+        GETDATE() AS SHLDAT_0,
+        '',
+        O.MFGLIN_0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        GETDATE(), GETDATE(), NEWID(), LEFT('#LOGIN_USER#', 5), ' ',
+        ISNULL((SELECT WRH_0 FROM STOLOC WHERE LOC_0 = '#入库库位#' AND O.MFGFCY_0 = STOFCY_0), ''),
+        '#电池序列号#' AS XTXT_0,
+        '#电机序列号#' AS XTXT_1,
+        '#工单序号#' AS XTXT_2,
+        0,
+        0,
+        0,
+        '1900-01-01',
+        '1900-01-01',
+        '1900-01-01',
+        '#车架序列号#', '', '', '', ''
+    FROM MFGITM O
+    INNER JOIN MFGHEAD H ON H.MFGNUM_0 = O.MFGNUM_0
+    LEFT JOIN ITMMASTER ITM ON ITM.ITMREF_0 = O.ITMREF_0
+    LEFT JOIN ITMFACILIT ITF ON ITF.ITMREF_0 = O.ITMREF_0 AND ITF.STOFCY_0 = O.MFGFCY_0
+    WHERE O.MFGNUM_0 = '#工单编号#'
+        AND O.ITMREF_0 = '#产品编码#';
+    
+    -- 如果插入成功且之前没有错误，设置成功消息
+    IF @RPTSTA = 1
+    BEGIN
+        SET @RPTMSG = N'lang:{zh:操作成功,en:Operation successful,de:Vorgang erfolgreich}';
+    END
+END
+
+SELECT @RPTSTA AS RPTSTA, @RPTMSG AS RPTMSG;</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>工单编号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品编码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSMKI WHERE RPFLG_0&lt;&gt;3 AND USERID_0='#LOGIN_USER#' AND MFGNUM_0='#工单编号#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-table-view-cell mui-collapse linksearch' &gt;
+ &lt;div class='mui-card-footer #ROW_BACKCOLOR2#'&gt; 
+ &lt;h4&gt;#工单编号#-#入库状态#&lt;/h4&gt;
+&lt;button class="mui-btn mui-btn-blue" style="padding:0 20px;height:35px"  type="button" id="linkedit"&gt; 
+&lt;b style="font-size:16px"&gt;lang:{zh:入库,en:Receive,de:Empfangen}&lt;/b&gt;&lt;/button&gt;
+ &lt;/div&gt;
+    &lt;div class="mui-media-body mui-table-view-cell mui-collapse link-append" code="KEEWAYZUP5410X" num="700" para="#工单编号#,#行#" reload&gt;
+    &lt;a class='mui-navigate-right' href='#'&gt;
+     &lt;h4&gt;lang:{zh:产品编码,en:Product Code,de:Produktcode}:#产品编码#&lt;/h4&gt;
+     &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Produktname1}:#产品描述1#&lt;/h4&gt;
+     &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Produktname2}:#产品描述2#&lt;/h4&gt;
+    &lt;h4&gt;lang:{zh:计划数量,en:Plan Qty,de:Planmenge}:#计划数量#[#单位#]&lt;/h4&gt;
+     &lt;h4&gt;lang:{zh:已入库数量,en:Received Qty,de:Eingegangen}:#已入数量#[#单位#]&lt;/h4&gt;
+     &lt;h4&gt;lang:{zh:可入库数量,en:Available Qty,de:Verfügbar}:#可入库数量#[#单位#]&lt;/h4&gt;
+        &lt;/a&gt;
+&lt;ul class='mui-collapse-content'&gt;
+&lt;div style="overflow: auto; padding:0;"&gt;
+&lt;div class="link-table-default" style="margin-bottom:0px" append&gt;
+&lt;div class="link-table-fixed" save&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作,en:Operation,de:Aktion}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:车架序列号,en:Frame Serial Number,de:Rahmen-Seriennummer}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:电机序列号,en:Motor Serial Number,de:Motor-Seriennummer}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:电池序列号,en:Battery Serial Number,de:Batterie-Seriennummer}&lt;/div&gt;
+&lt;div style="min-width:240px;background-color:#546E7A;"&gt;lang:{zh:工单序号,en:Work Order Serial,de:Abfrage-Seriennummer}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:数量,en:Quantity,de:Menge}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+&lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作人员,en:Operator,de:Bedienpersonal}&lt;/div&gt;
+&lt;div style="min-width:150px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Operation Time,de:Operationszeit}&lt;/div&gt;
+&lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:入库单号,en:Receiving Order Number,de:Empfangsauftragsnummer}&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="mui-card-footer"&gt; &lt;!--页脚可以放按钮--&gt;  
+&lt;h4 style="white-space:pre-wrap ;color: #FF4757; margin: 8px 0;"&gt;lang:{zh:未提交,en:Pending,de:Offen}:#未提交数量#&lt;/h4&gt;
+&lt;button type="button" id="linkremove" style="padding:0 20px;height:35px" class="mui-btn mui-btn-danger"&gt;&lt;b style="font-size:16px"&gt;lang:{zh:删除,en:Delete,de:Löschen}&lt;/b&gt;&lt;/button&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit>&lt;div class="mui-input-row #HIDFLG#"&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:生产标签,en:Work Order SerNo,de:Arbeitsauftragsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Please Scan,de:scannen}" required
+id="工单序号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:车架序列号,en:Frame Serial Number,de:Rahmen-Seriennummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Please Scan,de:scannen}"  required 
+id="车架序列号" paratype="STR" paradm="" value="" &gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row #HIDFLG#"&gt;
+&lt;label&gt;lang:{zh:电机序列号,en:Motor Serial Number,de:Motor-Seriennummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Please Scan,de:scannen}"  required  
+id="电机序列号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row #HIDFLG#"&gt;
+&lt;label&gt;lang:{zh:电池序列号,en:Battery Serial Number,de:Batterie-Seriennummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Please Scan,de:scannen}" 
+id="电池序列号" paratype="STR" paradm="" value="" &gt; 
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:工单编号,en:Work Order Number,de:Arbeitsauftragsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="工单编号" paratype="STR" paradm="" value="#工单编号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product Code,de:Produktcode}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品编码" paratype="STR" paradm="" value="#产品编码#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述1,en:Product Name1,de:Produktname1}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品描述1" paratype="STR" paradm="" value="#产品描述1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述2,en:Product Name2,de:Produktname2}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品描述2" paratype="STR" paradm="" value="#产品描述2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:可入数量,en:Available Quantity,de:Verfügbare Menge}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="可入库数量" paratype="STR" paradm="" value="#可入库数量#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:已入数量,en:Already Received Quantity,de:Bereits erhaltene Menge}&lt;/label&gt;
+&lt;input type="number" required class="mui-input-clear" placeholder="" readonly="readonly"
+id="已入数量" paratype="DEC" paradm="" value="#已入数量#" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:入库数量,en:Receiving Quantity,de:Empfangsmenge}&lt;/label&gt;
+&lt;input type="number" required class="mui-input-clear" placeholder="" readonly="readonly"
+id="入库数量" paratype="DEC" paradm="" value="#SERQTY#" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:入库库位,en:Receiving Location,de:Empfangslagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly" 
+id="产线库位" paratype="STR" paradm=""  required  value="#产线库位#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:存货状态,en:Inventory Status,de:Lagerbestandsstatus}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" required placeholder="" 
+id="存货状态" paratype="STR" paradm="" value="#存货状态#"&gt;
+&lt;/div&gt;</H5Edit>
+  <H5Chart />
+  <H5MaxLines>500</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:生产地点,en:Production Site,de:Produktionsstandort}&lt;/label&gt;
+&lt;input type="text" class="mui-input"  not-reset placeholder=""  
+id="生产地点" readonly="readonly" paratype="STR" required paradm="" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:工单号,en:Work Order Number,de:Arbeitsauftragsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:模糊查询,en:Fuzzy Query,de:Fuzzy-Abfrage}" 
+id="工单号" paratype="STR" paradm="" value="{1}" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product Information,de:Produktinformation}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:产品编码模糊查询,en:Product Code Fuzzy Query,de:Produktcode, Name Fuzzy-Abfrage}"
+id="产品编码" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly mui-hidden"&gt;  
+&lt;label&gt;lang:{zh:数据检查,en:data check}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:模糊搜索,en:fuzzy search}" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>//扫完车架序列号换行到工单序号
+scan_para = function(id, r) {
+	if (id == "linkinput") {
+		scan_impl(id, "#" + r + "#");
+	} else {
+		document.getElementById(id).value = r;
+
+		if (id === "工单序号") {
+			setTimeout(function() {
+				keep_focus("车架序列号");
+			},
+			300);
+		}
+		if (id === "车架序列号") {
+			setTimeout(function() {
+				keep_focus("电机序列号");
+			},
+			300);
+		}
+		if (id === "电机序列号") {
+			setTimeout(function() {
+				keep_focus("电池序列号");
+			},
+			300);
+		}
+	}
+};
+
+$(document).on("keydown", '#工单序号', function (e) {
+  var theEvent = e || window.event;
+  var code = theEvent.keyCode || theEvent.which || theEvent.charCode;
+  if (code == 13 || code == 9) {
+    e.preventDefault();
+    keep_focus("车架序列号")
+    return false;
+  }
+});
+
+$(document).on("keydown", '#车架序列号', function (e) {
+  var theEvent = e || window.event;
+  var code = theEvent.keyCode || theEvent.which || theEvent.charCode;
+  if (code == 13 || code == 9) {
+    e.preventDefault();
+    keep_focus("电机序列号")
+    return false;
+  }
+});
+
+$(document).on("keydown", '#电机序列号', function (e) {
+  var theEvent = e || window.event;
+  var code = theEvent.keyCode || theEvent.which || theEvent.charCode;
+  if (code == 13 || code == 9) {
+    e.preventDefault();
+    keep_focus("电池序列号")
+    return false;
+  }
+});
+
+
+//扫描状态正常直接查询，不正常跳框提示
+scanAfterAction = function(id) {
+    var a = $("#数据检查").val();
+    if (a != "" ) {
+        alert($("#数据检查").val());  
+    } else {
+        var dmPara = reParaList();
+//延迟 150ms 触发，避开扫码枪硬件输入流的峰值
+        
+setTimeout(function()
+ {
+
+showModelData(dmPara); 
+}, 150);
+    }
+};
+
+editWebs=function(){
+	var max=$("#可入库数量").val()*1
+	var val=$("#入库数量").val()*1
+	if(val==max){
+             //两者相等直接返回
+		showModelData(null);
+	}else{
+           //重新计算需领数量
+          $("#可入库数量").val(max-val);
+          $("#入库数量").val("1");
+          $("#车架序列号").val("");
+          $("#电池序列号").val("");
+          $("#电机序列号").val("");
+          $("#工单序号").val("");
+           //需要手动刷新详情界面
+           var con = plus.webview.getWebviewById('contentlist');
+	   mui.fire(con,'contentlist_local',{});
+	}
+};
+
+//删除后自动刷新
+afterFunction=function(id){ 
+    if(id=="linkquick12")
+    reloadModelData()
+}
+
+beforeFunction=function(sta){
+    var a=$("#入库数量").val();
+    var b=$("#可入库数量").val();
+    var c=$("#产线库位").val();
+    
+    if (a*1 &gt; b*1)
+    {
+        alert("lang:{zh:入库数量超出，不允许,en:Inbound quantity exceeds limit, not allowed,de:Eingangsmenge überschreitet Grenzwert, nicht erlaubt}");
+        return true;
+    }
+    
+    if (c === " " || c === "")
+    {
+        alert("lang:{zh:入库库位不能为空,en:Inbound location cannot be empty,de:Eingangslagerplatz darf nicht leer sein}");
+        return true;
+    }
+    
+    return false;
+};</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#55</ImageFile>
+  <ListPrint />
+  <MD5HASH>c94b9ff3ce59235e7c9792a54056a1a4</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP54</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Production Completion</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP54</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Production Completion</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

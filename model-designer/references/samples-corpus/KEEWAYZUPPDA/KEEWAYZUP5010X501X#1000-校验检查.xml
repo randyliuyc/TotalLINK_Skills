@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5010X501X</ModelCode>
+  <ModelNum>1000</ModelNum>
+  <ModelDesc>校验检查</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>{{"type": 3,
+"message": "",
+"condition": "LINKSCRIPTGET@LINK01:SELECT  
+  CASE WHEN '{7}'=''  THEN   N'LINKPREVENT:车架码必填' 
+       WHEN CNUM&gt;0 AND  '{7}'&lt;&gt;'' THEN   N'LINKPREVENT:该车架码已存在'
+	   WHEN CNUM=0 AND  '{7}'&lt;&gt;'' THEN 
+	    CASE   WHEN '{8}'='' AND '{9}'=''  THEN N'LINKCONFIRM:电机码和电池码确认为空吗？'
+		       WHEN '{8}'=''  THEN N'LINKCONFIRM:电池码确认为空吗？'
+               WHEN '{8}'&lt;&gt;'' AND DCNUM&gt;0 THEN N'LINKPREVENT:该电池码已存在' 
+			   WHEN '{9}'=''  THEN N'LINKCONFIRM:电机码确认为空吗？'
+			   WHEN '{9}'&lt;&gt;'' AND DJNUM&gt;0 THEN N'LINKPREVENT:该电机码已存在' 
+		ELSE ''
+		END
+  ELSE '1'
+  END 
+FROM (
+SELECT SUM(CNUM) CNUM,SUM(DCNUM) DCNUM,SUM(DJNUM)  DJNUM
+FROM (
+SELECT COUNT(*) CNUM,0  DCNUM,0  DJNUM  FROM XWSMKI WHERE SERNUM_0='{7}' AND ITMREF_0='{5}'
+UNION ALL
+SELECT 0 CNUM,COUNT(*) DCNUM,0 DJNUM FROM XWSMKI WHERE XTXT_0='{8}' AND ITMREF_0='{5}'
+UNION ALL
+SELECT 0 CNUM,0 DCNUM,COUNT(*) DJNUM FROM XWSMKI WHERE XTXT_1='{9}' AND ITMREF_0='{5}'
+) A
+)  B"
+}}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#15</ImageFile>
+  <ListPrint />
+  <MD5HASH>e82281f7e65e7ecc70c67f6b39e129f5</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X501X</DMCODE>
+      <DMNUM>1000</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Validation Check</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X501X</DMCODE>
+      <DMNUM>1000</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Validation Check</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

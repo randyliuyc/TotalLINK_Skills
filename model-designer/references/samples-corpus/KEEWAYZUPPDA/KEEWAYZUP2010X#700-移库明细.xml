@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP2010X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>移库明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @STOFCY VARCHAR(50)='{0}'
+DECLARE @ITMREF VARCHAR(50)='{1}';
+
+SELECT K.STOCOU_0                                   LINKROWID
+      ,CAST(ISNULL(XWS.QTYSTU, K.QTYSTU_0) AS REAL) 数量
+      ,K.LOC_0                                      库位
+	  ,XWS.LOC_1                                    新库位
+      ,K.LOT_0                                      批次
+     -- ,K.SERNUM_0                                   序列号
+      ,ISNULL(K.ZSTOFLD3_0,K.SERNUM_0)                                 序列号
+      ,'{2}' 打印机编码
+      ,ISNULL(CONVERT(VARCHAR(16), XWS.CREDATIM, 21),CONVERT(VARCHAR(16),K.UPDDATTIM_0,21))      操作时间
+      ,ISNULL(XWS.CREUSR,K.UPDUSR_0)                                 操作人员
+      ,CASE
+          WHEN XWS.STOCOU IS NULL THEN 'mui-hidden'
+          ELSE ''
+        END                                         LINKROWIDBTNFLG
+      ,CASE
+          WHEN XWS.STOCOU IS NOT NULL THEN 'E02'
+          ELSE ''
+        END                                         ROW_BACKCOLOR
+,XWS.PK_0
+FROM   STOCK K
+       INNER JOIN ITMMASTER ITM
+               ON K.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN (SELECT STOCOU_0        STOCOU
+                        ,SUM(QTYSTU_0)   QTYSTU
+                        ,MAX(CREDATIM_0) CREDATIM
+                        ,MAX(USERID_0)   CREUSR,PK_0
+						,LOC_1 
+                  FROM   XWSSCS
+                  WHERE  ITMREF_0 = @ITMREF
+                         AND RPFLG_0 &lt;&gt; 3
+                         AND TRSFAM_0 = 'CHG'
+                  GROUP  BY STOCOU_0,PK_0,LOC_1) XWS
+              ON XWS.STOCOU = K.STOCOU_0
+WHERE  K.STOFCY_0 = @STOFCY
+       AND K.ITMREF_0 = @ITMREF
+ORDER  BY ISNULL(XWS.STOCOU, 0) DESC
+          ,K.LOT_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSSCS WHERE STOCOU_0='{0}'AND RPFLG_0&lt;&gt;3 AND USERID_0='#LOGIN_USER#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div class='#ROW_BACKCOLOR#'&gt;
+&lt;button type="button" linkquick="12" linklocation="0" api="2" code="KEEWAYZUP2010X" num="700" para="#LINKROWID#" script="3" confirm="lang:{zh:确认删除,en:confirm delete,de:Löschung bestätigen}?" style="width:30px;height:25px"class="mui-btn mui-btn-danger #LINKROWIDBTNFLG#" &gt;
+&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/button&gt;
+&lt;button type="button" id="print"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP2010X" num="700"  linkparafill="0" para="#PK_0#,#打印机编码#" script="501" class="mui-btn mui-btn-warning mui-hidden"&gt;
+&lt;span class="mui-icon mui-icon-paperplane"&gt;&lt;/span&gt;&lt;/button&gt;
+&lt;button type="button" id="print"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP2010X" num="700"  linkparafill="0" para="#PK_0#,#打印机编码#" script="503" class="mui-btn mui-btn-blue"&gt;
+&lt;span class="mui-icon mui-icon-paperplane "&gt;&lt;/span&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#数量#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#库位#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#新库位#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#批次#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#序列号#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#操作人员#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#操作时间#&lt;/div&gt;
+&lt;div class='mui-hidden' style="font-size: 16px;"&gt;#PK_0#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>20</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#15</ImageFile>
+  <ListPrint />
+  <MD5HASH>f85794fc1ed8ba7aba8330bb4e8d3fce</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Transfer Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Transfer Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

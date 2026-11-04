@@ -1,0 +1,618 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA3530</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>退货质检</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DOCNUM VARCHAR(30) = REPLACE('{0}',',','-')  --IF SCANED THE OPERATION CODE (WITH ,), CHANGE TO -, TO MATCH THE QA DOCNUM
+DECLARE @CODE VARCHAR(30) = '{1}'
+DECLARE @MFGNUM VARCHAR(30) = ''
+DECLARE @ROUALT VARCHAR(30) = ''
+DECLARE @ROUOPE VARCHAR(30) = ''
+DECLARE @ITMNO VARCHAR(30) = ''
+
+SET @MFGNUM=LEFT(@DOCNUM, CHARINDEX('-', @DOCNUM) - 1);
+SET @ROUOPE=RIGHT(@DOCNUM, LEN(@DOCNUM) - CHARINDEX('-', @DOCNUM));
+
+--SELECT @ROUALT = H.ROUALT_0
+--      ,@ITMNO = H.ROUNUM_0
+--FROM   #LC.X3DATA#MFGHEAD H
+--WHERE  H.MFGNUM_0 = @MFGNUM;
+
+-- DEMO DATA, RANDY, 2026-10-17
+SELECT @ROUALT = 11, @ITMNO = 'WR4080ED002.286'
+
+-- 拼接形成 ROUCOD
+DECLARE @ROUCOD VARCHAR(30)
+
+SET @ROUCOD = CONCAT_WS('-', @ITMNO, @ROUALT, @ROUOPE)
+
+SELECT QL.OPENUM                                                 CODE
+      ,CASE WHEN D.OPEDES2 = '自行车 / 外观' THEN N'lang:{zh:自行车 / 外观,de:Fahrrad / Aussehen}'
+	        WHEN D.OPEDES2 = '自行车 / 缺件检查' THEN N'lang:{zh:自行车 / 缺件检查,de:Fahrrad / Prüfung auf fehlende Teile}'
+	        WHEN D.OPEDES2 = '自行车 / 损伤检查' THEN N'lang:{zh:自行车 / 损伤检查,de:Fahrrad / Schadensprüfung}'
+	    END    DESP                                              
+      ,QL.INSTCAT
+      ,IIF(L.INSTCOD IS NULL, ISNULL(QL.INSTCOD, ''), L.INSTCOD) INSTCOD
+      ,'#LOGIN_USER#'  检查人
+      ,CONVERT(VARCHAR(16),GETDATE(),23) 检查日期
+      ,@DOCNUM 工单编号
+      ,@DOCNUM 退货单号
+      ,'C20261016' 车架号
+      ,' ' 车型
+      ,' ' 整车编码
+      ,IIF(QL.OPENUM &lt;&gt; '130','mui-hidden','') LINKHIDFLG130
+      ,IIF(QL.OPENUM &lt;&gt; '140','mui-hidden','') LINKHIDFLG140
+      ,IIF(QL.OPENUM &lt;&gt; '150','mui-hidden','') LINKHIDFLG150
+FROM   QAROU H
+       INNER JOIN QAROULIN QL
+               ON QL.ROUCOD = H.ROUCOD
+       INNER JOIN QAOPESTD D
+               ON QL.OPESTD = D.OPESTD
+       LEFT JOIN QAINSPL L
+              ON L.DOCNUM = @DOCNUM
+                 AND L.OPENUM = QL.OPENUM
+WHERE  H.ROUCOD = @ROUCOD
+AND (QL.OPENUM = @CODE OR @CODE = '')</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>退货单号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>检验任务</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>品牌</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>行驶里程</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+ &lt;div class='mui-card-footer' style="background-color: #f5f5f5; display: flex; align-items: center; gap: 10px;"&gt;   
+ &lt;h4 style="white-space:pre-wrap"&gt;#CODE#-#DESP#&lt;/h4&gt;
+        &lt;button type="button" linkquick="10" btnid="10" code="ERAQA3530" num="10" para=""
+            confirm=""
+            class="mui-btn mui-btn-green #LINKHIDFLG130#" style="font-size: 16px;padding: 6px 28px;"&gt;lang:{zh:检查,de:Prüfen}&lt;/button&gt;
+
+        &lt;button type="button" linkquick="10" btnid="20" code="ERAQA3530" num="10" para=""
+            confirm=""
+            class="mui-btn mui-btn-green #LINKHIDFLG140#" style="font-size: 16px;padding: 8px 30px;"&gt;lang:{zh:检查,de:Prüfen}&lt;/button&gt;
+
+        &lt;button type="button" linkquick="10" btnid="30" code="ERAQA3530" num="10" para=""
+            confirm=""
+            class="mui-btn mui-btn-green #LINKHIDFLG150#" style="font-size: 16px;padding: 8px 30px;"&gt;lang:{zh:检查,de:Prüfen}&lt;/button&gt;
+ &lt;/div&gt;
+ &lt;div class='mui-card-content'&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:车架号:,de:Fahrgestellnummer:}#车架号#&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:车型:,de:Fahrzeugmodell:}#车型#&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:整车编码:,de:Fahrzeugcode:}#整车编码#&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:检查人:,de:Prüfer:}#检查人#&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:检查日期:,de:Prüfdatum:}#检查日期#&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:工单编号:,de:Arbeitsauftragsnummer:}#工单编号#&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:退货单号:,de:Rücksendenummer:}#退货单号#&lt;/h4&gt;
+ &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:退货单号,de:Rücksendenummer}&lt;/label&gt;
+&lt;input type="text" required  class="mui-input-clear" placeholder="lang:{zh:请输入单号,de:Bitte Belegnummer eingeben}" 
+id="DOCNUM" paratype="STR" paradm="" value="{0}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:检验任务,de:Prüfaufgabe}&lt;/label&gt;
+&lt;div class="linkmultiple one mui-input-clear" id="OPENUM" para="{DOCNUM}" code="ERAQA353010X" num="701"  text-value="DESP-CODE" automatch='{"INSTCAT":"INSTCAT","INSTCOD":"INSTCOD"}'
+reload value=""&gt; &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:品牌,de:Marke}&lt;/label&gt;
+&lt;div class="linkmultiple one mui-input-clear" id="BRDCOD" para="" code="ERAQA353010X" num="703"  text-value="BRDCOD-BRDCOD" 
+reload value=""&gt; &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:行驶里程,de:Fahrleistung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入行驶里程,de:Bitte Fahrleistung eingeben}" 
+id="XSLC" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_if=function()
+{
+  return 2;
+}
+scan_para=function(id, r){
+scan_impl(id, "#"+r+"#");
+}
+
+//查询列表页面可显示搜索参数
+addIcons("openParas","lang:{zh:搜索}","search","","content");
+
+searchContent=function(para) {
+	dmPara = para || reParaList("para-area-content")
+alert(para+JSON.stringify(dmPara))	
+plus.webview.currentWebview().modelParams = dmPara;
+	loadModelData()
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#16</ImageFile>
+  <ListPrint />
+  <MD5HASH>dd5e57209b4ed9dca1880fe093f4fdcb</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CODE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CODE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DESP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DESP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKHIDFLG130</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKHIDFLG130</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKHIDFLG140</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKHIDFLG140</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKHIDFLG150</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKHIDFLG150</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Rücksendeprüfung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Production Tracking</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>车架号</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>车架号</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>车型</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>车型</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单编号</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单编号</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>检查人</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>检查人</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>检查日期</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>检查日期</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>退货单号</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>退货单号</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>整车编码</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>整车编码</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

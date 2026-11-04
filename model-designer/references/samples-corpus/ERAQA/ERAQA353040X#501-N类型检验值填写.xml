@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA353040X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>N类型检验值填写</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @DOCNUM VARCHAR(30) = '#DOCNUM#';
+DECLARE @OPENUM VARCHAR(30) = '#OPENUM#';
+DECLARE @VALLIN INT = 0#VALLIN#;
+DECLARE @TRXLIN INT = 0#TRXLIN#;
+UPDATE QAINSPVAL
+SET N1 = 0#N1#
+    , N2 = 0#N2#
+    , N3 = 0#N3#
+    , N4 = 0#N4#
+    , N5 = 0#N5#
+    , N6 = 0#N6#
+    , N7 = 0#N7#
+    , N8 = 0#N8#
+    , REMARK=N'#REMARK#'
+    , UPDUSR = N'#LOGIN_USER#'
+    , UPDTIM = GETDATE()
+WHERE DOCNUM = @DOCNUM
+  AND OPENUM = @OPENUM
+  AND VALLIN = @VALLIN
+  AND TRXLIN = @TRXLIN
+
+-- 行计算值
+EXECUTE [SP_INSPVAL_NCHECK] 
+   @DOCNUM
+  ,@OPENUM
+  ,@VALLIN
+  ,@TRXLIN;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:检验任务,de:Prüfaufgabe}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:请输入检验任务,de:Bitte Prüfaufgabe eingeben}" readonly="readonly"
+id="OPEDES2" paratype="STR" paradm="" value="#OPEDES2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:检查项目,de:Prüfposition}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:请输入检查项目,de:Bitte Prüfposition eingeben}" readonly="readonly"
+id="QAITM" paratype="STR" paradm="" value="#QAITM#"&gt;
+&lt;/div&gt;
+
+
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;DOCNUM&lt;/label&gt;
+&lt;input type="text"  class="" placeholder="" 
+id="DOCNUM" paratype="DEC" paradm="" value="#DOCNUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;OPENUM&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="OPENUM" paratype="DEC" paradm="" value="#OPENUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;VALLIN&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="VALLIN" paratype="DEC" paradm="" value="#VALLIN#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;TRXLIN&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="TRXLIN" paratype="DEC" paradm="" value="#TRXLIN#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkcheckbox-one "  value="2" requierd id="N2" &gt;
+&lt;label&gt;lang:{zh:损伤情况,de:Schadenssituation}&lt;/label&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;lang:{zh:无,de:Nein}&lt;/label&gt;
+   &lt;input type="checkbox" checked value="2"/&gt; 
+  &lt;/div&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;lang:{zh:有,de:Ja}&lt;/label&gt;
+   &lt;input type="checkbox" value="1"/&gt; 
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row mui-hidden"&gt;&lt;!--文件分组--&gt;
+    &lt;label&gt;LINKUPLOADGROUP&lt;/label&gt;
+    &lt;input type="text" class="" placeholder=""  id="LINKUPLOADGROUP" paratype="STR" paradm="" value="CarPic"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+    &lt;label&gt;lang:{zh:损伤照片,de:Schadensfotos}&lt;/label&gt;
+    &lt;input type="button" value="lang:{zh:上传,vie:tải hình ảnh lên,de:Hochladen}" not-reset class="linkUploadImage" code="ERAQA353020X" num="502" script="1" para="{DOCNUM}" id="image" data-id="self" repeatFile="text" style="background-color: #4CAF50; border: none; color: white; padding: 10px 20px; font-size: 14px; cursor: pointer; border-radius: 4px; transition: background-color 0.3s;"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row "&gt;
+    &lt;div class="linkMedia" id="self" clearable code="ERAQA353020X" num="502" script="0" para="{DOCNUM}" autoPath url="name"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:定损等级,de:Schadensbewertungsstufe}&lt;/label&gt;
+&lt;div class="linkmultiple one mui-input-clear" id="QUALVL" para="" code="ERAQA353040X" num="701"  text-value="QUALVL-QUALVL" automatch='{"QUALVL":"QUALVL"}'
+reload value=""&gt; &lt;/div&gt;
+&lt;/div&gt;
+
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:损伤费用,de:Schadenskosten}&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="lang:{zh:请输入损伤费用,de:Bitte Schadenskosten eingeben}" 
+id="REMARK" paratype="DEC" paradm="" value="#REMARK#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkcheckbox-one "  value="2" requierd id="N2" &gt;
+&lt;label&gt;lang:{zh:有无维修,de:Reparatur vorhanden}&lt;/label&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;lang:{zh:无,de:Nein}&lt;/label&gt;
+   &lt;input type="checkbox" checked value="2"/&gt; 
+  &lt;/div&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;lang:{zh:有,de:Ja}&lt;/label&gt;
+   &lt;input type="checkbox" value="1"/&gt; 
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:维修内容,de:Reparaturumfang}&lt;/label&gt;
+&lt;div class="linkmultiple one mui-input-clear" id="SAMP" para="#VALLIN#" code="ERAQA353040X" num="702"  text-value="SAMP-SAMP" automatch='{"QUALVL":"QUALVL"}'
+reload value=""&gt; &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkcheckbox-one "  value="2" requierd id="N3" &gt;
+&lt;label&gt;lang:{zh:责任方,de:Verantwortliche Partei}&lt;/label&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;lang:{zh:工厂,de:Werk}&lt;/label&gt;
+   &lt;input type="checkbox" checked value="2"/&gt; 
+  &lt;/div&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;lang:{zh:车主,de:Fahrzeughalter}&lt;/label&gt;
+   &lt;input type="checkbox" value="1"/&gt; 
+  &lt;/div&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#51</ImageFile>
+  <ListPrint />
+  <MD5HASH>6b088aec8b35ae60a388097da7069772</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

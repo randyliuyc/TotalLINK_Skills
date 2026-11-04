@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR2010X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>打印提单标签</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>{{
+	"type": 3,
+	"message": "",
+	"condition": "LINKSCRIPTGET@LINK01:SELECT 
+CASE WHEN '{5}'='' THEN N'LINKPREVENT:标签数未填写，请检查' 
+     WHEN 0#NPTNUM#&lt;0{5} THEN N'LINKCONFIRM:标签数超出0{5}-0#NPTNUM#'
+END "
+}}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @NPTNUM  INT = 0{5};
+	DECLARE @DOCNUM VARCHAR(30) = '#DOCNUM#';
+	DECLARE @DOCLIN INT =0#DOCLIN#;
+	DECLARE @TAGNO  VARCHAR(30);
+	DECLARE @BATCHID VARCHAR(50)='#LINKID_ACTION#';
+	DECLARE @CLOT VARCHAR(50)='{6}';
+	DECLARE @SUBLOT VARCHAR(50)='{7}';
+IF @CLOT&lt;&gt;''
+    UPDATE PBOLD SET LOT=CASE WHEN @CLOT = '' THEN T.LOT
+                            ELSE CASE WHEN ITM.TSICOD2 NOT IN('BM') THEN @CLOT ELSE T.LOT END END 
+							FROM PBOLD T LEFT JOIN ITM ITM ON T.ITMNO=ITM.ITMNO
+							WHERE DOCNUM=@DOCNUM AND DOCLIN=@DOCLIN 
+
+	IF @NPTNUM &gt; 0
+      BEGIN
+
+
+            DECLARE @CTRSEQ INT= 0;
+
+            WHILE @CTRSEQ &lt; @NPTNUM
+              BEGIN
+                SET @CTRSEQ = @CTRSEQ + 1;
+                SET @TAGNO = CONCAT('B', REPLACE(STR(NEXT VALUE FOR DOC_CTR, 11), ' ', '0'));
+
+                --PRINT @TAGNO
+                INSERT INTO STKLOTLST
+                            (DOCTYP
+                            ,SITE
+							,DOCSTA
+                            ,ITMNO
+                            ,ITMVER
+                            ,LOT
+                            ,SUBLOT
+                            ,TAGTYP
+                            ,TAGNO
+                            ,PAL
+                            ,CTR
+                            ,UOM
+                            ,UOMCOE
+                            ,QTY
+                            ,QTYSTU
+                            ,STU
+                            ,REMARK
+                            ,SRCTYP
+                            ,SRCDOC
+                            ,SRCLIN
+                            ,SRCSEQ
+                            ,ORITYP
+                            ,ORIDOC
+                            ,ORILIN
+                            ,ORISEQ
+                            ,SUBSTA
+                            ,SUBTIM
+                            ,BATCHID
+                            ,CREUSR
+							,CRETIM)
+                SELECT 'PRC'   DOCTYP
+                      ,H.SITE
+					  ,2
+                      ,T.ITMNO
+                      ,T.ITMVER
+                      ,CASE WHEN @CLOT = '' THEN T.LOT
+                            ELSE CASE WHEN ITM.TSICOD2 NOT IN('BM') THEN @CLOT ELSE T.LOT END END  LOT
+                      ,@SUBLOT SUBLOT
+                      ,'CTR'    TAGTYP
+                      ,@TAGNO   TAGNO
+                      ,''       PAL
+                      ,@TAGNO   CTR
+                      ,'PKG'    UOM
+                      ,T.CTRQTY UOMCOE
+                      ,1        QTY
+                      ,T.CTRQTY QTYSTU
+                      ,T.STU
+                      ,T.REMARK
+                      ,T.SRCTYP
+                      ,T.SRCDOC
+                      ,T.SRCLIN
+                      ,0  SRCSEQ
+                      ,T.DOCTYP  ORITYP
+                      ,T.DOCNUM  ORIDOC
+                      ,T.DOCLIN  ORILIN
+                      ,0 ORISEQ
+                      ,3 SUBSTA
+                      ,GETDATE()   SUBTIM
+                      ,@BATCHID    BATCHID
+                      ,N'#LOGIN_USER#'
+					  ,GETDATE()  CRETIM
+                    FROM   [PBOLH] H
+       INNER JOIN [PBOLD] T
+               ON H.DOCNUM = T.DOCNUM
+               LEFT JOIN ITM ITM ON T.ITMNO=ITM.ITMNO
+			   WHERE  T.DOCNUM=@DOCNUM
+			   AND    T.DOCLIN=@DOCLIN
+              END
+          END</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~FILEEXPORT~
+[
+    {
+        "fileType":"REPORT.PDF",
+        "fileName":"提单收货标签-#LOGIN_USER#",
+        "fileDesc":"采购收货标签",
+        "ARSetting":{
+            "reportFile":"#LINKREPORTPATH#\\LABEL\\YMDB.rdlx",
+            "connString":[
+                "#LINKCONN.LINK01#"
+            ],
+            "para":[
+                "#LINKID_ACTION#"
+            ]
+                    }
+    }
+]</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#89</ImageFile>
+  <ListPrint />
+  <MD5HASH>038f0ec16713c6440ba5bb2614db73f7</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR2010X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>In nhãn vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR2010X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>In nhãn B/L</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

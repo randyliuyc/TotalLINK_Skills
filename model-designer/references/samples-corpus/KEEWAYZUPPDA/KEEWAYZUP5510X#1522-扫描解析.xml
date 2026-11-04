@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5510X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫描解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @TAG VARCHAR(200) = '{0}'; 
+DECLARE @STOCK VARCHAR(50) = '';
+
+-- 检查序列号是否存在库存表中
+SELECT TOP 1 @STOCK = SERNUM_0
+FROM STOCK
+WHERE SERNUM_0 = @TAG;
+
+IF ISNULL(@STOCK, '') = ''
+BEGIN
+    SELECT N'序列号不存在: ' + @TAG  AS 数据检查
+    RETURN
+END
+
+-- 检查该序列号是否被扫描过
+IF EXISTS (SELECT TOP 1 *
+           FROM XWSSCS
+           WHERE SERNUM_0 = @TAG AND RPFLG_0 &lt;&gt; 3)
+BEGIN
+    SELECT N'序列号已扫描过: ' + @TAG AS 数据检查
+    RETURN;
+END
+
+-- 检查该序列号是否已入库
+IF EXISTS (SELECT TOP 1 *
+           FROM XWSSCS
+           WHERE SERNUM_0 = @TAG AND RPFLG_0 = 3)
+BEGIN
+    SELECT N'序列号已入库: ' + @TAG AS 数据检查
+    RETURN;
+END
+
+SELECT 
+    S.SERNUM_0 AS 序列号,
+    '' AS 数据检查,
+	S.ITMREF_0 产品编码 ,
+    ISNULL((SELECT COUNT(DISTINCT SERNUM_0+ITMREF_0) 
+            FROM XWSSCS 
+            WHERE RPFLG_0 &lt;&gt; 3 AND USERID_0 = @USER), 0) + 1 AS 已扫数量
+FROM STOCK S
+WHERE S.SERNUM_0 = @TAG</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>码</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#02</ImageFile>
+  <ListPrint />
+  <MD5HASH>e5451a1c128a7bbb7c4056f939bbf456</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5510X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5510X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

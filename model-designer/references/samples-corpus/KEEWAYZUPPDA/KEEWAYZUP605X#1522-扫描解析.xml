@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP605X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫描解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @ITMREF VARCHAR(30)='#产品编码#';
+DECLARE @FCY VARCHAR(30)='#地点#';
+DECLARE @REMINQTY DECIMAL(16, 2)='#需发数量#';
+DECLARE @TAG VARCHAR(30)='{0}';
+DECLARE @LOC VARCHAR(30)='#库位#';
+
+IF ISNULL((SELECT COUNT(*)
+           FROM   XWSSDH
+           WHERE  SERNUM_0 = @TAG
+                  AND ITMREF_0 = @ITMREF), 0) &lt;&gt; 0
+  SELECT N'lang:{zh:该序列号已扫:,en:This serial number already scanned:,de:Diese Seriennummer bereits gescannt:} ' + @TAG AS 数据检查
+
+ELSE IF ISNULL((SELECT COUNT(*)
+           FROM   STOCK K
+           WHERE  (K.SERNUM_0= @TAG OR K.STOFLD1_0=@TAG OR K.STOFLD2_0=@TAG OR  K.ZSTOFLD3_0=@TAG)
+                  AND ITMREF_0 = @ITMREF), 0) = 0
+				  AND ISNULL(@LOC, '') = '' --只考虑库位为空的情况
+  SELECT N'lang:{zh:扫描产品错误或无库存:,en:Scan product error or no stock:,de:Scan-Fehler oder kein Bestand:} ' + @TAG AS 数据检查
+
+
+  -- 序列号不在STOCK中且 @LOC不为空 → 查该库位序列号为空的库存，用扫描的@TAG作为序列号
+ELSE IF ISNULL((SELECT COUNT(*)
+           FROM   STOCK K
+           WHERE  (K.SERNUM_0= @TAG OR  K.ZSTOFLD3_0=@TAG)
+                  AND ITMREF_0 = @ITMREF), 0) = 0
+  AND ISNULL(@LOC, '') &lt;&gt; ''
+  SELECT DISTINCT 1   发货数量
+        ,@TAG         AS 序列号
+        ,CASE  WHEN K.QTYSTU_0-ISNULL(K.CUMALLQTY_0,0)=0 THEN N'lang:{zh:库存被分配,en:Stock allocated,de:Bestand zugewiesen}'
+               WHEN K.QTYSTU_0-ISNULL(K.CUMWIPQTY_0,0)=0 THEN N'lang:{zh:库存被锁定,en:Stock locked,de:Bestand gesperrt}'
+               WHEN K.QTYSTU_0-ISNULL(XWS.QTY,0)=0  THEN N'lang:{zh:可用库存为0,en:Available stock is 0,de:Verfügbarer Bestand ist 0}' ELSE '' END 数据检查
+        ,K.STOCOU_0  STOCOU
+        ,K.PALNUM_0  生产计划号
+  FROM   STOCK K LEFT JOIN XWSMKI B ON K.ZSTOFLD3_0=B.XTXT_2
+     LEFT JOIN (SELECT STOCOU_0
+                        ,SUM(QTY_0) QTY
+                  FROM   XWSSDH
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY STOCOU_0)XWS
+              ON XWS.STOCOU_0 = K.STOCOU_0                 
+  WHERE  K.STOFCY_0 = @FCY
+         AND K.ITMREF_0 = @ITMREF
+         AND K.LOC_0 = @LOC
+         AND K.SERNUM_0 = ''
+
+
+
+
+ELSE IF ISNULL((SELECT COUNT(*)
+           FROM   STOCK
+           WHERE SERNUM_0 = @TAG), 0) &gt; 1
+  SELECT N'lang:{zh:该产品存在于多个库位，请选择,en:Product exists in multiple locations, please select,de:Produkt in mehreren Lagerplätzen vorhanden, bitte wählen}' AS 数据检查
+
+
+ELSE
+--原查询
+  SELECT DISTINCT CAST(CASE
+            WHEN K.SERNUM_0&lt;&gt;'' THEN 1
+            WHEN K.QTYSTU_0-ISNULL(XWS.QTY,0) &gt; @REMINQTY AND K.SERNUM_0='' THEN @REMINQTY
+            ELSE K.QTYSTU_0-ISNULL(XWS.QTY,0) 
+          END  AS REAL)      发货数量
+        ,K.LOC_0      库位
+		,ISNULL(NULLIF(K.SERNUM_0, ''), K.ZSTOFLD3_0) AS 序列号
+        ,CASE  WHEN K.QTYSTU_0-ISNULL(K.CUMALLQTY_0,0)=0 THEN N'lang:{zh:库存被分配,en:Stock allocated,de:Bestand zugewiesen}'
+               WHEN K.QTYSTU_0-ISNULL(K.CUMWIPQTY_0,0)=0 THEN N'lang:{zh:库存被锁定,en:Stock locked,de:Bestand gesperrt}'
+               WHEN K.QTYSTU_0-ISNULL(XWS.QTY,0)=0  THEN N'lang:{zh:可用库存为0,en:Available stock is 0,de:Verfügbarer Bestand ist 0}' ELSE '' END 数据检查
+        ,K.STOCOU_0  STOCOU
+         ,K.PALNUM_0               生产计划号
+  FROM   STOCK K LEFT JOIN XWSMKI B ON K.ZSTOFLD3_0=B.XTXT_2
+     LEFT JOIN (SELECT STOCOU_0
+                        ,SUM(QTY_0) QTY
+                  FROM   XWSSDH
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY STOCOU_0)XWS
+              ON XWS.STOCOU_0 = K.STOCOU_0                 
+  WHERE  K.STOFCY_0 = @FCY
+         AND (K.SERNUM_0= @TAG OR K.STOFLD1_0=@TAG OR K.STOFLD2_0=@TAG OR  K.ZSTOFLD3_0=@TAG)</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#47</ImageFile>
+  <ListPrint />
+  <MD5HASH>216df39a02822a367f060ced2af74163</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

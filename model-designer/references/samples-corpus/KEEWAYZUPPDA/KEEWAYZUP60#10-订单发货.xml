@@ -1,0 +1,493 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP60</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>订单发货</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMYROWDATA
+--LINKDETAILLIST(KEEWAYZUP6010X,700,{0},{1},{2},{3},{4})
+DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#';
+DECLARE @LANX3 VARCHAR(30) = (SELECT #LC.X3ERP#GETLANX3(@LAN));
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @SOHNUM VARCHAR(30)='%{1}%';
+DECLARE @BPC NVARCHAR(100)=N'%{2}%';
+DECLARE @ITM NVARCHAR(100)=N'%{3}%';
+
+SELECT TOP 500 SOQ.SOHNUM_0                                                                     AS 销售订单号
+               ,SOQ.SOPLIN_0                                                                    AS 销售订单行
+               ,SOQ.SOQSEQ_0                                                                    AS 行序号
+               ,SOH.CUSORDREF_0                                                                 AS 参考号
+               ,SOH.SALFCY_0                                                                    AS 地点
+               ,SOH.STOFCY_0                                                                    AS 装运地点
+               ,SOH.ORDDAT_0                                                                    AS 日期
+               ,IIF(BPC.BPCSHO_0 = '', BPC.BPCNAM_0, BPC.BPCSHO_0)                              AS 客户
+               ,SOQ.ITMREF_0                                                                    AS 产品编码
+               ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)                                                AS 产品描述1
+               ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)                                                AS 产品描述2
+               ,SOP.SAU_0                                                                       单位
+               ,CAST(SOQ.QTY_0 AS REAL)                                                         订单数量
+               ,CAST(ISNULL(XWS.QTYPCU_0, 0) AS REAL)                                           已备数量
+               ,CAST(SOQ.ODLQTY_0 + SOQ.DLVQTY_0 AS REAL)                                       已发数量
+               ,CAST(SOQ.QTY_0 - ISNULL(XWS.QTYPCU_0, 0) - SOQ.ODLQTY_0 - SOQ.DLVQTY_0 AS REAL) 剩余数量
+               ,CASE
+                  WHEN ITM.SERMGTCOD_0 = 3 THEN 'required'
+                  ELSE ''
+                END                                                                             AS REQFLG
+               ,CASE
+                  WHEN ISNULL(XWS.QTYPCU_0, 0) &gt; 0 THEN 'E02'
+                  WHEN SOQ.QTY_0 &gt; SOQ.ODLQTY_0 + SOQ.DLVQTY_0
+                       AND SOQ.ODLQTY_0 + SOQ.DLVQTY_0 &lt;&gt; 0 THEN 'A02'
+                  ELSE 'C01'
+                END                                                                             AS ROW_BACKCOLOR
+               ,SOH.SOHNUM_0
+                + CAST(SOQ.SOPLIN_0 AS VARCHAR)                                                 AS SOURCEPK
+               ,ITF.DEFLOC_2                                                                    库位
+               ,'{4}'                                                                           过账日期
+               ,SOQ.SOHNUM_0
+                + CAST(SOQ.SOPLIN_0 AS VARCHAR)                                                 AS id
+			 ,CASE
+          WHEN ITM.LOTMGTCOD_0 &gt; 1 THEN N'lang:{zh:批次号管理,en:Batch Management,de:Chargenverwaltung}'
+          ELSE ''
+        END                              LOTFLG
+	   ,CASE
+          WHEN SERMGTCOD_0 &gt;1 THEN N'lang:{zh:序列号管理,en:Serial Number Management,de:Seriennummernverwaltung}'
+          ELSE ''
+        END                              SERFLG
+FROM   SORDERQ SOQ
+       LEFT JOIN SORDERP SOP
+              ON SOQ.SOHNUM_0 = SOP.SOHNUM_0
+                 AND SOQ.SOPLIN_0 = SOP.SOPLIN_0
+                 AND SOQ.SOQSEQ_0 = SOP.SOPSEQ_0
+       LEFT JOIN SORDER SOH
+              ON SOH.SOHNUM_0 = SOQ.SOHNUM_0
+       LEFT JOIN BPCUSTOMER BPC
+              ON SOH.BPCORD_0 = BPC.BPCNUM_0
+       LEFT JOIN (SELECT SDH.SOHNUM_0
+                         ,SUM(SDH.QTYPCU_0) QTYPCU_0
+                         ,SOPLIN_0
+                  FROM   XWSSDH SDH
+                  WHERE  SOHNUM_0 LIKE @SOHNUM
+                         AND RPFLG_0 &lt;&gt; 3
+                  GROUP  BY SDH.SOHNUM_0
+                            ,SDH.SOPLIN_0)XWS
+              ON SOQ.SOHNUM_0 = XWS.SOHNUM_0
+                 AND SOQ.SOPLIN_0 = XWS.SOPLIN_0
+       LEFT JOIN ITMMASTER ITM
+              ON ITM.ITMREF_0 = SOQ.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       LEFT JOIN ITMFACILIT ITF
+              ON ITF.STOFCY_0 = SOH.STOFCY_0
+                 AND ITF.ITMREF_0 = SOQ.ITMREF_0
+WHERE  SOQ.SOQSTA_0 &lt;&gt; 3
+       AND SOQ.QTY_0 - SOQ.DLVQTY_0 - SOQ.ODLQTY_0 &gt; 0
+       AND SOH.SALFCY_0 = @FCY
+       AND SOH.SOHNUM_0 LIKE UPPER(@SOHNUM)
+       AND BPC.BPCNUM_0 + UPPER(BPC.BPCNAM_0)
+           + UPPER(BPC.BPCSHO_0) LIKE UPPER(@BPC)
+       AND ITM.ITMREF_0
+           + UPPER(ISNULL(L1.ITMDES, ITM.ITMDES1_0)+ISNULL(L2.ITMDES, ITM.ITMDES2_0) ) LIKE UPPER(@ITM)
+ORDER  BY  XWS.QTYPCU_0 DESC</SQLScript>
+  <SQLUpdateScript>INSERT INTO XWSSDH
+  (MACHINEID_0,
+   USERID_0,
+   CUSERID_0,
+   VCRTYP_0,
+   PK_0,
+   BATCHID_0,
+   PKORI_0,
+   CREDATIM_0,
+   STAT_0,
+   SUBDATIM_0,
+   RPFLG_0,
+   RPNUM_0,
+   RPLIN_0,
+   RPNOTE_0,
+   RPDATE_0,
+   RPDATIM_0,
+   SALFCY_0,
+   STOFCY_0,
+   SDHNUM_0,
+   BPCORD_0,
+   BPAADD_0,
+   CUR_0,
+   SHIDAT_0,
+   DLVDAT_0,
+   CFMFLG_0,
+   ZPAK_0,
+   PJT_0,
+   SOHNUM_0,
+   SOPLIN_0,
+   X3HNUM_0,
+   X3DLIN_0,
+   ITMREF_0,
+   PCK_0,
+   ITMDES_0,
+   SAU_0,
+   QTY_0,
+   STA_0,
+   PCU_0,
+   QTYPCU_0,
+   LOC_0,
+   LOT_0,
+   SERNUM_0,
+   PALNUM_0,
+   CTRNUM_0
+   ,STOCOU_0
+   ,CREDATTIM_0,UPDDATTIM_0,AUUID_0,CREUSR_0,UPDUSR_0,  
+             [YINVQTY_0],
+             [YBONQTY_0],
+             [XDCB_0],
+             [XDCB_1],
+             [XDCB_2],
+             [XTXT_0],
+             [XTXT_1],
+             [XTXT_2],
+             [XDAT_0],
+             [XDAT_1],
+             [XDAT_2])
+SELECT '#LOGIN_ID#' MACHINEID_0
+      ,'#LOGIN_USER#' USERID_0
+	  ,'#LOGIN_USER#' CUSERID_0
+      ,110 VCRTYP_0
+      ,NEWID() PK_0
+      ,' ' BATCHID_0
+      ,'' PKORI_0
+      ,GETDATE() CREDATIM_0
+      ,1 STAT_0
+      ,'1900-01-01' SUBDATIM_0
+      ,1 RPFLG_0
+      ,' ' RPNUM_0
+      ,0 RPLIN_0
+      ,' ' RPNOTE_0
+      ,'1900-01-01' RPDATE_0
+      ,' ' RPDATIM_0
+      ,SOH.SALFCY_0
+      ,SOH.STOFCY_0
+      ,' ' SDHNUM_0
+      ,SOH.BPCORD_0
+      ,SOH.BPAADD_0 BPAADD_0
+      ,SOH.CUR_0 CUR_0
+      ,'#过账日期#' SHIDAT_0
+      ,'#过账日期#' DLVDAT_0
+      ,1 CFMFLG_0
+      ,'' ZPAK_0
+      ,' ' PJT_0
+      ,SOQ.SOHNUM_0
+      ,SOQ.SOPLIN_0
+      ,''
+      ,0
+      ,SOQ.ITMREF_0 ITMREF_0
+	  ,'' PCK_0
+      ,I.ITMDES1_0
+      ,I.STU_0 SAU_0
+      ,0#发货数量#  QTY_0
+      ,K.STA_0 STA_0
+      ,I.STU_0 PCU_0
+      ,0#发货数量#  QTYPCU_0
+      ,K.LOC_0 LOC_0
+      ,K.LOT_0 LOT_0
+      ,K.SERNUM_0 SERNUM_0
+      ,K.PALNUM_0 PALNUM
+      ,K.CTRNUM_0 CTRNUM
+	  ,K.STOCOU_0 STOCOU_0
+      ,GETDATE(),GETDATE(),NEWID(),' ',' '
+      ,0                         [YINVQTY_0]
+      ,0                         [YBONQTY_0]
+      ,0                         [XDCB_0]
+      ,0                         [XDCB_1]
+      ,0                         [XDCB_2]
+      ,''                        [XTXT_0]
+      ,''                        [XTXT_1]
+      ,''                        [XTXT_2]
+      ,''                        [XDAT_0]
+      ,''                        [XDAT_1]
+      ,''                        [XDAT_2]
+FROM  STOCK K 
+    INNER JOIN SORDERQ SOQ
+	ON SOQ.ITMREF_0=K.ITMREF_0 AND SOQ.SOHNUM_0='#销售订单号#' and SOQ.SOPLIN_0=0#销售订单行#
+       Left JOIN SORDER SOH
+               ON SOQ.SOHNUM_0 = SOH.SOHNUM_0
+       Left JOIN ITMMASTER I
+               ON I.ITMREF_0 =K.ITMREF_0
+WHERE K.STOCOU_0=0#STOCOU#;</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>销售订单</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>客户信息</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品信息</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>过账日期</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSSDH WHERE SOHNUM_0='#销售订单号#' AND SOPLIN_0='#销售订单行#' AND RPFLG_0&lt;&gt;3 AND USERID_0='#LOGIN_USER#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' style="color: black;"&gt;
+    &lt;div class='mui-card-header #ROW_BACKCOLOR#'&gt;
+        &lt;h4&gt;#产品编码#&lt;/h4&gt;
+        &lt;button class="mui-btn mui-btn-blue" style="width:100px;height:35px" type="button" id="linkedit"&gt;
+            &lt;b style="font-size:16px"&gt; lang:{zh:扫码选择,en:Delivery,de:Lieferung}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="mui-card-body mui-table-view-cell mui-collapse #LINKROWIDHIDL#"&gt;
+        &lt;a class='mui-navigate-right' href='#'&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:订单号,en:Order Number,de:Auftragsnr.}:#销售订单号#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:行,en:Line,de:Position}:#销售订单行#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:产品描述1,en:Product name1,de:Bezeichnung1}:#产品描述1#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:产品描述2,en:Product name2,de:Bezeichnung2}:#产品描述2#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:客户,en:Customer,de:Auftraggeber}:#客户#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:订单,en:Order,de:Auftrag Menge}:#订单数量#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt; lang:{zh:已发,en:Delivered,de:Geliefert Menge}:#已发数量#&lt;/h4&gt;
+        &lt;/a&gt;
+        &lt;ul class='mui-collapse-content'&gt;
+            &lt;div style="overflow: auto; padding:0;"&gt;
+                &lt;div class="link-table-default" style="margin:0"&gt;
+                    &lt;div class="link-table-fixed"&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt; lang:{zh:操作,en:Operation,de:Vorgang}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt; lang:{zh:数量,en:Quantity,de:Menge}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt; lang:{zh:库位,en:Location,de:Lagerort}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt; lang:{zh:操作人员,en:Operator,de:Mitarbeiter}&lt;/div&gt;
+                        &lt;div style="min-width:150px;background-color:#546E7A;"&gt; lang:{zh:操作时间,en:Operation Time,de:Zeitpunkt}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt; lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/div&gt;
+                        &lt;div style="min-width:50px;background-color:#546E7A;"&gt; lang:{zh:发货单号,en:Delivery No,de:Liefernr}&lt;/div&gt;
+                    &lt;/div&gt;#LINKDETAILLIST#
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;div class="mui-card-footer"&gt;
+         &lt;h4 style="white-space:pre-wrap ;color: #FF4757; margin: 8px 0;"&gt;lang:{zh:未提交,en:Not Submitted,de:Ausstehende Menge}:#已备数量# #LOTFLG#-#SERFLG#&lt;/h4&gt; 
+        &lt;button type="button" id="linkremove" style="width:80px;height:35px" class="mui-btn mui-btn-danger"&gt;&lt;b
+                style="font-size:16px"&gt; lang:{zh:删除,en:Delete,de:Löschen}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit>&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="地点" paratype="STR" paradm="" value="#地点#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"  style="padding:5px 5px 5px 5px;" &gt;
+&lt;div style="float:left;width:75%" class="mui-input-column"&gt;
+&lt;label&gt;lang:{zh:发货数量,en:Qty,de:Liegermenge}&lt;/label&gt;
+&lt;input type="number" required   required  class="" placeholder="lang:{zh:请输入发货数量,en:Please enter delivery quantity,de:Bitte Liefermenge eingeben}" 
+id="发货数量" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div style="float:right;width:25%"&gt;
+&lt;button type="button"  style="width:120px;height:25px"  class="mui-btn mui-btn-blue linkdatasearch one"  id="选择库存" paradm=""  code="KEEWAYZUP6010X" num="701" 
+text-value="选择-选择" para="{地点,产品编码,需发数量}" 
+automatch='{"库位":"库位","发货数量":"发货数量","序列号":"序列号","数据检查":"数据检查","STOCOU":"STOCOU"}'reload value=""&gt;
+&lt;b style="font-size:16px"&gt;lang:{zh:选择库存,en:Select,de:auswählen}&lt;/b&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:需发数量,en:Required Quantity,de:Verbleibende Menge}&lt;/label&gt;
+&lt;input type="number" class="" placeholder="lang:{zh:请输入需发数量,en:Please enter required quantity,de:Bitte benötigte Menge eingeben}" readonly="readonly"
+id="需发数量" paratype="DEC" paradm="" value="#剩余数量#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:订单号,en:Order Number,de:Auftragsnr.}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="销售订单号" paratype="STR" paradm="" value="#销售订单号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;lang:{zh:订单行,en:Order Line,de:Auftragsposition}&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="销售订单行" paratype="DEC" paradm="" value="#销售订单行#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:请输入产品编码,en:Please enter product code,de:Bitte Produktcode eingeben}" readonly="readonly"
+id="产品编码" paratype="STR" paradm="" value="#产品编码#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:请输入产品描述1,en:Please enter product name1,de:Bitte Produktname eingeben1}" readonly="readonly"
+id="产品描述1" paratype="STR" paradm="" value="#产品描述1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:请输入产品描述2,en:Please enter product name2,de:Bitte Produktname eingeben2}" readonly="readonly"
+id="产品描述2" paratype="STR" paradm="" value="#产品描述2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text"  required class="" placeholder="" required  readonly="readonly"
+id="库位" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/label&gt;
+&lt;input type="text" #REQFLG# class="" placeholder=""  readonly="readonly"
+id="序列号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:数据检查,en:Data Check,de:Datenprüfung}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="date" required class="mui-input-clear" placeholder="lang:{zh:请输入过账日期,en:Please enter posting date,de:Bitte Buchungsdatum eingeben}" 
+id="过账日期" paratype="DATEC10" paradm="" value="#过账日期#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;STOCOU&lt;/label&gt;
+&lt;input type="number" required  class="" placeholder="" 
+id="STOCOU" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;</H5Edit>
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button"  required class="link-pick-btn mui-input-clear" not-reset placeholder="" 
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:销售订单号,en:Sales Order No.,de:Auftragsnr.}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:模糊查询,en:Fuzzy Search,de:Ungefähre Suche}" 
+id="销售订单号" paratype="STR" paradm="" value="{1}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:客户信息,en:Customer,de:Empfänger}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:客户编码、名称模糊查询,en:Customer Code/Name Fuzzy Search,de:Kundencode/Name ungefähre Suche}" 
+id="客户信息" paratype="STR" paradm="" value="{2}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品信息,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:产品编码、名称、描述模糊查询,en:Product Code/Name/Description Fuzzy Search,de:Artikel/Bezeichnung ungefähre Suche}" 
+id="产品描述" paratype="STR" paradm="" value="{3}"onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="date" required class="mui-input-clear" placeholder="lang:{zh:请输入过账日期,en:Please Enter Posting Date,de:Bitte Buchungsdatum eingeben}" 
+id="过账日期" paratype="DATEC10" paradm="" value="#LINK_TODAY#"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+editWebs=function(){
+	var max=$("#需发数量").val()*1
+	var val=$("#发货数量").val()*1
+	if(val==max){
+             //两者相等直接返回
+		showModelData(null);
+	}else{
+           //重新计算需发数量
+          $("#需发数量").val(max-val);
+          $("#库位").val("");
+          $("#发货数量").val("");
+          $("#序列号").val("");
+          $("#选择库存").val("");
+           //需要手动刷新详情界面
+           var con = plus.webview.getWebviewById('contentlist');
+	   mui.fire(con,'contentlist_local',{});
+	}
+}
+
+
+beforeFunction=function(sta,id){
+var a=$("#数据检查").val();
+if(a!="OK"&amp;&amp;( sta=="new"||sta=="autoSave")){
+alert(a);
+return true;
+}
+else
+{return false;}};
+
+repeatTime=function(id){
+   if(id=="linkpreprocess")
+    return 10
+    return 1
+}
+
+limitTimeAction=function(id){
+   if(id=="linkpreprocess")
+alert("lang:{zh:10秒内不可重复点击,en:Cannot click repeatedly within 10 seconds,de:Nicht wiederholt klicken (10s)}");
+}
+
+//删除后自动刷新
+afterFunction=function(id){ 
+    if(id=="linkquick12")
+    reloadModelData()
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#86</ImageFile>
+  <ListPrint />
+  <MD5HASH>0ad7237e3a4583a0f729388a0afd1b5a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Auftragsversand</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Delivery</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

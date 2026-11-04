@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0720X</ModelCode>
+  <ModelNum>703</ModelNum>
+  <ModelDesc>进口商订单选择</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DATE DATE = '{7}'
+
+SELECT TOP 500 H.DOCTYP                                    [SRCTYP]
+               ,H.DOCNUM                                   [SRCDOC]
+               ,S.DOCLIN                                   [SRCLIN]
+               ,H.DOCNUM + '-' + Cast(S.DOCLIN AS VARCHAR) PORKEY
+               ,CONVERT(VARCHAR(16), H.DOCDAT, 23)         DOCDAT
+               ,H.DOCDES
+               ,H.PRJNUM
+               ,H.SITE
+               ,SITEDES.SITENAM                            SITEDES
+               ,H.BPSNO
+               ,BPS.BPSNAM
+               ,BPS1.BPSNAM                                SITETRANAM
+               ,S.ITMNO
+               ,ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMNAM2     ITMNAM
+               ,ITM.ITMSPEC
+               ,ITM.ITMSIZE
+               ,S.ITMVER
+               ,CONVERT(VARCHAR(16), S.REQDAT, 23)         REQDAT
+               ,S.STU --库存单位
+               ,Iif(ITM.TCLCOD = 'FIBER', ITM.PCU, S.UOM)  UOM --采购单位
+               ,S.UOMCOE --换算系数
+               ,S.QTYSTU - Isnull(PBO.QTYSTU, 0)           QTYSTU --库存单位数量
+               ,Isnull(PBO.QTYSTU, 0)                      PBOQTYSTU
+               ,Isnull(PBO.QTY, 0)                         PBOQTY
+               ,S.IVATTYP
+               ,S.PRCQTYSTU
+               ,S.PRTQTYSTU
+               ,S.NETPRI                                   SHOWPORNETPRI --订单无税单价
+               ,H.CUR                                      PORCUR
+               ,'{6}'                                      PBPCUR
+               --,S.NETPRI AS PORNETPRI --订单无税单价
+               --,S.NETPRI --无税单价
+               --,S.GROPRI --含税单价
+               ,R.CURRAT
+               ,CAST(S.NETPRI * R.CALRAT AS DECIMAL(18, 2))        AS PORNETPRI --换算后的订单无税单价
+               ,CAST(S.NETPRI * 1.02 * R.CALRAT AS DECIMAL(18, 2)) AS NETPRI    --换算后的无税单价
+               ,CAST(S.NETPRI * 1.02 * R.CALRAT AS DECIMAL(18, 2)) AS GROPRI    --换算后的含税单价
+               --,S.TAXRT --税率
+               --,S.NETAMT --无税金额
+               --,S.GRPAMT --含税金额
+               --,S.TAXAMT --税额
+               ,0 AS TAXRT --税率
+               ,CAST(ROUND(S.NETPRI*1.02*R.CALRAT, 2) * (S.QTYSTU-Isnull(PBO.QTYSTU, 0)) AS DECIMAL(18, 2)) AS NETAMT --无税金额
+               ,CAST(ROUND(S.NETPRI*1.02*R.CALRAT, 2) * (S.QTYSTU-Isnull(PBO.QTYSTU, 0)) AS DECIMAL(18, 2)) AS GRPAMT --含税金额
+               ,0 AS TAXAMT --税额
+               ,H.CONTNOI --百隆合同号
+               ,H.CONTNOE --合同号
+               ,H.CONTDES
+               ,S.SRCTYP                                  ORITYP
+               ,S.SRCDOC                                  ORIDOC
+               ,S.SRCLIN                                  ORILIN
+               ,S.FAC
+               ,N'货币转换'                                CHAREA
+FROM   PORDER H
+       INNER JOIN PORDLIN S
+               ON H.DOCNUM = S.DOCNUM
+       OUTER APPLY (SELECT TOP 1 ISNULL(CR.CURRAT, 1) AS CURRAT
+                               , CASE
+                                     WHEN CR.CUR = H.CUR THEN CR.CURRAT
+                                     WHEN CR.CUR = '{6}' THEN 1.0 / CR.CURRAT
+                                     ELSE 1.0 END     AS CALRAT
+                    FROM (SELECT H.CUR AS SRC, '{6}' AS DES) PP
+                             LEFT JOIN CURRAT CR
+                                       ON (CR.CUR = PP.SRC AND CR.DESCUR = PP.DES)
+                                           OR (CR.CUR = PP.DES AND CR.DESCUR = PP.SRC)
+                    WHERE RATDAT &lt;= @DATE
+                      AND (PP.SRC = PP.DES OR CR.CUR IS NOT NULL)
+                    ORDER BY RATDAT DESC, CRETIM DESC) R
+       INNER JOIN BPSUP BPS
+               ON H.BPSNO = BPS.BPSNO
+       INNER JOIN BPSUP BPS1
+               ON H.SITETRA = BPS1.BPSNO
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = H.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT LDOCSTA
+              ON LDOCSTA.OPTID = S.DOCSTA
+                 AND LDOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = H.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN LINKOPT IVATTYP
+              ON IVATTYP.OPTID = S.IVATTYP
+                 AND IVATTYP.OPTTYP = 'IVATTYP'
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = H.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'POH'
+       LEFT JOIN ENTSITE SITEDES
+              ON SITEDES.SITE = H.SITE
+       LEFT JOIN (SELECT SRCDOC,SRCLIN,Sum(QTYSTU) QTYSTU,Sum(QTY) QTY FROM PBOLD GROUP BY SRCDOC,SRCLIN) PBO
+              ON PBO.SRCDOC = S.DOCNUM
+                 AND PBO.SRCLIN = S.DOCLIN
+WHERE  S.DOCSTA = '2'
+       AND ( ITM.TCLCOD = 'FIBER'
+              OR S.QTYSTU - Isnull(PBO.QTYSTU, 0) &gt; 0 ) --纤维原料提单数量会超订单数不做控制
+       AND H.SITE LIKE '%{0}%'
+       AND H.SITETRA = '{1}'
+       AND H.CONTNOI + H.CONTNOE + H.DOCNUM LIKE '%{2}%'
+       AND S.ITMNO LIKE '%{3}%'
+       AND S.ITMVER LIKE '%{4}%'
+       AND H.DOCNUM + ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMNAM2
+           + ITM.ITMSPEC + ITM.ITMSIZE LIKE '%{5}%'
+ORDER  BY S.DOCNUM, S.DOCLIN</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>表头地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>进口商</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>合同号</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品编码</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>品名</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>产品信息</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>币种</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>单据日期</ParaLabel08>
+  <ParaType08>DATEVAL</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#96</ImageFile>
+  <ListPrint />
+  <MD5HASH>19be4d1c34e80f24fcbbfbbae0090194</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

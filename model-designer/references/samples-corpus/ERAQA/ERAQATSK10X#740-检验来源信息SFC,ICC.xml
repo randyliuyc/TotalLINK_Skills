@@ -1,0 +1,527 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X</ModelCode>
+  <ModelNum>740</ModelNum>
+  <ModelDesc>检验来源信息SFC,ICC</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DOCNUM VARCHAR(30) = '{0}'
+--DECLARE @DOCNUM VARCHAR(30) = 'WR4423HR005.50-210060-HY6F'
+-- 当前任务类型
+DECLARE @ROUTYP VARCHAR(30)
+-- SFC: 当前检验工单对应生产工单的工序信息
+DECLARE @MFGNUM VARCHAR(30)
+-- SFC: 当前的生产工序（检验）
+DECLARE @QAROUOPE INT
+-- SFC: 获取上道生产工序（用于获取报工记录）
+DECLARE @PREROUOPE INT
+-- ICC: ITMNO, LOT, TV
+DECLARE @ITMNO VARCHAR(30)
+DECLARE @LOT VARCHAR(30)
+DECLARE @TV VARCHAR(30)
+
+SELECT @MFGNUM = H.MFGNUM
+    , @QAROUOPE = H.ROUOPE
+    , @ROUTYP = H.ROUTYP
+    , @ITMNO = H.ITMNO
+    , @LOT = H.LOT
+    , @TV = H.TV
+FROM QAINSPH H
+WHERE H.DOCNUM = @DOCNUM;
+
+IF @ROUTYP = 'SFC'
+BEGIN
+    -- SFC 处理
+    SELECT TOP 1 @PREROUOPE = OPENUM_0
+    FROM #LC.X3DATA#MFGOPE
+    WHERE MFGNUM_0 = @MFGNUM
+        AND OPENUM_0 &lt; @QAROUOPE
+        AND OPESTA_0 &lt;&gt; 6
+        -- 取工艺路线中存在的工序，实际加工时，有可能增加工序
+        -- 2024年12月24日，改为取工单工序
+        -- AND ROUOPENUM_0 &lt;&gt; 0
+    ORDER BY OPENUM_0 DESC
+
+    -- 检验条目
+    SELECT CASE 
+            WHEN XKO.PKORI_0 = ''
+                AND XKO.XESMMTEG_0 &lt;&gt; 0
+                THEN N'报工'
+            WHEN XKO.PKORI_0 = ''
+                AND XKO.XESMMSPQ_0 &lt;&gt; 0
+                THEN N'报废'
+            WHEN XKO.PKORI_0 = ''
+                AND XKO.XESMMTEG_0 = 0
+                -- AND XKO.XESMMCLIW_0 &lt;&gt; 0
+                AND XKO.XESMMCLIQ_0 + XKO.XESMMSPN_0 &lt;&gt; '' -- 2025年1月8日，修改为SpoolNo+CoilID非空
+                THEN N'报卷'
+            WHEN XKO.PKORI_0 &lt;&gt; ''
+                AND XKO.XESMMTEG_0 &lt;&gt; 0
+                THEN N'拼料'
+            WHEN XKO.PKORI_0 &lt;&gt; ''
+                AND XKO.XESMMTEG_0 = 0
+                AND XKO.XESMMCLIW_0 &lt;&gt; 0
+                THEN N'拼卷'
+            ELSE N''
+            END DeclareType
+        , XKO.XESMMSPN_0 SPOOL --SpoolNo
+        , XKO.XESMMCLIQ_0 COIL --CoilID
+        , CAST(XKO.XESMMCLIW_0 AS DECIMAL(18, 3)) CoilWeight
+        , CAST(XKO.XESMMCLIL_0 AS DECIMAL(18, 3)) CoilLength
+        , CAST(MFO.XESMMDWMM_0 AS DECIMAL(18, 3)) [DiameterWidth]
+        , CAST(MFO.XESMMLTMM_0 AS DECIMAL(18, 3)) [LengthThickness]
+        , CAST(XKO.XESMMTEG_0 AS DECIMAL(18, 3)) TotalWeightGood
+        -- , XKO.ITMREF_0 Product
+        -- , I.ZGRADENO_0 GRDCOD
+        -- , XKO.MFGNUM_0 WorkOrder
+           , XKO.OPENUM_0 OperationCode
+        -- , CONVERT(VARCHAR(100), XKO.CREDATTIM_0, 120) CreateTime
+        -- , CONVERT(VARCHAR(10), XKO.XESMMPRD_0, 23) ProductionDate
+        --   , XKO.XESMMCLTQ_0 CoilQuantity
+        --   , XKO.XESMMBEQ_0 BreakageQty
+        , CAST(XKO.XESMMSPQ_0 AS DECIMAL(18, 3)) ScrapQty
+        , XKO.XESMMSPR_0 ScrapReason
+    -- , XKO.XESMMALIO_0 HeatCycle
+    -- , XKO.XESMMHTNUM_0 HeatNo
+    -- , XKO.XESMMTR1_0 ToolingRef1
+    -- , XKO.XESMMTR2_0 ToolingRef2
+    -- , XKO.XESMMONK_0 [OK/NOK]
+    -- , XKO.XESMMMFGORI_0 SuorceWorkOrder
+    FROM #LC.X3DATA#XWSMKOES XKO
+    INNER JOIN #LC.X3DATA#ITMMASTER I
+        ON I.ITMREF_0 = XKO.ITMREF_0
+    LEFT JOIN #LC.X3DATA#MFGOPE MFO
+        ON XKO.MFGNUM_0 = MFO.MFGNUM_0
+            AND XKO.OPENUM_0 = MFO.OPENUM_0
+    WHERE XKO.MFGNUM_0 = @MFGNUM
+        -- 考虑有可能增加工序，报工记录取
+        AND XKO.OPENUM_0 BETWEEN @PREROUOPE AND @QAROUOPE - 1
+        AND (
+            -- 报工或报卷的记录
+            XKO.PKORI_0 = ''
+            AND (
+                XKO.XESMMTEG_0 &lt;&gt; 0
+                OR XKO.XESMMSPN_0 + XKO.XESMMCLIQ_0 &lt;&gt; ''
+                --OR XKO.XESMMCLIW_0 &lt;&gt; 0
+                --OR XKO.XESMMSPQ_0 &lt;&gt; 0
+                )
+            )
+    ORDER BY XKO.CREDATTIM_0
+END
+ELSE IF @ROUTYP = 'ICC'
+BEGIN
+    SELECT ITMREF_0
+        , LOT_0
+        , SLO_0
+        , LOC_0
+        , QTYSTU_0
+        , STU_0
+        , BPRNUM_0
+        , IPTDAT_0
+    FROM #LC.X3DATA#STOJOU
+    WHERE ITMREF_0 = @ITMNO
+        AND LOT_0 = @LOT
+        AND SLO_0 LIKE @TV + '%'
+        AND VCRTYP_0 = 6
+        AND VCRNUM_0 = @MFGNUM
+    ORDER BY SLO_0
+END
+ELSE
+BEGIN
+    SELECT N'NODATA' INFO
+END</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#83</ImageFile>
+  <ListPrint />
+  <MD5HASH>b9cf293b89e890a75e1fa65f242886d3</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>BPRNUM_0</COLNAME>
+      <CAPTION>供应商</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>Coil</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>段</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>CoilLength</COLNAME>
+      <CAPTION>CoilLength</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>CoilLength</COLNAME>
+      <CAPTION>段长度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>CoilWeight</COLNAME>
+      <CAPTION>CoilWeight</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>CoilWeight</COLNAME>
+      <CAPTION>段重量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>DeclareType</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>DeclareType</COLNAME>
+      <CAPTION>类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>DiameterWidth</COLNAME>
+      <CAPTION>DiameterWidth</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>DiameterWidth</COLNAME>
+      <CAPTION>宽度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>IPTDAT_0</COLNAME>
+      <CAPTION>收货日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>LengthThickness</COLNAME>
+      <CAPTION>LengthThickness</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>LengthThickness</COLNAME>
+      <CAPTION>厚度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>LOC_0</COLNAME>
+      <CAPTION>库位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>HEAT</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>OperationCode</COLNAME>
+      <CAPTION>工序编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>ScrapQty</COLNAME>
+      <CAPTION>报废数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>ScrapReason</COLNAME>
+      <CAPTION>报废原因</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>SLO_0</COLNAME>
+      <CAPTION>TV</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>Spool</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>轴</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>TotalWeightGood</COLNAME>
+      <CAPTION>TotalWeightGood</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>740</DMNUM>
+      <COLNAME>TotalWeightGood</COLNAME>
+      <CAPTION>合格数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

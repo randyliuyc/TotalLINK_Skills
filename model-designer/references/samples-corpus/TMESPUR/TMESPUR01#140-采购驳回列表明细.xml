@@ -1,0 +1,1038 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR01</ModelCode>
+  <ModelNum>140</ModelNum>
+  <ModelDesc>采购驳回列表明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--获取填报车间的合集
+WITH CTE_DEPT
+     AS (SELECT ITMNO
+	        ,PRQNUM
+                ,String_agg(DEPT, '/') AS PRADEPT
+         FROM   (SELECT DISTINCT L.PRQNUM
+                                ,L.ITMNO
+				,H.DEPT
+                 FROM PREQAL L
+                 INNER JOIN PREQAH H ON L.DOCNUM = H.DOCNUM
+                 WHERE ISNULL(L.PRQNUM,'')&lt;&gt;'' ) DP
+         GROUP  BY ITMNO,PRQNUM)
+
+SELECT ''                                    GXFLG
+       ,S.ID                                 LINKROWID
+       ,S.DOCNUM                             DOCNUML--请求填报单号      
+       ,S.DOCLIN --行号
+       ,SU.NAME+'('+S.PCKUSR+')' PCKUSR
+       ,CONVERT(VARCHAR(16), S.PCKTIM, 21)   PCKTIM
+       ,S.PCKCOMMENT
+       ,S.ITMNO --产品编码
+       --,ITM.ITMNOORI
+       ,ITM.ITMNAM --产品描述
+       ,ITM.ITMNAM1
+      -- ,ITM.ITMNAM2
+       ,S.ITMVER --产品版本
+       ,ITM.TSICOD1 --产品分类
+       ,ITM.TSICOD2
+       ,ITM.TSICOD3
+       ,ITM.TSICOD4
+       ,ITM.TSICOD5
+       ,ITM.ITMSIZE
+       ,ITM.ITMSPEC
+       ,CONVERT(VARCHAR, S.REQDAT, 23)       REQDAT --要求日期
+       ,S.UOM --采购单位
+       ,Cast(S.UOMCOE AS REAL)               UOMCOE --采购单位系数
+       ,Cast(S.QTY AS REAL)                  QTY --采购单位数量
+       ,S.STU --库存单位
+       ,Cast(S.QTYSTU AS REAL)               QTYSTU --库存单位数量
+       ,S.REMARK                             LREMARK --备注
+       ,S.SRCTYP --来源类型
+       ,S.SRCDOC --来源单据
+       ,S.SRCLIN --来源行号
+       ,DOCSTA.OPTDES                        DOCSTA --单据状态
+       ,S.CLOREA                             LCLOREA --关闭原因
+       ,H.[DOCGRP]
+       ,DOCGRP.OPTDES                        DOCGRPDES
+       ,DOCSTA.OPTDES                        DOCSTA
+       ,H.[DOCDES]
+       ,H.[PRJNUM]
+       ,H.[SITE]
+       ,SI.[SITENAM]                         SITEDES
+       ,H.FAC
+       ,F.FACNAM
+       ,T.PRADEPT                
+       ,H.[DEPT]
+       ,D.DEPTNAM                            DEPTDES
+       ,H.[GRP]
+       ,G.GRPNAM                             GRPDES
+       ,H.[RESNO]
+       ,R.RESNAM                             RESNODES
+       ,H.[REMARK]
+       ,S.CREUSR
+       ,S.UPDUSR
+       ,CONVERT(VARCHAR(16), S.[CRETIM], 21) CRETIM
+       ,CONVERT(VARCHAR(16), S.[UPDTIM], 21) UPDTIM
+       
+FROM   PREQUL S
+       LEFT JOIN ITM
+              ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN PREQUH H
+              ON S.DOCNUM = H.DOCNUM
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN [ENTSITE] SI
+              ON H.[SITE] = SI.SITE
+       LEFT JOIN ENTFAC F
+              ON H.FAC = F.FAC
+       LEFT JOIN [LINKOPT] DOCGRP
+              ON H.DOCGRP = DOCGRP.OPTID
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'PRE'
+       LEFT JOIN [ENTDEPT] D
+              ON H.[DEPT] = D.DEPT
+       LEFT JOIN [ENTGRP] G
+              ON H.[GRP] = G.GRP
+       LEFT JOIN [ENTRES] R
+              ON H.[RESNO] = R.RESNO
+       LEFT JOIN LINK.DBO.SysUser SU
+              ON S.PCKUSR = SU.LoginUser
+       LEFT JOIN CTE_DEPT T
+              ON T.PRQNUM=S.DOCNUM
+             AND T.ITMNO=S.ITMNO
+WHERE  Isnull(S.PCKFLG, '') = 1
+       AND S.DOCSTA = 2
+       AND H.SITE LIKE N'%{0}%'
+       AND S.DOCNUM LIKE N'%{1}%'
+       AND S.ITMNO + S.ITMVER + ITM.ITMNAM + ITM.ITMNAM1
+           + Isnull(ITM.ITMSIZE, '')
+           + Isnull(ITM.ITMSPEC, '') LIKE N'%{2}%'
+       AND ( H.DEPT = '{3}'
+              OR '{3}' = '' )
+ORDER  BY S.DOCNUM DESC
+          ,S.DOCLIN</SQLScript>
+  <SQLUpdateScript>UPDATE PREQUL
+SET    PCKFLG = 0
+       ,PFBUSR = N'#LOGIN_USER#'
+       ,PFBTIM = Getdate()
+WHERE  DOCNUM = '#DOCNUML#'
+       AND DOCLIN = 0#DOCLIN#
+       AND '#GXFLG#' = '1';</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>申请单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品信息</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>部门</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#61</ImageFile>
+  <ListPrint />
+  <MD5HASH>00cd2db7d3cfd96ad1dee0512c404919</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION>bộ phận</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION>车间/部门</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DEPTDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCGRP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCGRPDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCLIN</COLNAME>
+      <CAPTION>申请行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCNUML</COLNAME>
+      <CAPTION>Đơn xin số</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCNUML</COLNAME>
+      <CAPTION>申请单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION>Tình trạng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION>状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>DOCSTA1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>FACNAM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>GRP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>GRPDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>GXFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNAM</COLNAME>
+      <CAPTION>mã sản phẩm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNAM</COLNAME>
+      <CAPTION>产品名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNAM1</COLNAME>
+      <CAPTION>越语名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNAM2</COLNAME>
+      <CAPTION>Tên tiếng anh</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNAM2</COLNAME>
+      <CAPTION>英文名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>sản phẩm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>产品</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNOORI</COLNAME>
+      <CAPTION>Mã cũ</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMNOORI</COLNAME>
+      <CAPTION>旧编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMSIZE</COLNAME>
+      <CAPTION>Quy cách</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMSIZE</COLNAME>
+      <CAPTION>规格</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMSPEC</COLNAME>
+      <CAPTION>Model</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMSPEC</COLNAME>
+      <CAPTION>型号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION>Bộ phận/xưởng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION>品名</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LCLOREA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết từ chối</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>LREMARK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PCKCOMMENT</COLNAME>
+      <CAPTION>Lý do từ chối</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PCKCOMMENT</COLNAME>
+      <CAPTION>驳回原因</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PCKTIM</COLNAME>
+      <CAPTION>Thời gian từ chối</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PCKTIM</COLNAME>
+      <CAPTION>驳回时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PCKUSR</COLNAME>
+      <CAPTION>Người từ chối</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PCKUSR</COLNAME>
+      <CAPTION>驳回用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PRADEPT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>PRJNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION>Số lượng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>QTYSTU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>REQDAT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>RESNO</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>RESNODES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SITEDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION>Mã đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION>单据号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION>Số dòng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION>行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>SRCTYP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>Đơn vị</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD1</COLNAME>
+      <CAPTION>Nhóm thống kê 1</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD1</COLNAME>
+      <CAPTION>统计组1</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD2</COLNAME>
+      <CAPTION>Nhóm thống kê 2</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD2</COLNAME>
+      <CAPTION>统计组2</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD3</COLNAME>
+      <CAPTION>Nhóm thống kê 3</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD3</COLNAME>
+      <CAPTION>统计组3</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD4</COLNAME>
+      <CAPTION>Nhóm thống kê 4</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD4</COLNAME>
+      <CAPTION>统计组4</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD5</COLNAME>
+      <CAPTION>Nhóm thống kê 5</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>TSICOD5</COLNAME>
+      <CAPTION>统计组5</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>140</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

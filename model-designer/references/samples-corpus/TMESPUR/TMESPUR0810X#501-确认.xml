@@ -1,0 +1,233 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0810X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>确认</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--根据STKLOTLST本地导入的记录，生成待提交的信息PRECTIPT, STKBUS
+DECLARE @BATCHID VARCHAR(50) = 'NEWPRCIMP-#LOGIN_USER#'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+
+MERGE INTO PRECEIPT D
+USING (SELECT --@BATCHID + BPRNO DOCNUM
+              'PRC'            DOCTYP
+             ,'IMP'            DOCGRP
+             ,GETDATE()        TRXDAT
+             ,SITE
+             ,BPRNO
+             ,@USER            CREUSR
+       FROM   STKLOTLST WITH(NOLOCK)
+       WHERE  CREUSR = @USER 
+          AND SUBSTA &lt;&gt; 3 -- 只处理 SUBSTA &lt;&gt; 3 的记录，处理完成功为3，失败为2
+          AND DOCSTA = 1  -- 只处理 DOCSTA = 1 的记录，处理完更新为 2
+		  AND DOCTYP = 'PRC'
+		  AND DOCGRP = 'IMP'
+       GROUP  BY SITE
+                 ,BPRNO) S
+ON (S.[DOCNUM] = D.[DOCNUM])
+WHEN NOT MATCHED THEN
+  INSERT (DOCNUM
+         ,SITE
+         ,DOCGRP
+         ,DOCDAT
+         ,BPSNO
+         ,CREUSR )
+  VALUES ( S.DOCNUM
+          ,S.SITE
+          ,S.DOCGRP
+          ,S.TRXDAT
+          ,S.BPRNO
+          ,S.CREUSR );
+
+INSERT INTO [STKBUS]
+            ([DOCTYP]
+            ,[DOCNUM]
+            ,[SITE]
+            ,[ITMNO]
+            ,[ITMVER]
+            ,LOT
+            ,SUBLOT
+            ,PRJNUM
+            ,BPRNO
+            ,STA
+            ,FAC
+            ,[WH]
+            ,[LOC]
+            ,[UOM]
+            ,[UOMCOE]
+            ,[QTY]
+            ,[QTYSTU]
+            ,[STU]
+            ,CTRNUM
+            ,CTRQTY
+            ,[WEIQTY]
+            ,[TRXSIGN]
+            ,[SRCTYP]
+            ,[SRCDOC]
+            ,[SRCLIN]
+            ,SRCSEQ
+            ,ORITYP
+            ,ORIDOC
+            ,ORILIN
+            ,ORISEQ
+            ,BATCHID
+            ,[CREUSR]
+            ,[CRETIM])
+SELECT T.DOCTYP         DOCTYP
+      ,@BATCHID + BPRNO DOCNUM
+      ,T.[SITE]
+      ,T.ITMNO
+      ,T.ITMVER
+      ,T.LOT
+      ,T.SUBLOT
+      ,''               PRJNUM
+      ,T.BPRNO
+      ,'A'              STA
+      ,T.FAC
+      ,'#WH#'           WH --参数
+      ,'#LOC#'          LOC --参数
+      ,'BOX' --T.STU --T.UOM
+      ,SUM(T.QTYSTU)/COUNT(TAGNO) --1 --AVG(T.UOMCOE)    UOMCOE --AVG
+      ,IIF(COUNT(TAGNO)=0,1,COUNT(TAGNO)) --SUM(T.QTYSTU) QTY --sum
+      ,SUM(T.QTYSTU) QTYSTU --sum
+      ,T.STU
+      ,IIF(COUNT(TAGNO)=0,1,COUNT(TAGNO))
+      ,SUM(T.QTYSTU)/IIF(COUNT(TAGNO)=0,1,COUNT(TAGNO))
+      ,SUM(T.RECWT)     WEIQTY --确认 --sum
+      ,1                TRXSIGN
+      ,T.SRCTYP
+      ,T.SRCDOC
+      ,T.SRCLIN
+      ,T.SRCSEQ
+      ,T.ORITYP
+      ,T.ORIDOC
+      ,T.ORILIN
+      ,T.ORISEQ
+      ,@BATCHID         BATCHID
+      ,@USER            [CREUSR]
+      ,GETDATE()        [CRETIM]
+FROM   STKLOTLST T WITH (NOLOCK)
+WHERE  T.CREUSR = @USER 
+   AND T.SUBSTA &lt;&gt; 3 -- 只处理 SUBSTA &lt;&gt; 3 的记录，处理完成功为3，失败为2
+   AND T.DOCSTA = 1  -- 只处理 DOCSTA = 1 的记录，处理完更新为 2
+   AND DOCTYP = 'PRC'
+   AND DOCGRP = 'IMP'
+GROUP  BY T.DOCTYP 
+          ,T.[SITE]
+          ,T.[ITMNO]
+          ,T.[ITMVER]
+          ,T.BPRNO
+          ,T.[FAC]
+          ,T.[LOT]
+          ,T.[SUBLOT]
+          ,T.UOM
+          ,T.STU
+          ,T.SRCTYP
+          ,T.SRCDOC
+          ,T.SRCLIN
+          ,T.SRCSEQ
+          ,T.ORITYP
+          ,T.ORIDOC
+          ,T.ORILIN
+          ,T.ORISEQ;
+
+-- 将数据汇总到STKBUS之后，标记 DOCSTA = 2, 防止重复处理
+UPDATE STKLOTLST WITH (ROWLOCK)
+SET DOCSTA = 2 
+WHERE  CREUSR = @USER 
+   AND SUBSTA &lt;&gt; 3 -- 只处理 SUBSTA &lt;&gt; 3 的记录，处理完成功为3，失败为2
+   AND DOCTYP = 'PRC'
+   AND DOCGRP = 'IMP'</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#72</ImageFile>
+  <ListPrint />
+  <MD5HASH>cf1d3e7d00e1ab47572ee9fef6fb6ae4</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0810X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>xác nhận</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0810X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Xác nhận</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

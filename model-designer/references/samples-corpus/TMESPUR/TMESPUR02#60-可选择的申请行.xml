@@ -1,0 +1,252 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR02</ModelCode>
+  <ModelNum>60</ModelNum>
+  <ModelDesc>可选择的申请行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--获取填报车间的合集
+WITH CTE_DEPT
+     AS (SELECT ITMNO
+	        ,PRQNUM
+                ,String_agg(DEPT, '/') AS PRADEPT
+         FROM   (SELECT DISTINCT L.PRQNUM
+                                ,L.ITMNO
+				,H.DEPT
+                 FROM PREQAL L
+                 INNER JOIN PREQAH H ON L.DOCNUM = H.DOCNUM
+                 WHERE ISNULL(L.PRQNUM,'')&lt;&gt;'' ) DP
+         GROUP  BY ITMNO,PRQNUM)
+
+SELECT ''                                                GXFLG
+      ,ITMCT.ITMCTDES + '(' + ITM.TCLCOD + ')'           TCLCOD
+      ,ITMCT.ITMCTDES
+      ,ITM.ITMNO
+      ,ITM.ITMNAM
+      ,REPLACE(ITM.ITMNAM1, '''', ' ')  ITMNAM1
+      ,REPLACE(ITM.ITMNAM2, '''', ' ')  ITMNAM2
+      ,REPLACE(ITM.ITMSPEC, '''', ' ')  ITMSPEC
+      ,REPLACE(ITM.ITMSIZE, '''', ' ')  ITMSIZE
+      ,L.FAC
+      ,CONVERT(VARCHAR(10), H.DOCDAT, 21)                DOCDAT
+      ,L.BPSNO
+      ,ISNULL(BPS.BPSNAM,L.BPSNO) BPSNAM
+      ,dbo.OPTDES('TSICOD1', ITM.TSICOD1)                TSICOD1
+      ,dbo.OPTDES('TSICOD2', ITM.TSICOD2)                TSICOD2
+      ,dbo.OPTDES('TSICOD3', ITM.TSICOD3)                TSICOD3
+      ,dbo.OPTDES('TSICOD4', ITM.TSICOD4)                TSICOD4
+      ,L.ITMVER
+      ,H.SITE
+      ,H.DEPT
+      ,D.DEPTNAM                                         DEPTDES
+      ,T.PRADEPT
+      ,ITM.IVATTYP
+      ,CONVERT(VARCHAR(16), L.REQDAT, 23)                REQDAT
+      ,L.STU
+      ,L.UOM
+      ,L.UOMCOE
+      ,L.QTY
+      ,L.QTYSTU
+      ,H.DOCTYP                                          SRCTYP
+      ,L.DOCNUM                                          SRCDOC
+      ,L.DOCLIN                                          SRCLIN
+      ,H.REMARK+L.REMARK                                 REMARK
+      ,'{6}'                                             DOCNUM
+      ,LSP.BPSNAM + ' : '
+        + Format(LSP.GROPRI, '0.######') + ' ' + LSP.CUR LATEST
+      ,Isnull(L.PRQLOC, '')                              PRQLOC
+      ,ISNULL(USR.NAME,L.PFBUSR) PFBUSR
+      ,CONVERT(VARCHAR(16), L.PFBTIM, 21)  PFBTIM
+      ,CASE
+          WHEN Datediff(DAY, L.PFBTIM, Getdate()) &lt;= 7 THEN NULL
+          ELSE '1'
+        END                                              AS TimeCheck
+      ,Datediff(DAY, PFBTIM, Getdate()) TJDAYS
+FROM   PREQUL L
+       INNER JOIN ITM
+               ON ITM.ITMNO = L.ITMNO --产品 
+       LEFT JOIN ITMCT
+              ON ITMCT.TCLCOD = ITM.TCLCOD
+       LEFT JOIN PREQUH H
+              ON H.DOCNUM = L.DOCNUM
+       LEFT JOIN [ENTDEPT] D
+              ON H.[DEPT] = D.DEPT
+       LEFT JOIN BPSUP BPS
+              ON L.BPSNO = BPS.BPSNO
+       LEFT JOIN LINK.DBO.SysUser USR
+              ON USR.LoginUser = L.PFBUSR
+       LEFT JOIN(SELECT TOP 1 L.ITMNO
+                             ,H.BPSNO
+                             ,H.CUR
+                             ,BPS2.BPSNAM
+                             ,GROPRI
+                 FROM   PORDLIN L
+                        LEFT JOIN PORDER H
+                               ON H.DOCNUM = L.DOCNUM
+                        LEFT JOIN BPSUP BPS2
+                               ON H.BPSNO = BPS2.BPSNO
+                 WHERE  L.DOCSTA = 2
+                 ORDER  BY L.CRETIM DESC) LSP
+              ON LSP.ITMNO = L.ITMNO
+       LEFT JOIN (SELECT SRCDOC --过滤掉直接生成采购订单的产品
+                        ,SRCLIN
+                        ,Sum(QTY)    PORQTY
+                        ,Sum(QTYSTU) PORQTYSTU
+                  FROM   PORDLIN
+                  WHERE  (DOCSTA&lt;&gt;4 OR (DOCSTA=4 AND QTY&lt;=PRCQTY))  --20251010 Dina 增加收货自动关闭逻辑
+                         AND SRCTYP = 'PRQ'
+                  GROUP  BY SRCDOC
+                            ,SRCLIN)P
+              ON P.SRCDOC = L.DOCNUM
+                 AND P.SRCLIN = L.DOCLIN
+       LEFT JOIN CTE_DEPT T
+                ON T.PRQNUM=L.DOCNUM
+               AND T.ITMNO=L.ITMNO
+       LEFT JOIN(SELECT PRICD1 ITMNO
+                 FROM   PRILIST PLIST
+                 WHERE  ( CONVERT(VARCHAR(10), Getdate(), 21) BETWEEN PLIST.STRDAT AND PLIST.ENDDAT )
+                 GROUP  BY PRICD1) ST
+              ON ST.ITMNO = L.ITMNO
+WHERE  L.DOCSTA = 2
+       AND Isnull(L.PCKFLG, 0) = 0 --没有被驳回的
+       AND Isnull(L.PINNUM, '') = ''
+       AND Isnull(P.SRCDOC, '') = '' --过滤掉直接生成采购订单的产品
+       AND ISNULL(ST.ITMNO, '') = '' --20251010 Dina增加过滤有效协约价的记录
+       AND H.SITE = '{0}'
+       AND H.DEPT LIKE '%{1}%'
+       AND ITM.TCLCOD LIKE N'%{2}%' --产品种类
+       AND L.ITMNO LIKE '%{3}%'
+       AND Isnull(L.ITMVER, '') LIKE '%{4}%' --部分产品没有品名，需要ISNULL处理
+       AND ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMNAM2
+           + ITM.ITMSPEC + ITM.ITMSIZE LIKE N'%{5}%'
+       AND (ISNULL(L.PRQLOC,'')= '{8}' OR '{8}'='')
+ORDER  BY Datediff(DAY, PFBTIM, Getdate()) DESC
+          ,L.ITMNO
+          ,L.ITMVER
+          ,H.DEPT</SQLScript>
+  <SQLUpdateScript>--LINKJSONDATASUBMIT
+--处理汇总
+
+DECLARE @json NVARCHAR(MAX);
+SET @json = N'#LINKJSON{$.formData}#';
+DECLARE @TABLE_1 NVARCHAR(MAX);
+SET @TABLE_1 = N'#LINKJSON{$.TABLE_1}#';
+ 
+MERGE INTO PREQUL D 
+USING ( 
+    SELECT 
+        GXFLG,PINNUM,DOCNUM,DOCLIN
+    FROM OPENJSON(@TABLE_1) WITH ( 
+        GXFLG varchar(1) '$.GXFLG',  -- 新增 GXFLG 字段
+        PINNUM varchar(30) '$.DOCNUM',
+        DOCNUM varchar(30) '$.SRCDOC',
+        DOCLIN int '$.SRCLIN'
+    ) 
+    WHERE GXFLG = '1'  -- 筛选 GXFLG 为 "1" 的记录
+) S 
+ON D.DOCNUM = S.DOCNUM AND D.DOCLIN = S.DOCLIN
+WHEN MATCHED THEN 
+    UPDATE SET 
+        PINNUM = S.PINNUM;
+
+--UPDATE PREQUL
+--SET    PINNUM = '#DOCNUM#'
+--WHERE  DOCNUM = '#SRCDOC#'
+--       AND DOCLIN = 0#SRCLIN#
+--       AND '#GXFLG#' = '1';</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>车间</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品种类</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品编码</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>品名/色号</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>产品描述</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>请求单号</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>采购区域-填写</ParaLabel08>
+  <ParaType08>STR</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09>采购区域-参数</ParaLabel09>
+  <ParaType09>STR</ParaType09>
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--处理驳回
+UPDATE PREQUL
+SET    PCKFLG = 1
+       ,PCKUSR = N'#LOGIN_USER#'
+       ,PCKTIM = Getdate()
+       ,PCKCOMMENT = N'#PCKCOMMENT#'
+WHERE  DOCNUM = '#SRCDOC#'
+       AND DOCLIN = 0#SRCLIN#
+       AND '#GXFLG#' = '1';</SQLNew>
+  <SQLRemove />
+  <SQLClear>--宁波采购
+UPDATE PREQUL
+SET    PRQLOC = N'#PPRQLOC#'
+WHERE  DOCNUM = '#SRCDOC#'
+       AND DOCLIN = 0#SRCLIN#
+       AND '#GXFLG#' = '1';</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#76</ImageFile>
+  <ListPrint />
+  <MD5HASH>0e7173fbc459dcf8056914176b18bf00</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>60</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Dòng yêu cầu tùy chọn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0710X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>提交+生成LOT</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>UPDATE [PBOLH]
+SET DOCSTA = N'2'
+	, UPDUSR = '#LOGIN_USER#'
+	, UPDTIM = GETDATE()
+WHERE DOCNUM = N'#DOCNUM#';
+
+--DINA, 2025年05月23日，针对未清关的更新批号为提单号
+UPDATE PBOLD
+SET    LOT = H.DOCNUM
+FROM   PBOLD D
+       INNER JOIN PBOLH H
+               ON D.DOCNUM = H.DOCNUM
+       INNER JOIN ITM
+               ON ITM.ITMNO = D.ITMNO
+WHERE  H.DOCNUM = '#DOCNUM#'
+       AND H.CLRSTA = 0
+       AND ITM.TCLCOD NOT IN ( 'FIBER', 'WIP', 'YARN', 'CB' );  --SHIDA, 2025年06月09日
+
+
+DECLARE @DOCNUM VARCHAR(30) = '#DOCNUM#'
+--序列号字符部分，比如产地、订单类型、地点等
+DECLARE @NUMCOD VARCHAR(30) = '#PLACEORI#'
+--序列号类型，对应序列号定义
+DECLARE @NUMTYP VARCHAR(30) = 'LOTCOT'
+--需要申请的序列号数量，通常为1，如果大于1，可以一次性申请多个序列号
+DECLARE @NUMREQ INT;
+DECLARE @CLOSTA INT;
+
+-- Randy, 2025年02月24日，产生序列号的时候，只需要考虑BM即可
+-- 与后面更新批号的逻辑一致，防止产生的序列号跳号
+SELECT @NUMREQ = Count(*)
+FROM PBOLD A
+INNER JOIN ITM B
+	ON A.ITMNO = B.ITMNO
+WHERE A.DOCNUM = @DOCNUM
+	AND B.TSICOD2 = 'BM'
+
+-- 2025年02月24日，增加判断，如果没有BM（不需要申请批号），则无需处理
+IF @NUMREQ &gt; 0
+BEGIN
+	--申请得到的序列号起始值
+	DECLARE @NUMVALSTR INT;
+	--申请得到的序列号截止值
+	DECLARE @NUMVALEND INT;
+	--申请得到的完整单据号起始值
+	DECLARE @DOCNUMSTR VARCHAR(30)
+	--申请得到的完整单据号截止值
+	DECLARE @DOCNUMEND VARCHAR(30)
+	--日期部分
+	DECLARE @NUMDAT VARCHAR(10)
+	--序列号长度
+	DECLARE @NUMSER INT
+	--是否数字类型
+	DECLARE @NUMFLG BIT
+
+	EXECUTE [LINKDOCNUM] @NUMCOD
+		, @NUMTYP
+		, @NUMREQ
+		, @NUMVALSTR OUTPUT
+		, @NUMVALEND OUTPUT
+		, @DOCNUMSTR OUTPUT
+		, @DOCNUMEND OUTPUT
+		, @NUMDAT OUTPUT
+		, @NUMSER OUTPUT
+		, @NUMFLG OUTPUT
+
+	--定义游标
+	DECLARE OPENDOC CURSOR
+	FOR
+	(
+			SELECT SEQ.RowNumber NUMSEQ
+				, @NUMCOD + @NUMDAT + RIGHT(REPLICATE('0', @NUMSER) + IIF(@NUMFLG = 1, CAST(@NUMVALSTR + SEQ.RowNumber - 1 AS VARCHAR), (
+							SELECT DBO.ToBase36(@NUMVALSTR + SEQ.RowNumber - 1)
+							)), @NUMSER) NUMDOC
+			FROM (
+				SELECT TOP (@NUMREQ) ROW_NUMBER() OVER (
+						ORDER BY (
+								SELECT NULL
+								)
+						) AS RowNumber
+				FROM master..spt_values t1
+				CROSS JOIN master..spt_values t2
+				) SEQ
+			)
+
+	DECLARE @NUMSEQ1 INT;
+	DECLARE @NUMDOC1 VARCHAR(30);
+
+	--打开游标
+	OPEN OPENDOC
+
+	--开始循环游标变量--
+	FETCH NEXT
+	FROM OPENDOC
+	INTO @NUMSEQ1
+		, @NUMDOC1
+
+	WHILE @@FETCH_STATUS = 0 --返回被 FETCH语句执行的最后游标的状态--
+	BEGIN
+		UPDATE PBOLD
+		SET LOT = @NUMDOC1
+		FROM PBOLD A
+		-- LEFT JOIN ITM B
+		-- 	ON A.ITMNO = B.ITMNO
+		WHERE DOCNUM = @DOCNUM
+			AND DOCLIN IN (
+				SELECT TOP 1 DOCLIN
+				FROM PBOLD A
+				-- RANDY, 2025年02月24日，将BM的判断条件放到子查询中，保持只处理BM产品
+				INNER JOIN ITM B
+					ON A.ITMNO = B.ITMNO
+				WHERE DOCNUM = @DOCNUM
+					AND B.TSICOD2 = 'BM'
+					AND LOT = ''
+				ORDER BY DOCLIN
+				)
+
+		FETCH NEXT
+		FROM OPENDOC
+		INTO @NUMSEQ1
+			, @NUMDOC1
+	END
+
+	CLOSE OPENDOC --关闭游标
+
+	DEALLOCATE OPENDOC --释放游标
+END</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#02</ImageFile>
+  <ListPrint />
+  <MD5HASH>6b50cc55ff66cf7aec1804f3bb6384e8</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Gửi + tạo lô</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>+Tạo LOT</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP1010X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>批量导入粘贴收货明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKAUTOREPLACEEMPTYCOLUMNS
+--LINKNOGROUP
+SELECT XWS.PK_0                                  LINKROWID
+      ,CAST(XWS.QTYPCU_0 AS REAL)                收货数量
+      ,XWS.LOC_0                                 收货库位
+      ,XWS.SERNUM_0                              序列号
+      ,XWS.BPSLOT_0                              供应商批次
+      ,XWS.RPNUM_0                               收货单号
+      ,CONVERT(VARCHAR(16), XWS.CREDATTIM_0, 21) 操作时间
+      ,XWS.USERID_0                              操作人员
+      ,CASE
+          WHEN XWS.LOC_0 = '' THEN N'lang:{zh:收货库位为空,en:Receiving location is empty,de:Eingangslagerplatz ist leer}'
+          WHEN ITM.SERMGTCOD_0 = 3
+               AND XWS.SERNUM_0 = '' THEN N'lang:{zh:序列号为空,en:Serial number is empty,de:Seriennummer ist leer}'
+          WHEN ITM.SERMGTCOD_0 = 3
+               AND XWS.QTYPCU_0 &lt;&gt; 1 THEN N'lang:{zh:数量错误,en:Quantity error,de:Mengenfehler}'
+          WHEN ISNULL(SER.NUM, 0) &gt; 1 THEN N'lang:{zh:该序列号重复存在,en:Serial number duplicate exists,de:Seriennummer existiert doppelt}'
+          ELSE ''
+        END                                      AS 数据检查
+      ,CASE
+          WHEN XWS.LOC_0 = '' THEN N'#E0AFA1'
+          WHEN ITM.SERMGTCOD_0 = 3
+               AND XWS.SERNUM_0 = '' THEN N'#E0AFA1'
+          WHEN ITM.SERMGTCOD_0 = 3
+               AND XWS.QTYPCU_0 &lt;&gt; 1 THEN N'#E0AFA1'
+          WHEN ISNULL(SER.NUM, 0) &gt; 1 THEN N'#E0AFA1'
+          ELSE ''
+        END                                      AS ROW_BACKCOLOR
+      ,CASE
+          WHEN XWS.RPFLG_0 = 3 THEN 'mui-hidden'
+          ELSE ''
+        END                                      LINKROWIDBTNFLG
+FROM   XWSPTH XWS
+       INNER JOIN ITMMASTER ITM
+               ON XWS.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN (SELECT COUNT(*) NUM
+                        ,ITMREF_0
+                        ,SERNUM_0
+                  FROM   XWSPTH
+                  WHERE  SERNUM_0 &lt;&gt; ''
+                  GROUP  BY ITMREF_0
+                            ,SERNUM_0)SER
+              ON SER.ITMREF_0 = XWS.ITMREF_0
+                 AND SER.SERNUM_0 = XWS.SERNUM_0
+WHERE  XWS.POHNUM_0 = '{0}'
+       AND XWS.POPLIN_0 = '{1}'
+ORDER  BY XWS.RPFLG_0, XWS.CREDATTIM_0</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+UPDATE XWSPTH SET LOC_0='@收货库位@'
+,BPSLOT_0='@供应商批次@'
+,QTYUOM_0=0@收货数量@
+,QTYSTU_0=0@收货数量@
+,QTYPCU_0=0@收货数量@
+,SERNUM_0='@序列号@'
+WHERE PK_0='#LINKROWID#'</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>采购单号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>行号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>过账日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+INSERT INTO XWSPTH
+            (MACHINEID_0,
+             USERID_0,
+             CUSERID_0,
+             VCRTYP_0,
+             PK_0,
+             BATCHID_0,
+             PKORI_0,
+             CREDATIM_0,
+             STAT_0,
+             SUBDATIM_0,
+             RPFLG_0,
+             RPNUM_0,
+             RPLIN_0,
+             RPNOTE_0,
+             RPDATE_0,
+             RPDATIM_0,
+             PRTFLG_0,
+             PRHFCY_0,
+             RCPDAT_0,
+             PTHNUM_0,
+             BPSNUM_0,
+             CUR_0,
+             POHNUM_0,
+             POPLIN_0,
+             ITMREF_0,
+             ITMDES_0,
+             UOM_0,
+             QTYUOM_0,
+             STU_0,
+             QTYSTU_0,
+             UOMSTUCOE_0,
+             GROPRI_0,
+             PJT_0,
+             X5HNUM_0,
+             X5DLIN_0,
+             STA_0,
+             PCU_0,
+             QTYPCU_0,
+             QTYUNI_0,
+             LOC_0,
+             LOT_0,
+             BPSLOT_0,
+             PALNUM_0,
+             CTRNUM_0,
+             SERNUM_0,
+             CREDATTIM_0,
+             UPDDATTIM_0,
+             AUUID_0,
+             CREUSR_0,
+             UPDUSR_0,
+             QTYWEU_0,
+             WRH_0,
+             XTXT_0,
+             XTXT_1,
+             XTXT_2,
+             XDCB_0,
+             XDCB_1,
+             XDCB_2,
+             XDAT_0,
+             XDAT_1,
+             XDAT_2,
+             SDHNUM_0,
+             SDDLIN_0,
+             YINVQTY_0,
+             YBONQTY_0)
+SELECT '#LOGIN_ID#'   AS MACHINEID_0
+      ,'#LOGIN_USER#' AS USERID_0
+      ,''             AS CUSERID_0
+      ,6              AS VCRTYP_0
+      ,NEWID()        AS PK_0
+      ,''             AS BATCHID_0
+      ,'POH'          AS PKORI_0
+      ,GETDATE()      AS CREDATIM_0
+      ,1              AS STAT_0
+      ,'1999-01-01'   AS SUBDATIM_0
+      ,1              AS RPFLG_0
+      ,''             AS RPNUM_0
+      ,0              AS RPLIN_0
+      ,''             AS RPNOTE_0
+      ,'1999-01-01'   AS RPDATE_0
+      ,'1999-01-01'   AS RPDATIM_0
+      ,0              AS PRTFLG_0
+      ,Q.PRHFCY_0     AS PRHFCY_0
+      ,'{2}'          AS RCPDAT_0
+      ,''             AS PTHNUM_0
+      ,Q.BPSNUM_0     AS BPSNUM_0
+      ,O.CUR_0        AS CUR_0
+      ,Q.POHNUM_0     AS POHNUM_0
+      ,Q.POPLIN_0     AS POPLIN_0
+      ,Q.ITMREF_0     AS ITMREF_0
+      ,P.ITMDES1_0    AS ITMDES_0
+      ,Q.UOM_0        AS UOM_0
+      ,CASE WHEN ITM.SERMGTCOD_0 = 3 THEN 1 ELSE 0#收货数量# END   AS QTYUOM_0
+      ,Q.STU_0        AS STU_0
+      ,CASE WHEN ITM.SERMGTCOD_0 = 3 THEN 1 ELSE 0#收货数量# END              AS QTYSTU_0
+      ,1              AS UOMSTUCOE_0
+      ,0              AS GROPRI_0
+      ,''             AS PJT_0
+      ,''             AS X5HNUM_0
+      ,''             AS X5DLIN_0
+      ,'Q'            AS STA_0
+      ,Q.UOM_0        AS PCU_0
+      ,CASE WHEN ITM.SERMGTCOD_0 = 3 THEN 1 ELSE 0#收货数量# END              AS QTYPCU_0
+      ,0              AS QTYUNI_0
+      ,ITF.DEFLOC_0   AS LOC_0
+      ,N''            AS LOT_0
+      ,N'#供应商批次#'     AS BPSLOT_0
+      ,O.ZPLANNUM_0             AS PALNUM_0
+      ,''             AS CTRNUM_0
+      ,N'#序列号#'       AS SERNUM_0
+      ,GETDATE()      AS CREDATTIM_0
+      ,GETDATE()      AS UPDDATTIM_0
+      ,NEWID()        AS AUUID_0
+      ,'#LOGIN_USER#' AS CREUSR_0
+      ,''             AS UPDUSR_0
+      ,0              AS QTYWEU_0
+      ,ISNULL((SELECT WRH_0
+                FROM   STOLOC
+                WHERE  LOC_0 = ITF.DEFLOC_0
+                       AND STOFCY_0 = Q.PRHFCY_0), '')
+      ,''
+      ,''
+      ,''
+      ,0
+      ,0
+      ,0
+      ,'1900-01-01'
+      ,'1900-01-01'
+      ,'1900-01-01'
+      ,''
+      ,0
+      ,0
+      ,0
+FROM   PORDERP P
+       INNER JOIN PORDERQ Q
+               ON P.POHNUM_0 = Q.POHNUM_0
+                  AND P.POPLIN_0 = Q.POPLIN_0
+       INNER JOIN PORDER O
+               ON O.POHNUM_0 = Q.POHNUM_0
+       INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = Q.ITMREF_0
+       LEFT JOIN ITMFACILIT ITF
+              ON ITF.ITMREF_0 = Q.ITMREF_0
+                 AND ITF.STOFCY_0 = Q.POHFCY_0
+WHERE  Q.POHNUM_0 = N'{0}'
+       AND Q.POPLIN_0 = N'{1}'</SQLNew>
+  <SQLRemove>DELETE FROM XWSPTH WHERE PK_0='#LINKROWID#' AND RPFLG_0&lt;&gt;3</SQLRemove>
+  <SQLClear>DELETE FROM XWSPTH WHERE PK_0='#LINKROWID#' AND RPFLG_0&lt;&gt;3</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle>批量删除</AllDataTreatTitle>
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#87</ImageFile>
+  <ListPrint />
+  <MD5HASH>f044e3aaa8336e0a3c6591d03cccbd60</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP1010X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Batch Import Paste Receiving Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP1010X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Batch Import Paste Receiving Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

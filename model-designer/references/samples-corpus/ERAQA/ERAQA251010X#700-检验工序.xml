@@ -1,0 +1,232 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA251010X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>检验工序</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKNOGROUP
+--LINKNOFILTER
+
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+
+SELECT CAST(IIF(Q.PLOPE IS NULL, 0, 1) AS BIT) GXFLG
+      ,S.[OPTID]                               LINKROWIDOPTID
+      ,S.[OPTDES]
+      ,Q.[ID]                                  LINKROWID
+FROM   [QAOPT] S
+       LEFT JOIN (SELECT PLOPE
+                        ,ID
+                  FROM   QAINSPREQL 
+                  WHERE  DOCNUM = @DOCNUM)Q
+              ON Q.PLOPE = S.OPTID
+WHERE  S.OPTTYP = 'INSPLST'
+ORDER  BY S.OPTSEQ</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKSAVEONENTERKEY
+
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+
+IF NOT EXISTS(SELECT PLOPE  FROM QAINSPREQL WHERE DOCNUM=@DOCNUM AND PLOPE='#LINKROWIDOPTID#') AND '#GXFLG#'='True'
+BEGIN
+INSERT INTO [QAINSPREQL]
+           ([DOCNUM]
+           ,[PLOPE]
+           ,[PLOPEDES]
+           ,[CREUSR]
+           ,[CRETIM])
+    SELECT
+	    @DOCNUM
+           ,'#LINKROWIDOPTID#'
+           ,N'#OPTDES#'
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+END;
+
+ELSE 
+
+BEGIN
+
+DELETE FROM QAINSPREQL WHERE ID=0#LINKROWID# AND '#GXFLG#'='False';
+
+END</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#99</ImageFile>
+  <ListPrint />
+  <MD5HASH>195422c4bc32b0d1a54762298ae106dd</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+        "GXFLG"
+       ,"REMARK"
+      ]
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>GXFLG</COLNAME>
+      <CAPTION>Check</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>GXFLG</COLNAME>
+      <CAPTION>勾选</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Operation List</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>检验工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKROWIDOPTID</COLNAME>
+      <CAPTION>检验工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>OPTDES</COLNAME>
+      <CAPTION>Inspection Project</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA251010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>OPTDES</COLNAME>
+      <CAPTION>检验工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

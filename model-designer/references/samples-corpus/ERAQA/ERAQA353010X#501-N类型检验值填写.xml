@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA353010X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>N类型检验值填写</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @DOCNUM VARCHAR(30) = '#DOCNUM#';
+DECLARE @OPENUM VARCHAR(30) = '#OPENUM#';
+DECLARE @VALLIN INT = 0#VALLIN#;
+DECLARE @TRXLIN INT = 0#TRXLIN#;
+UPDATE QAINSPVAL
+SET N1 = 0#N1#
+    , N2 = 0#N2#
+    , N3 = 0#N3#
+    , N4 = 0#N4#
+    , N5 = 0#N5#
+    , N6 = 0#N6#
+    , N7 = 0#N7#
+    , N8 = 0#N8#
+    , REMARK=N'#REMARK#'
+    , UPDUSR = N'#LOGIN_USER#'
+    , UPDTIM = GETDATE()
+WHERE DOCNUM = @DOCNUM
+  AND OPENUM = @OPENUM
+  AND VALLIN = @VALLIN
+  AND TRXLIN = @TRXLIN
+
+-- 行计算值
+EXECUTE [SP_INSPVAL_NCHECK] 
+   @DOCNUM
+  ,@OPENUM
+  ,@VALLIN
+  ,@TRXLIN;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;Operation&lt;/label&gt;
+&lt;input type="text" class="" placeholder="请输入OPEDES2" readonly="readonly"
+id="OPEDES2" paratype="STR" paradm="" value="#OPEDES2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;Project&lt;/label&gt;
+&lt;input type="text" class="" placeholder="请输入QAITM" readonly="readonly"
+id="QAITM" paratype="STR" paradm="" value="#QAITM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN1# "&gt;
+&lt;label&gt;#TN1#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN1#" 
+id="N1" paratype="DEC" paradm="" value="#N1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN2# "&gt;
+&lt;label&gt;#TN2#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN2#" 
+id="N2" paratype="DEC" paradm="" value="#N2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN3#"&gt;
+&lt;label&gt;#TN3#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN3#" 
+id="N3" paratype="DEC" paradm="" value="#N3#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN4# "&gt;
+&lt;label&gt;#TN4#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN4#" 
+id="N4" paratype="DEC" paradm="" value="#N4#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN5# "&gt;
+&lt;label&gt;#TN5#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN5#" 
+id="N5" paratype="DEC" paradm="" value="#N5#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN6# "&gt;
+&lt;label&gt;#TN6#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN6#" 
+id="N6" paratype="DEC" paradm="" value="#N6#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN7# "&gt;
+&lt;label&gt;#TN7#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN7#" 
+id="N7" paratype="DEC" paradm="" value="#N7#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row #FN8# "&gt;
+&lt;label&gt;#TN8#&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="请输入#TN8#" 
+id="N8" paratype="DEC" paradm="" value="#N8#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;DOCNUM&lt;/label&gt;
+&lt;input type="text"  class="" placeholder="" 
+id="DOCNUM" paratype="DEC" paradm="" value="#DOCNUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;OPENUM&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="OPENUM" paratype="DEC" paradm="" value="#OPENUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;VALLIN&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="VALLIN" paratype="DEC" paradm="" value="#VALLIN#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;TRXLIN&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="TRXLIN" paratype="DEC" paradm="" value="#TRXLIN#"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#19</ImageFile>
+  <ListPrint />
+  <MD5HASH>6b088aec8b35ae60a388097da7069772</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

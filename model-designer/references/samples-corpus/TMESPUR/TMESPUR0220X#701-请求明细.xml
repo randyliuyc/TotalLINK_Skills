@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0220X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>请求明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT CONVERT(VARCHAR(10),L.REQDAT,21) REQDAT
+      ,L.QTY 
+      ,L.UOM
+      ,L.SRCDOC
+      ,L.SRCLIN
+      ,H.DEPT
+      ,ISNULL(D.DEPTNAM,'')    DEPTDES
+      ,ISNULL(D.DEPTNAM1,'')   DEPTDES1
+      ,ISNULL(D.DEPTNAM2,'')   DEPTDES2
+FROM PINQUL L
+LEFT JOIN PREQUH H
+              ON H.DOCNUM = L.SRCDOC
+LEFT JOIN ENTDEPT D
+              ON H.DEPT = D.DEPT
+WHERE L.DOCNUM='#DOCNUM#' 
+      AND L.ITMNO='#ITMNO#'
+      AND L.ITMVER='#ITMVER#'
+      AND L.SRCDOC+CAST(L.SRCLIN AS VARCHAR)+CAST(L.QTY AS VARCHAR)+L.UOM+CONVERT(VARCHAR(10),L.REQDAT,21) LIKE '%{0}%'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#41</ImageFile>
+  <ListPrint />
+  <MD5HASH>fe4521b8c7cf5ed7285a40c772368aa6</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0220X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu chi tiết</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

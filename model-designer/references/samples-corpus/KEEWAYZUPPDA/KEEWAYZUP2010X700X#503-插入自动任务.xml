@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP2010X700X</ModelCode>
+  <ModelNum>503</ModelNum>
+  <ModelDesc>插入自动任务</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMULTIROWS
+SELECT N'{0}' PK ,N'{1}' 打印机</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>INSERT INTO LINKACTIONPOOL (PRIORITY, JOBKEY, ACTIONUSER, ACTIONBODY, PLANDATE  
+	, CREDATE)
+VALUES (10, 'ZUPRT', 'ZUPRT', 'CALLFUNCTION~LINKACTION~
+{
+    "dm":{
+        "dmCode":"KEEWAYZUP2010X700X",
+        "dmNum":702,
+        "Para":[
+            "#PK#","#打印机#"
+        ]
+    },
+    "scriptType":4,
+    "RDs":[]
+}', GETDATE()
+	, GETDATE());</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;标签&lt;/label&gt;
+&lt;div class="linkmultiple one mui-input-clear" id="CHOOSE" para="" code="KEEWAYPDANEW2115X" num="10"   required text-value="MODELDES-MODELNAM" reload value=&gt; &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;打印机&lt;/label&gt;
+&lt;div class="linkmultiple one" type="text" calss="mui-input-clear" placeholder="" id="PRINTER" required  paratype="STR" code="KEEWAYPDANEW2115X" num="20"  text-value="DESCP-CODE"  para="" value=""&gt;&lt;/div&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#82</ImageFile>
+  <ListPrint />
+  <MD5HASH>bee5f03cc9e50090b44d2ace80c113ca</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X700X</DMCODE>
+      <DMNUM>503</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Druck aufrufen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X700X</DMCODE>
+      <DMNUM>503</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Print Call</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

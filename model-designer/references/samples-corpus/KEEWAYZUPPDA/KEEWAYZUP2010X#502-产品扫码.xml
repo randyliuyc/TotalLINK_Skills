@@ -1,0 +1,356 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP2010X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>产品扫码</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+INSERT INTO XWSSCS
+            (MACHINEID_0,
+             USERID_0,
+             CUSERID_0,
+             VCRTYP_0,
+             PK_0,
+             BATCHID_0,
+             PKORI_0,
+             CREDATIM_0,
+             STAT_0,
+             SUBDATIM_0,
+             RPFLG_0,
+             RPNUM_0,
+             RPLIN_0,
+             RPNOTE_0,
+             RPDATE_0,
+             RPDATIM_0,
+             VCRNUM_0,
+             VCRLIN_0,
+             STOFCY_0,
+             IPTDAT_0,
+             VCRDES_0,
+             PJT_0,
+             TRSFAM_0,
+             ITMREF_0,
+             STU_0,
+             QTYSTU_0,
+             LOT_0,
+             SLO_0,
+             SERNUM_0,
+             STOCOU_0,
+             STA_0,
+             STA_1,
+             LOCTYP_0,
+             LOCTYP_1,
+             LOC_0,
+             LOC_1,
+             PALNUM_0,
+             PALNUM_1,
+             CTRNUM_0,
+             CTRNUM_1,
+             NOTE_0,
+             NOTE_1,
+             NOTE_2,
+             NOTE_3,
+             NOTE_4,
+             BPRNUM_0,
+             CREDATTIM_0,
+             UPDDATTIM_0,
+             AUUID_0,
+             CREUSR_0,
+             UPDUSR_0,
+             WRH_0,
+             [STOFLD1_0],
+             [STOFLD2_0])
+SELECT '#LOGIN_ID#'            MACHINEID_0
+      ,'#LOGIN_USER#'          USERID_0
+      ,'#LOGIN_USER#'          CUSERID_0
+      ,29                      VCRTYP_0
+      ,NEWID()                 PK_0
+      ,''                      BATCHID_0
+      ,'SG'                    PKORI_0
+      ,GETDATE()               CREDATIM_0
+      ,1                       STAT_0
+      ,'1999-01-01'            SUBDATIM_0
+      ,1                       RPFLG_0
+      ,''                      RPNUM_0
+      ,0                       RPLIN_0
+      ,''                      RPNOTE_0
+      ,'1999-01-01'            RPDATE_0
+      ,'1999-01-01'            RPDATIM_0
+      ,''                      VCRNUM_0
+      ,0                       VCRLIN_0
+      ,STOFCY_0                STOFCY_0
+      ,CONVERT(VARCHAR, GETDATE(), 23)               IPTDAT_0
+      ,N'lang:{zh:存货移库,en:Inventory transfer,de:Lagerumschlag}'                   VCRDES_0
+      ,''                      PJT_0
+      ,'CHG'                   TRSFAM_0
+      ,ITMREF_0                ITMREF_0
+      ,PCU_0                   STU_0
+      ,0#数量#                       QTYSTU_0
+      ,LOT_0                   LOT_0
+      ,SLO_0                   SLO_0
+      ,SERNUM_0                SERNUM_0
+      ,STOCOU_0                STOCOU_0
+      ,STA_0                   STA_0
+      ,STA_0                   STA_1
+      ,''                      LOCTYP_0
+      ,''                      LOCTYP_1
+      ,LOC_0                   LOC_0
+      ,N'#新库位#'               LOC_1
+      ,PALNUM_0                PALNUM_0
+      ,PALNUM_0                PALNUM_1
+      ,CTRNUM_0                CTRNUM_0
+      ,CTRNUM_0                CTRNUM_1
+      ,''              NOTE_0   
+      ,''                      NOTE_1
+      ,''                      NOTE_2
+      ,ZSTOFLD3_0                      NOTE_3 --序列号ZSTOFLD3_0
+      ,''                      NOTE_4
+      ,''                      BPRNUM_0
+      ,GETDATE()               CREDATTIM_0
+      ,''                      UPDDATTIM_0
+      ,NEWID()                 AUUID_0
+      ,LEFT('#LOGIN_USER#', 5) CREUSR_0
+      ,''                      UPDUSR_0
+      ,(SELECT WRH_0
+         FROM   STOLOC
+         WHERE  LOC_0 = '#原库位#'
+                AND STOFCY_0 = '#地点#')
+      ,STOFLD1_0
+      ,STOFLD2_0
+FROM   STOCK
+WHERE STOCOU_0=0#STOCOU# 
+AND STOCOU_0 NOT IN (SELECT STOCOU_0 FROM XWSSCS WHERE RPFLG_0&lt;&gt;3 AND TRSFAM_0='CHG' AND STOCOU_0=0#STOCOU# AND LOC_1='#新库位#')</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+    &lt;div style="float:left;width:75%" class="mui-input-column"&gt;
+        &lt;label&gt;lang:{zh:数量,en:Qty,de:Menge}&lt;/label&gt;
+        &lt;input type="number" required class="" placeholder="lang:{zh:选择,en:Select,de:Wählen}"  not-reset
+            id="数量" paratype="DEC" paradm="" value=""&gt;
+    &lt;/div&gt;
+    &lt;div style="float:right;width:25%"&gt;
+        &lt;button type="button" style="width:120px;height:25px" class="mui-btn mui-btn-blue linkdatasearch one" id="选择库存"
+            code="KEEWAYZUP2010X" num="701" text-value="选择-选择" para="{地点,产品编码,新库位,原库位}" props not-reset
+            automatch='{"原库位":"原库位","数量":"数量","数据检查":"数据检查","批次":"批次","序列号":"序列号","STOCOU":"STOCOU"}' reload value=""&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:选择库存,en:Select Stock,de:Bestand wählen}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:新库位,en:New Location,de:Ziel-Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="" required  id="新库位" paratype="STR" paradm="" value="{2}"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"  
+not-para target-id="新库位"  paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{0}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:剩余数量,en:Remaining Qty,de:Restmenge}&lt;/label&gt;
+&lt;input type="number" class="mui-input" placeholder="lang:{zh:存货数量,en:Stock Qty,de:Lagermenge}" readonly="readonly"
+id="剩余数量" paratype="DEC" paradm="" value="#剩余数量#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" required  placeholder="" readonly="readonly" not-reset
+id="产品编码" paratype="STR" paradm="" value="#产品编码#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品名称,en:Product Name,de:Bezeichnung}&lt;/label&gt;
+&lt;input type="text"   placeholder="" readonly="readonly" not-reset
+id="产品名称" paratype="STR" paradm="" value="#产品描述1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:地点,en:Location,de:Standort}&lt;/label&gt; 
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:地点,en:Location,de:Standort}" readonly="readonly" not-reset
+id="地点" paratype="STR" paradm="" value="#地点#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:批次,en:Lot,de:Losnummer}&lt;/label&gt;
+&lt;input type="text"  class="mui-input" placeholder="" readonly="readonly"
+id="批次" paratype="STR" paradm="" value="" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:序列号,en:Serial No.,de:Seriennr.}&lt;/label&gt;
+&lt;input type="text"  class="mui-input" placeholder="" readonly="readonly" not-reset
+id="序列号" paratype="STR" paradm="" value="" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:原库位,en:From Location,de:Quell-Lagerplatz}&lt;/label&gt;
+&lt;input type="text" required class="mui-input" placeholder="" readonly="readonly"
+id="原库位" paratype="STR" paradm="" value="{1}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:未提交数,en:Pending Qty,de:Offene Menge}&lt;/label&gt;
+&lt;input type="number" class="mui-input-clear" placeholder="" readonly="readonly"
+id="未提交数" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;STOCOU&lt;/label&gt;
+&lt;input type="number" required class="mui-input" placeholder="" 
+id="STOCOU" paratype="DEC" paradm="" value="" onkeyup="one();"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;数据检查&lt;/label&gt;
+&lt;input type="text" class="mui-input" placeholder="" 
+id="数据检查" paratype="STR" paradm="" value="" onkeyup="one();"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;打印机编码&lt;/label&gt;
+&lt;input type="text" class="mui-input" placeholder=""  not-reset
+id="打印机编码" paratype="STR" paradm="" value="{6}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;是否打印&lt;/label&gt;
+&lt;input type="text" class="mui-input" placeholder=""  not-reset
+id="printFlag" paratype="STR" paradm="" value="{7}" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;button type="button" id="print"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP2010X" num="700"  linkparafill="0" para="{序列号,打印机编码}" script="501" class="mui-btn mui-btn-warning"&gt;
+&lt;span class="mui-icon mui-icon-paperplane"&gt;&lt;/span&gt;&lt;/button&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>// 扫描解析
+scan_if = function () {
+    return 2;
+}
+
+// 扫描参数处理
+scan_para = function (id, r) {
+    scan_impl(id, "#" + r + "#");
+}
+
+//扫码返回刷新
+Save_Data = function() {
+   if($("#序列号").length){
+    var index = plus.webview.getWebviewById("contentlist");
+    mui.fire(index, "contentlist_local", {
+        para: index.modelParams
+    });}
+}
+
+//扫描后自动保存
+scanAfterAction = function(r) {
+  var dataCheck = $("#数据检查").val();
+  var dataSumitScriptType = 1;
+  // 数据检查
+  if (dataCheck &amp;&amp; dataCheck.trim() !== "") {
+    alert(dataCheck);
+    keep_focus("linkinput");
+    return;
+  } else {
+    // 数据检查通过，执行自动保存
+    recSave(globleServer, globleDmCode, globleDmNum, dataSumitScriptType, "","autoSave","autoSave");
+  }
+}
+
+afterFunction = function (sta, id) {
+    if (id == "autoSave" &amp;&amp; sta == "autoSave"){    
+setTimeout(function () {
+            keep_focus("linkinput");
+        }, 100);
+}
+var a=$("#printFlag").val() //扫码保存后触发自动打印
+
+if(a==1){
+$("#print").trigger("tap")
+}
+};
+
+beforeFunction = function(sta,id){
+    var a = $("#数量").val() * 1;
+    var b = $("#可移数量").attr("value") * 1;
+    var c = $("#原库位").val();
+    var d = $("#新库位").val();
+    
+    if (a === 0) {
+        alert("lang:{zh:移库数量不能为零,en:Transfer quantity cannot be zero,de:Umlagerungsmenge darf nicht null sein}");
+        return true;  
+    }
+    
+    if (a &gt; b) {
+        alert("lang:{zh:输入的数量过大，已超出可移数量,en:Quantity exceeds transferable amount,de:Eingegebene Menge überschreitet die umlagerungsfähige Menge}");
+        return true;
+    }
+    
+    if (c == d ) {
+        alert("lang:{zh:原库位和新库位相同，请检查,en:Source and destination locations are the same, please check,de:Quell- und Ziellagerort sind identisch, bitte überprüfen}");
+        return true;
+    }
+
+    var a=$("#数据检查").val();
+    if(a!=""&amp;&amp;( sta=="new"||sta=="autoSave")){
+        alert(a);
+        return true;
+    }
+    return false;
+};</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#60</ImageFile>
+  <ListPrint />
+  <MD5HASH>15af64bc071489d317cca14cd3d9db78</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA351010X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>选择工序</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DOCNUM VARCHAR(30) = REPLACE('{0}',',','-')  --IF SCANED THE OPERATION CODE (WITH ,), CHANGE TO -, TO MATCH THE QA DOCNUM
+DECLARE @MFGNUM VARCHAR(30) = ''
+DECLARE @ROUALT VARCHAR(30) = ''
+DECLARE @ROUOPE VARCHAR(30) = ''
+DECLARE @ITMNO VARCHAR(30) = ''
+
+SET @MFGNUM=LEFT(@DOCNUM, CHARINDEX('-', @DOCNUM) - 1);
+SET @ROUOPE=RIGHT(@DOCNUM, LEN(@DOCNUM) - CHARINDEX('-', @DOCNUM));
+
+--SELECT @ROUALT = H.ROUALT_0
+--      ,@ITMNO = H.ROUNUM_0
+--FROM   #LC.X3DATA#MFGHEAD H
+--WHERE  H.MFGNUM_0 = @MFGNUM;
+
+-- DEMO DATA, RANDY, 2026-10-17
+SELECT @ROUALT = 11, @ITMNO = 'WR4080ED002.286'
+
+-- 拼接形成 ROUCOD
+DECLARE @ROUCOD VARCHAR(30)
+
+SET @ROUCOD = CONCAT_WS('-', @ITMNO, @ROUALT, @ROUOPE)
+
+SELECT QL.OPENUM                                                 CODE
+      ,IIF(L.STA=2,'【√】','')+D.OPEDES2                                                 DESP
+      ,QL.INSTCAT
+      ,IIF(L.INSTCOD IS NULL, ISNULL(QL.INSTCOD, ''), L.INSTCOD) INSTCOD
+FROM   QAROU H
+       INNER JOIN QAROULIN QL
+               ON QL.ROUCOD = H.ROUCOD
+       INNER JOIN QAOPESTD D
+               ON QL.OPESTD = D.OPESTD
+       LEFT JOIN QAINSPL L
+              ON L.DOCNUM = @DOCNUM
+                 AND L.OPENUM = QL.OPENUM
+WHERE  H.ROUCOD = @ROUCOD</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#22</ImageFile>
+  <ListPrint />
+  <MD5HASH>fac235558c69d240415483a3e60e3a84</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

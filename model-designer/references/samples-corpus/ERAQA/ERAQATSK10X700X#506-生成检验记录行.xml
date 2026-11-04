@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X700X</ModelCode>
+  <ModelNum>506</ModelNum>
+  <ModelDesc>生成检验记录行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@DATAQA:
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+-- 当前检验工单对应生产工单的工序信息
+DECLARE @MFGNUM VARCHAR(30)
+-- 当前的生产工序（检验）
+DECLARE @QAROUOPE INT
+-- 获取上道生产工序（用于获取报工记录）
+DECLARE @PREROUOPE INT
+-- 检验控制模式
+DECLARE @ROUTYP VARCHAR(30)
+DECLARE @XESMMTRKSTA INT = 0
+
+SELECT @ROUTYP = ROUTYP, 
+	@MFGNUM = MFGNUM,
+	@QAROUOPE = ROUOPE
+FROM QAINSPH
+WHERE DOCNUM = @DOCNUM
+
+IF @ROUTYP = 'SFC'
+BEGIN
+	
+    SELECT TOP 1 @PREROUOPE = OPENUM_0
+    FROM x3v12sql.ERASTEEL.MFGOPE
+    WHERE MFGNUM_0 = @MFGNUM
+        AND OPENUM_0 &lt; @QAROUOPE
+		AND OPESTA_0 &lt;&gt; 6
+    -- 取工艺路线中存在的工序，实际加工时，有可能增加工序
+    -- 2024年12月24日，改为取工单工序
+    -- AND ROUOPENUM_0 &lt;&gt; 0
+    ORDER BY OPENUM_0 DESC
+
+	PRINT @PREROUOPE
+	--CASE WHEN XESMMTRKSTA_0=4 THEN N'进行中' WHEN XESMMTRKSTA_0=5 THEN N'已完工' ELSE N'未开始' END XESMMOPESTA
+
+	SELECT @XESMMTRKSTA = XESMMTRKSTA_0
+	FROM   x3v12sql.ERASTEEL.MFGOPE O
+	WHERE O.MFGNUM_0 = @MFGNUM
+		AND O.OPENUM_0 = @PREROUOPE 
+		AND O.OPESTA_0&lt;&gt;6; 
+
+	SELECT CASE WHEN @XESMMTRKSTA = 5 THEN '' ELSE N'LINKPREVENT:前道工序未完工，无法获取数据' END CHECKINFO
+
+END
+ELSE
+	SELECT '' CHECKINFO
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @DOCNUM varchar(30) = '{0}'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+
+EXECUTE [SP_INSPVAL_LIN] 
+   @DOCNUM
+  ,@USER</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#85</ImageFile>
+  <ListPrint />
+  <MD5HASH>38e29ef36cb3e5da1e0f8621594d6027</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

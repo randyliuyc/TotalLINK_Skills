@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0730X</ModelCode>
+  <ModelNum>703</ModelNum>
+  <ModelDesc>报关单-有价格附件上传</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT 1 BEW</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKAUTOREPLACEEMPTYCOLUMNS
+--LINKUPLOAD_PATHASSIGN:
+--LINKUPLOAD_FILETYPE:
+--LINKUPLOAD_KEEPFILENAME:1
+INSERT INTO [LINKDOCFIL]   
+           ([FILGRP]
+           ,[FILTYP]
+           ,[FILNAM]
+           ,[FILDES]
+           ,[FILDIR]
+           ,[FILURL]
+           ,[SRCTYP]
+           ,[SRCDOC]
+           ,[SRCLIN]
+           ,[REMARK]
+           ,[FLG01]
+           ,[FLG02]
+           ,[CREUSR]
+           ,[UPDUSR]
+           ,[CRETIM]
+           ,[UPDTIM])
+     VALUES
+           ('BEW'--&lt;FILGRP, varchar(30),&gt;  --报关单-有价格
+           ,N'#LINKUPLOADFILETYPE#'--&lt;FILTYP, varchar(30),&gt;
+           ,N'#LINKUPLOADFILENAME#'--&lt;FILNAM, nvarchar(200),&gt;
+           ,''--&lt;FILDES, nvarchar(200),&gt;
+           ,N'#LINKUPLOADFILEPATH#'--&lt;FILDIR, nvarchar(500),&gt;
+           ,N'/Files/Upload/#LINKUPLOADFILEPATH#'--&lt;FILURL, nvarchar(1000),&gt;
+           ,'PBO'--&lt;SRCTYP, varchar(30),&gt;
+           ,N'#BLNO#'--&lt;SRCDOC, varchar(30),&gt;  --供应商提单号
+           ,0--&lt;SRCLIN, int,&gt;
+           ,''--&lt;REMARK, nvarchar(100),&gt;
+           ,0--&lt;FLG01, bit,&gt;
+           ,0--&lt;FLG02, bit,&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,''--&lt;UPDUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+           ,''--&lt;UPDTIM, datetime,&gt;
+        )</SQLNew>
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#32</ImageFile>
+  <ListPrint />
+  <MD5HASH>318eb28ed06cbf93a16806a376dd1c50</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0730X</DMCODE>
+      <DMNUM>703</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Khai báo hải quan - upload kèm theo giá</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

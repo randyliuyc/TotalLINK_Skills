@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP90</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>汇总库存查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @ITMREF VARCHAR(50)=N'%{1}%';
+DECLARE @ITMDES NVARCHAR(100)=N'%{2}%';
+DECLARE @YITMORI NVARCHAR(100)=N'%{3}%';
+
+SELECT S.STOFCY_0                      地点
+       ,S.ITMREF_0                     产品编码
+       ,ISNULL(L1.ITMDES, I.ITMDES1_0) 产品描述1
+       ,ISNULL(L2.ITMDES, I.ITMDES2_0) 产品描述2
+       ,I.YITMORI_0 旧产品编码
+       ,Cast(Sum(S.QTYSTU_0) AS REAL)  库存数量
+       ,S.PCU_0                        单位
+FROM   STOCK S
+       INNER JOIN ITMMASTER I
+               ON S.ITMREF_0 = I.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = I.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = I.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+WHERE  S.STOFCY_0 = @FCY
+       AND S.ITMREF_0 LIKE @ITMREF
+       AND UPPER(ISNULL(L1.ITMDES, I.ITMDES1_0)
+                 + ISNULL(L2.ITMDES, I.ITMDES2_0)) LIKE @ITMDES
+       AND I.YITMORI_0 LIKE @YITMORI 
+GROUP  BY S.ITMREF_0
+          ,ISNULL(L1.ITMDES, I.ITMDES1_0)
+          ,ISNULL(L2.ITMDES, I.ITMDES2_0)
+          ,I.YITMORI_0
+          ,S.PCU_0
+          ,S.STOFCY_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>PICKERSTR</ParaType01>
+  <ParaSearchCode01>X3SITE</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品描述</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>旧产品编码</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card'&gt;
+    &lt;div class='mui-card-header'&gt;
+   &lt;h4&gt;lang:{zh:产品编码,en:Product Code,de:Produktcode}:#产品编码#&lt;/h4&gt;
+    &lt;/div&gt;
+    &lt;div class="mui-media-body  mui-table-view-cell mui-collapse link-append" code="KEEWAYZUP9010X" num="700" para="#地点#,#产品编码#" reload &gt;
+        &lt;a class='mui-navigate-right' href='#'&gt;
+            &lt;h4&gt;lang:{zh:地点,en:Site,de:Standort}:#地点#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap;word-wrap:break-word;"&gt;lang:{zh:产品描述1,en:Product Description1,de:Beschreibung1}:#产品描述1#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap;word-wrap:break-word;"&gt;lang:{zh:产品描述2,en:Product Description2,de:Beschreibung2}:#产品描述2#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap;word-wrap:break-word;"&gt;lang:{zh:旧产品编码,en:Old Product Code,de:Alte Produktkennung}:#旧产品编码#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:库存数量,en:Stock Quantity,de:Lagerbestand}:#库存数量#【#单位#】&lt;/h4&gt;
+   &lt;/a&gt;
+    &lt;ul class='mui-collapse-content' style="overflow: auto;padding:0"&gt;
+        &lt;div class="link-table-default" style="margin:0" append&gt;
+            &lt;div class="link-table-fixed" save&gt;
+                &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:数量,en:Quantity,de:Menge}&lt;/div&gt;
+                &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:批次,en:Lot,de:Lot}&lt;/div&gt;
+                &lt;div style="min-width:60px;background-color:#546E7A;"&gt;lang:{zh:状态,en:Status,de:Status}&lt;/div&gt;
+                &lt;div style="min-width:60px;background-color:#546E7A;"&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/div&gt;
+                &lt;div style="min-width:180px;background-color:#546E7A;"&gt;lang:{zh:电池序列号,en:Battery Serial Number,de:Batterie-Seriennummer}&lt;/div&gt;
+                &lt;div style="min-width:60px;background-color:#546E7A;"&gt;lang:{zh:电机序列号,en:Motor Serial Number,de:Motor-Seriennummer}&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/ul&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>500</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button" class="link-pick-btn mui-input-clear" placeholder="lang:{zh:地点,en:Site,de:Standort}"  readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK" required&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product Code,de:Produktcode}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Scan,de:Scannen}"  
+id="产品编码" paratype="STR" paradm="" value="{1}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品描述,en:Product Description,de:Produktbeschreibung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:可搜索,en:Searchable,de:Durchsuchbar}"  
+id="产品描述" paratype="STR" paradm="" value="{2}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:旧产品编码,en:Old Product Code,de:Alte Produktkennung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:旧产品编码模糊搜索,en:Fuzzy search for Old Product Code,de:Unschärfesuche Alte Produktkennung}" 
+id="旧产品编码" paratype="STR" paradm="" value="{3}" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_if=function()
+{
+  return 2 ;
+}
+scan_para=function(id, r){
+scan_impl(id, "#"+r+"#");
+}
+//查询列表页面可显示搜索参数
+//addIcons("openParas","搜索","search","","content");</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#95</ImageFile>
+  <ListPrint />
+  <MD5HASH>50b53d8e6938b64c42b47c78d5876bdf</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP90</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Summary Inventory Query</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP90</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Stock by Product</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

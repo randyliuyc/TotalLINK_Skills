@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP6020X</ModelCode>
+  <ModelNum>702</ModelNum>
+  <ModelDesc>ActiveReport TotalLINKMODELDATA-ITMREF</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT ITM.ITMREF_0  产品编码
+	 -- ,LEFT(S.PKORI_0,CHARINDEX('-', S.PKORI_0) - 1)  工单号
+      ,''工单号
+	  ,ISNULL(AX1.TEXTE_0,ITMDES1_0)  产品描述1
+	  ,ISNULL(AX2.TEXTE_0,ITMDES2_0)  产品描述2
+	  ,ITM.YMDDES_0 产品备注  
+	  ,ITM.EANCOD_0 
+FROM  ITMMASTER  ITM
+LEFT JOIN ATEXTRA AX1 ON AX1.IDENT1_0=ITM.ITMREF_0 AND AX1.CODFIC_0='ITMMASTER' AND AX1.ZONE_0='DES1AXX' AND AX1.LANGUE_0='GER'
+LEFT JOIN ATEXTRA AX2 ON AX2.IDENT1_0=ITM.ITMREF_0 AND AX2.CODFIC_0='ITMMASTER' AND AX2.ZONE_0='DES2AXX' AND AX2.LANGUE_0='GER'
+WHERE ITM.ITMREF_0= '{0}'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>参数</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#87</ImageFile>
+  <ListPrint />
+  <MD5HASH>e4fd2355a0b63cb26d24f053ead691bd</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

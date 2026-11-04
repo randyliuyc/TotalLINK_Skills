@@ -1,0 +1,573 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH1010X.JHZX10X</ModelCode>
+  <ModelNum>702</ModelNum>
+  <ModelDesc>周期分析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE 
+--LINKNOGROUP
+DECLARE @XMH VARCHAR(50) = '{0}';
+DECLARE @ITMREF VARCHAR(30) = '{1}'
+-- W-WEEK / M-MONTH 
+DECLARE @PRDTYP CHAR(1) = 'W';
+-- 是否将过期日期统一作为当前日期处理
+DECLARE @DATTRSFLG BIT = 0;
+
+WITH CTE_DOC
+AS (
+  SELECT VCRREF
+    , [VCRDES#LOGIN_LAN#] VCRDES
+    , TRXSIGN
+    , VCRSEQ
+    , GESFUN
+    , VCRAPPR
+  FROM XLINKMRPDOC
+  )
+, CTE_DATA
+AS (
+  SELECT XWS.VCRREF_0 VCRREF
+    -- , M.OPTDES VCRDES
+    , D.VCRDES
+    , XWS.ABBFIL_0 DOCTYP
+    , IIF(@PRDTYP = 'W', CONCAT (
+        DATEPART(YEAR, IIF(XWS.ENDDAT_0 &lt; GETDATE()
+            AND @DATTRSFLG = 1, GETDATE(), XWS.ENDDAT_0))
+        , 'W'
+        , RIGHT('00' + CAST(DATEPART(WEEK, IIF(XWS.ENDDAT_0 &lt; GETDATE()
+                AND @DATTRSFLG = 1, GETDATE(), XWS.ENDDAT_0)) AS VARCHAR(2)), 2)
+        ), FORMAT(IIF(XWS.ENDDAT_0 &lt; GETDATE()
+          AND @DATTRSFLG = 1, GETDATE(), XWS.ENDDAT_0), 'yyyyMM')) AS PRD
+    , CAST(XWS.QTY_0 AS DECIMAL(18,2)) QTY
+  FROM XWSSCHRES XWS
+  LEFT JOIN CTE_DOC D
+    ON D.VCRREF = XWS.VCRREF_0
+  WHERE XWS.XMHNUM_0 = @XMH
+    AND XWS.ITMREF_0 = @ITMREF
+  )
+  , CTE_DATASUM
+AS (
+  SELECT VCRREF
+    -- , VCRDES
+    -- , DOCTYP
+    , PRD
+    , SUM(QTY) QTY
+  -- INTO #TMRPRES
+  FROM CTE_DATA
+  GROUP BY VCRREF
+    -- , VCRDES
+    -- , DOCTYP
+    , PRD
+  )
+SELECT *
+INTO #TMRPRES
+FROM CTE_DATASUM
+ORDER BY PRD
+  , VCRREF
+
+SELECT PRD
+  , SUM(QTY) OVER (
+    ORDER BY PRD ROWS UNBOUNDED PRECEDING
+    ) QTY
+INTO #TMRPRESRT
+FROM (
+  SELECT PRD
+    , SUM(QTY) QTY
+  FROM #TMRPRES
+  GROUP BY PRD
+  ) R
+ORDER BY PRD;
+
+-- SELECT *
+-- FROM #TMRPRES;
+-- SELECT *
+-- FROM #TMRPRESRT;
+-- RETURN;
+-- 使用动态PIVOT将周次转为列
+DECLARE @columns NVARCHAR(MAX) = ''
+DECLARE @sql NVARCHAR(MAX) = ''
+
+-- 获取所有周次作为列名
+SELECT @columns = STRING_AGG(QUOTENAME(PRD), ',')
+FROM (
+  SELECT DISTINCT PRD
+  FROM #TMRPRES
+  ) AS Weeks;
+
+-- SELECT @columns;
+-- 构建动态PIVOT查询
+SET @sql = N'
+WITH CTE_DATA
+AS (
+SELECT VCRREF, -- VCRDES, DOCTYP, 
+' + @columns + 
+  N'
+FROM #TMRPRES AS SourceTable
+PIVOT (
+    SUM(QTY)
+    FOR PRD IN (' + @columns + 
+  N')
+) AS PivotTable
+UNION ALL
+SELECT ''9-BAL'' VCRREF, 
+' + 
+  @columns + N'
+FROM #TMRPRESRT AS SourceTable
+PIVOT (
+    SUM(QTY)
+    FOR PRD IN (' + @columns + 
+  N')
+) AS PivotTable
+-- ORDER BY VCRSEQ
+)
+, CTE_DOC
+AS (
+  SELECT VCRREF
+    , [VCRDES#LOGIN_LAN#] VCRDES
+    , TRXSIGN
+    , VCRSEQ
+    , GESFUN
+    , VCRAPPR
+  FROM XLINKMRPDOC
+  )
+SELECT C.VCRDES, C.VCRREF, ' 
+  + @columns + 
+  ', C.VCRAPPR LINKAPPRROW
+FROM CTE_DATA D
+LEFT JOIN CTE_DOC C
+  ON C.VCRREF = D.VCRREF
+ORDER BY C.VCRSEQ
+'
+
+-- SELECT @sql
+EXEC sp_executesql @sql
+
+DROP TABLE #TMRPRES;
+
+DROP TABLE #TMRPRESRT;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>计划单号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#13</ImageFile>
+  <ListPrint />
+  <MD5HASH>c2d4d1d8baec7f3d306d0d5f77694635</MD5HASH>
+  <ModelSetting>{
+    "DoubleClickDataMine": [
+        {
+            "来源产品": 10
+        },
+        {
+            "单据号": 20
+        }
+    ]
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>2026W04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>2026W06</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>2026W09</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>2026W40</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>2026W41</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>2999W53</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>DOCTYP</COLNAME>
+      <CAPTION>Belegtyp</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>DOCTYP</COLNAME>
+      <CAPTION>Document Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>DOCTYP</COLNAME>
+      <CAPTION>单据类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Plannummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Plan Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>计划单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Standort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Projekt</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Project</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>项目</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Periodenanalyse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Period Analysis</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>VCRDES</COLNAME>
+      <CAPTION>Typbeschreibung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>VCRDES</COLNAME>
+      <CAPTION>Type Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>VCRDES</COLNAME>
+      <CAPTION>类型说明</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>VCRREF</COLNAME>
+      <CAPTION>Typ</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>VCRREF</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>VCRREF</COLNAME>
+      <CAPTION>类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

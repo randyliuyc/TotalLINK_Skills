@@ -1,0 +1,456 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH40</ModelCode>
+  <ModelNum>100</ModelNum>
+  <ModelDesc>监管产品-实时库存</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.ITMREF_0
+  , I.TCLCOD_0
+  , GERL1.ITMDES ITMDES1_0
+  , GERL2.ITMDES ITMDES2_0
+  , GERL3.ITMDES ITMDES3_0
+  , S.LOCTYP_0
+  , S.LOC_0
+  , S.LOT_0
+  , S.BPSLOT_0
+  , CAST(S.QTYSTU_0 AS INT) QTYSTU_0
+  , I.STU_0
+FROM STOCK S
+INNER JOIN ITMMASTER I
+  ON I.ITMREF_0 = S.ITMREF_0
+LEFT JOIN ITMLAN1 GERL1
+  ON GERL1.ITMREF = I.ITMREF_0
+    AND GERL1.LANX3 = 'GER'
+LEFT JOIN ITMLAN2 GERL2
+  ON GERL2.ITMREF = I.ITMREF_0
+    AND GERL2.LANX3 = 'GER'
+LEFT JOIN ITMLAN3 GERL3
+  ON GERL3.ITMREF = I.ITMREF_0
+    AND GERL3.LANX3 = 'GER'
+WHERE S.STOFCY_0 = 'ZUPK'
+  AND I.TCLCOD_0 = 'ZOLL'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#48</ImageFile>
+  <ListPrint />
+  <MD5HASH>813e3521d034fb51a5b5ce1f7665a895</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>BPSLOT_0</COLNAME>
+      <CAPTION>Supplier Batch</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>BPSLOT_0</COLNAME>
+      <CAPTION>Supplier Batch</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>BPSLOT_0</COLNAME>
+      <CAPTION>供应商批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES1_0</COLNAME>
+      <CAPTION>Product Desc. 1</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES1_0</COLNAME>
+      <CAPTION>Product Desc. 1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES1_0</COLNAME>
+      <CAPTION>产品描述1</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES2_0</COLNAME>
+      <CAPTION>Product Desc. 2</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES2_0</COLNAME>
+      <CAPTION>Product Desc. 2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES2_0</COLNAME>
+      <CAPTION>产品描述2</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES3_0</COLNAME>
+      <CAPTION>Product Desc. 3</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES3_0</COLNAME>
+      <CAPTION>Product Desc. 3</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMDES3_0</COLNAME>
+      <CAPTION>产品描述3</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Regulated Product Stock Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Regulated Product Stock Detail</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOC_0</COLNAME>
+      <CAPTION>Storage Bin</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOC_0</COLNAME>
+      <CAPTION>Location</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOC_0</COLNAME>
+      <CAPTION>库位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOCTYP_0</COLNAME>
+      <CAPTION>Bin Type</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOCTYP_0</COLNAME>
+      <CAPTION>Location Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOCTYP_0</COLNAME>
+      <CAPTION>库位类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>Batch</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>Batch</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>TCLCOD_0</COLNAME>
+      <CAPTION>Category</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>TCLCOD_0</COLNAME>
+      <CAPTION>Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>100</DMNUM>
+      <COLNAME>TCLCOD_0</COLNAME>
+      <CAPTION>种类</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

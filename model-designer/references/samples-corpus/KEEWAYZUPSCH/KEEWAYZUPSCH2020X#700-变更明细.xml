@@ -1,0 +1,815 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH2020X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>变更明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SOHNUM VARCHAR(30) = '{0}';
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+-- 获取订单的发货方式
+DECLARE @MDL VARCHAR(50);
+
+SELECT TOP 1 @MDL = MDL_0
+FROM SORDER
+WHERE SOHNUM_0 = @SOHNUM;
+
+WITH CTE_DEITM
+AS (
+  -- 海关监管产品对照编码，按ZJKC供应商产品编码对照
+  SELECT ITMREFBPS_0 ITMREF_0
+    , ITMREF_0 ITMREFBPC_0
+  FROM ITMBPS
+  WHERE BPSNUM_0 = 'ZJKC'
+  )
+  , SOHData
+AS (
+  SELECT Q.SOHNUM_0
+    , Q.SOPLIN_0
+    , Q.SOQSEQ_0
+    -- 对照 Goccia 客户产品编码，如果没有则使用原产品编码
+    , ISNULL(I.ITMREFBPC_0, Q.ITMREF_0) ITMREF_0
+    , Q.QTY_0 AS QTYSTU_0
+    , S.BPCINV_0 AS BPRNUM_0
+    , Q.EXTDLVDAT_0 AS EXTDAT_0
+    , CAST(IIF(Q.SOQSTA_0 = 3
+        AND Q.ODLQTY_0 + Q.DLVQTY_0 = 0, 1, 0) AS BIT) SOQCLOSE
+    , DATEADD(DAY, CASE @MDL
+        WHEN 1
+          THEN 50
+        WHEN 2
+          THEN 60
+        WHEN 3
+          THEN 10
+        WHEN 4
+          THEN 5
+        WHEN 10
+          THEN 30
+        END, Q.EXTDLVDAT_0) EXTRCPDAT_0
+  FROM SORDERQ Q
+  INNER JOIN SORDER S
+    ON Q.SOHNUM_0 = S.SOHNUM_0
+  INNER JOIN SORDERP P
+    ON Q.SOHNUM_0 = P.SOHNUM_0
+      AND Q.SOPLIN_0 = P.SOPLIN_0
+  LEFT JOIN CTE_DEITM I
+    ON I.ITMREF_0 = Q.ITMREF_0
+      -- 仅 SKT 的订单需要转换编码
+      AND S.SOHTYP_0 = 'SKT'
+  WHERE S.SALFCY_0 = 'ZJKC'
+    AND S.BPCORD_0 = 'DE01'
+    AND P.LINTYP_0 &lt;&gt; 6
+    AND Q.SOHNUM_0 = @SOHNUM
+  )
+  , POHData
+AS (
+  SELECT Q.XREFSOH_0 AS SOHNUM_0
+    , Q.XREFSLIN_0 AS SOPLIN_0
+    , Q.XREFSSEQ_0 AS SOQSEQ_0
+    , Q.ITMREF_0
+    , Q.QTYSTU_0
+    , Q.BPSNUM_0 AS BPRNUM_0
+    , Q.EXTRCPDAT_0 AS EXTDAT_0
+    , CAST(IIF(Q.LINCLEFLG_0 = 2 AND Q.RCPQTYSTU_0 = 0, 1, 0) AS BIT) POQCLOSE
+  FROM PORDERQ Q
+  WHERE Q.POHFCY_0 = 'ZUPK'
+    AND Q.BPSNUM_0 IN ('JXTD', 'BPS00002', 'CN01', 'ZJKC') -- 兼容历史数据，先保留 CN01
+    AND Q.XREFSOH_0 = @SOHNUM
+  )
+SELECT CASE 
+    WHEN S.SOHNUM_0 IS NULL
+      THEN N'lang:{zh:删除,en:Delete,de:Löschen}'
+    WHEN P.SOHNUM_0 IS NULL
+      THEN N'lang:{zh:新增,en:New,de:Neu}'
+    WHEN ISNULL(S.QTYSTU_0, 0) &lt;&gt; ISNULL(P.QTYSTU_0, 0)
+      THEN N'lang:{zh:数量不同,en:Quantity different,de:Menge unterschiedlich}'
+    WHEN ISNULL(CONVERT(DATE, S.EXTRCPDAT_0), '1900-01-01') &lt;&gt; ISNULL(CONVERT(DATE, P.EXTDAT_0), 
+        '1900-01-01')
+      THEN N'lang:{zh:日期不同,en:Date different,de:Datum unterschiedlich}'
+    WHEN ISNULL(S.SOQCLOSE, 0) &lt;&gt; ISNULL(P.POQCLOSE, 0)
+      THEN N'lang:{zh:状态不同,en:Status different,de:Status unterschiedlich}'
+    ELSE N''
+    END AS 差异描述
+  , S.SOPLIN_0 销售订单行
+  , ISNULL(S.ITMREF_0, P.ITMREF_0) AS 产品编码
+  , ISNULL(L1.ITMDES, ITM.ITMDES1_0) AS 产品描述1
+  , ISNULL(L2.ITMDES, ITM.ITMDES2_0) AS 产品描述2
+  , CAST(S.QTYSTU_0 AS REAL) 销售数量
+  , CAST(P.QTYSTU_0 AS REAL) 采购数量
+  , CONVERT(DATE, S.EXTDAT_0) 销售交期
+  , CONVERT(DATE, S.EXTRCPDAT_0) 转采购交期
+  , CONVERT(DATE, P.EXTDAT_0) 采购交期
+  , S.SOQCLOSE 销售关闭
+  , P.POQCLOSE 采购关闭
+  , Q.POHNUM_0 采购订单
+  , Q.POPLIN_0 采购行
+  , CASE 
+    WHEN S.SOHNUM_0 IS NULL
+      THEN 'D07'
+    WHEN P.SOHNUM_0 IS NULL
+      THEN 'D05'
+    WHEN ISNULL(S.QTYSTU_0, 0) &lt;&gt; ISNULL(P.QTYSTU_0, 0)
+      THEN 'D03'
+    WHEN ISNULL(CONVERT(DATE, S.EXTRCPDAT_0), '1900-01-01') &lt;&gt; ISNULL(CONVERT(DATE, P.EXTDAT_0), 
+        '1900-01-01')
+      THEN 'D02'
+    WHEN ISNULL(S.SOQCLOSE, 0) &lt;&gt; ISNULL(P.POQCLOSE, 0)
+      THEN 'D06'
+    ELSE ''
+    END AS LINKAPPRROW
+FROM SOHData S
+FULL JOIN POHData P
+  ON S.SOHNUM_0 = P.SOHNUM_0
+    AND S.SOPLIN_0 = P.SOPLIN_0
+    AND S.SOQSEQ_0 = P.SOQSEQ_0
+    AND S.ITMREF_0 = P.ITMREF_0
+INNER JOIN ITMMASTER ITM
+  ON ISNULL(S.ITMREF_0, P.ITMREF_0) = ITM.ITMREF_0
+LEFT JOIN ITMLAN1 L1
+  ON L1.ITMREF = ITM.ITMREF_0
+    AND L1.LANX3 = @LANX3
+LEFT JOIN ITMLAN2 L2
+  ON L2.ITMREF = ITM.ITMREF_0
+    AND L2.LANX3 = @LANX3
+LEFT JOIN PORDERQ Q
+  ON ISNULL(S.SOHNUM_0, P.SOHNUM_0) = Q.XREFSOH_0
+    AND ISNULL(S.SOPLIN_0, P.SOPLIN_0) = Q.XREFSLIN_0
+    AND ISNULL(S.SOQSEQ_0, P.SOQSEQ_0) = Q.XREFSSEQ_0
+    AND ISNULL(S.ITMREF_0, P.ITMREF_0) = Q.ITMREF_0
+-- WHERE P.SOHNUM_0 IS NULL
+--   OR S.SOHNUM_0 IS NULL
+--   OR S.ITMREF_0 &lt;&gt; P.ITMREF_0
+--   OR ISNULL(S.QTYSTU_0, 0) &lt;&gt; ISNULL(P.QTYSTU_0, 0)
+--   OR ISNULL(CONVERT(DATE, S.EXTRCPDAT_0), '1900-01-01') &lt;&gt; ISNULL(CONVERT(DATE, P.EXTDAT_0), '1900-01-01')
+ORDER BY ISNULL(S.SOPLIN_0, P.SOPLIN_0);</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>销售订单</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#69</ImageFile>
+  <ListPrint />
+  <MD5HASH>6088e62ad6654b9ee678466ca40170d8</MD5HASH>
+  <ModelSetting>{
+    "DoubleClickDataMine": [
+        {
+            "采购订单": 10
+        }
+    ]
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Verkaufsauftrag</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Sales Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>销售订单</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Änderungsdetails</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Change Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购订单</COLNAME>
+      <CAPTION>Einkaufsauftrag</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购订单</COLNAME>
+      <CAPTION>Purchase Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购订单</COLNAME>
+      <CAPTION>采购订单</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购关闭</COLNAME>
+      <CAPTION>Einkauf geschlossen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购关闭</COLNAME>
+      <CAPTION>Purchase Closing</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购交期</COLNAME>
+      <CAPTION>Beschaffungsliefertermin</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购交期</COLNAME>
+      <CAPTION>Purchase Receipt Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购交期</COLNAME>
+      <CAPTION>采购交期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购数量</COLNAME>
+      <CAPTION>Beschaffungsmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购数量</COLNAME>
+      <CAPTION>Purchase Qty</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购数量</COLNAME>
+      <CAPTION>采购数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购行</COLNAME>
+      <CAPTION>Einkaufsposition</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购行</COLNAME>
+      <CAPTION>Purchase Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>采购行</COLNAME>
+      <CAPTION>采购行</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>差异描述</COLNAME>
+      <CAPTION>Abweichungsbeschreibung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>差异描述</COLNAME>
+      <CAPTION>Variance</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>差异描述</COLNAME>
+      <CAPTION>差异描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Produktbeschreibung 1</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Product Name1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>产品描述1</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Produktbeschreibung 2</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Product Description 2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>产品描述2</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Produktname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Product Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>产品名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>订单行</COLNAME>
+      <CAPTION>Auftragsposition</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>订单行</COLNAME>
+      <CAPTION>Order Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>订单行</COLNAME>
+      <CAPTION>订单行</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售订单行</COLNAME>
+      <CAPTION>Verkaufsauftragszeile</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售订单行</COLNAME>
+      <CAPTION>Sales Order Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售关闭</COLNAME>
+      <CAPTION>Verkauf geschlossen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售关闭</COLNAME>
+      <CAPTION>Sales Closing</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售交期</COLNAME>
+      <CAPTION>Verkaufsliefertermin</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售交期</COLNAME>
+      <CAPTION>Sales Delivery Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售交期</COLNAME>
+      <CAPTION>销售交期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售数量</COLNAME>
+      <CAPTION>Verkaufsmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售数量</COLNAME>
+      <CAPTION>Sales Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>销售数量</COLNAME>
+      <CAPTION>销售数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>预计交货日期</COLNAME>
+      <CAPTION>Voraussichtliches Lieferdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>预计交货日期</COLNAME>
+      <CAPTION>Estimated Delivery Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>预计交货日期</COLNAME>
+      <CAPTION>预计交货日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>转采购交期</COLNAME>
+      <CAPTION>Zu Einkaufsliefertermin</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>转采购交期</COLNAME>
+      <CAPTION>Transfer Purchase Delivery Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

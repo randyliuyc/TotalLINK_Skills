@@ -1,0 +1,338 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA2510</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>Inspection Histoy</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKNOGROUP
+DECLARE @STRDAT DATE='{0}';
+DECLARE @ENDDAT DATE='{1}';
+DECLARE @DOCNUM VARCHAR(30)='%{2}%';
+DECLARE @DEPT VARCHAR(30)='%{3}%';
+DECLARE @PCPSTA VARCHAR(30)='%{4}%';
+DECLARE @GRADE VARCHAR(30)='%{5}%';
+
+SELECT 
+       D.OPEDES1
+      ,D.OPEDES2
+      ,VL.SPOOL+VL.COIL+VL.SAMP  PJT
+      ,CAST(VL.N1 AS DECIMAL(18, 3))       N1
+      ,CAST(VL.N2 AS DECIMAL(18, 3))       N2
+      ,CAST(VL.N3 AS DECIMAL(18, 3))       N3
+      ,CAST(VL.N4 AS DECIMAL(18, 3))       N4
+      ,CAST(VL.N5 AS DECIMAL(18, 3))       N5
+      ,CAST(VL.N6 AS DECIMAL(18, 3))       N6
+      ,CAST(VL.N7 AS DECIMAL(18, 3))       N7
+      ,CAST(VL.N8 AS DECIMAL(18, 3))       N8
+      ,CAST(VL.VALMIN AS DECIMAL(18, 3))   VALMIN
+      ,CAST(VL.VALAVG AS DECIMAL(18, 3))   VALAVG
+      ,CAST(VL.VALMAX AS DECIMAL(18, 3))   VALMAX
+      ,CASE
+          WHEN L.L1CHECK = 1
+               AND VL.L1 = 1 THEN '√'
+          WHEN L.L1CHECK = 1
+               AND VL.L1 = 0
+               AND VL.STA IS NOT NULL THEN '×'
+          ELSE ''
+        END                                L1
+      ,CASE
+          WHEN L.L2CHECK = 1
+               AND VL.L2 = 1 THEN '√'
+          WHEN L.L2CHECK = 1
+               AND VL.L2 = 0 THEN '×'
+          ELSE ''
+        END                                L2
+      ,VL.REMARK
+      ,NCTYP.OPTDES                        NCTYP
+      ,L.OPENUM
+      ,D.OPESTD
+      ,VL.DOCNUM
+      ,QH.CLOSTA
+      ,VL.CREUSR
+      ,CONVERT(VARCHAR(16), VL.CRETIM, 21) CRETIM
+      ,VL.UPDUSR
+      ,CONVERT(VARCHAR(16), VL.UPDTIM, 21) UPDTIM
+FROM   QAINSPVAL VL
+       INNER JOIN QAINSPL L
+               ON VL.DOCNUM = L.DOCNUM
+                  AND VL.OPENUM = L.OPENUM
+       INNER JOIN QAINSPREQ H
+               ON VL.DOCNUM = H.DOCNUM
+	   INNER JOIN QAINSPH QH
+               ON VL.DOCNUM = QH.DOCNUM
+       INNER JOIN QAOPESTD D
+               ON D.OPESTD = L.OPESTD
+       LEFT JOIN QAOPT NCTYP
+              ON NCTYP .OPTTYP = 'NCTYP'
+                 AND NCTYP.OPTID = VL.NCTYP
+WHERE  CONVERT(VARCHAR(16),H.CRETIM,23) BETWEEN @STRDAT AND @ENDDAT
+       AND H.DOCNUM LIKE @DOCNUM
+       AND H.DEPT LIKE @DEPT
+       AND H.PCPSTA LIKE @PCPSTA
+       AND H.GRADE LIKE @GRADE
+ORDER  BY CONVERT(VARCHAR(16),H.CRETIM,23) DESC
+          ,H.DOCNUM DESC
+          ,L.OPENUM
+	  ,VL.VALLIN
+          ,VL.TRXLIN</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>STRDAT</ParaLabel01>
+  <ParaType01>DATEVAL</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>ENDDAT</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>DOCNUM</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>DEPT</ParaLabel04>
+  <ParaType04>DROPDOWN</ParaType04>
+  <ParaSearchCode04>ERAQADEPT#10</ParaSearchCode04>
+  <ParaDefVal04 />
+  <ParaLabel05>PCPSTA</ParaLabel05>
+  <ParaType05>DROPDOWN</ParaType05>
+  <ParaSearchCode05>ERAQAPCPSTA#10</ParaSearchCode05>
+  <ParaDefVal05 />
+  <ParaLabel06>GRADE</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#98</ImageFile>
+  <ListPrint />
+  <MD5HASH>e2c59b6e9524bbffe136edd01f66eeb6</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CLOSTA</COLNAME>
+      <CAPTION>Complete</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Docnum</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Inspection Histoy</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>NCTYP</COLNAME>
+      <CAPTION>NC Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>Operating-ENG</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>Operating-CHI</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>Sequence</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>Standard operation</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>PJT</COLNAME>
+      <CAPTION>Project</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Remark</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALAVG</COLNAME>
+      <CAPTION>Average</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>Max</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2510</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>Max</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

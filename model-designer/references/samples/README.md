@@ -1,7 +1,10 @@
 # 样例模型清单与编号约定
 
-> 样例来源：用户从生产环境导出（fDataModel 导出按钮，格式与 `tlk model export` 一致），QA（质量管理）模块。
+> 样例来源：用户从生产环境导出（fDataModel 导出按钮，格式与 `tlk model export` 一致）。
+> 2026-10-29 首批 21 个：QA（质量管理）模块运行器模型。
+> 2026-11-04 扩充 22 个：APP（KEEWAYZUPPDA）、FB（TMESPUR）与运行器增量（ERAQA/KEEWAYZUPSCH），见文末清单。
 > **样例盘点发现（2026-10-29）：全部使用旧 `~` 分隔符，0 处 `~<!>~`；产出时必须用新分隔符。**
+> 全量语料（640 个 XML）在 `../samples-corpus/`，索引见 `../samples-index.md`。
 
 ## 文件清单与覆盖的教学点
 
@@ -74,3 +77,28 @@ SET @ATTDMCODE = CONCAT(@DMCODE, @DMNUM, 'X');   -- 附加模型代码 = 主模�
 ## DMUsage 书写约定（样例确立）
 
 见 `fields.md` DMUsage 小节。样例中 `SCRIPT`：0=查询、3=删除、4=动作/更新；文本含 `params: [...]` 与 `rowData: {...}` 两种说明段。
+
+## 2026-11-04 扩充样例（22 个）
+
+| 教学点 | 样例文件 |
+|--------|---------|
+| APP 卡片列表标杆（H5List/H5Edit/H5Para + 全套 JS 钩子，见 `../js-hooks.md`） | `KEEWAYZUP10#10-订单收货.xml` |
+| APP 表格模式（H5GRIDHDR+H5GRIDDTL 成对 + 行内编辑注释三件套 + ModelSetting.EditCols） | `KEEWAYZUP10#5-整单收货.xml`、`KEEWAYZUP20#10-存货变动.xml` |
+| APP 扫码解析（定界分支 + `SELECT … 数据检查 RETURN` 报错范式） | `KEEWAYZUP107X#1522-扫描解析.xml` |
+| APP 参数区满配（10 槽全用 + 必填默认值） | `KEEWAYZUP5010X#501-扫码检验.xml` |
+| APP 提交动作双承载（SQLClear `--LINKREFRESH` + `#LINKID_ACTION#` + CallFunction X3WEB） | `KEEWAYZUP1010X#21-提交.xml` |
+| APP 主从子表（`--LINKDETAILLIST` 挂载 + pid/id 关联 + 行级删除 + AllDataTreatTitle） | `KEEWAYZUP1010X#700-APP收货明细.xml` |
+| APP 图片展示（base64 + linkMediaImages + 缩放 JS） | `KEEWAYZUP2010X#703-图片展示.xml` |
+| FB 列表数据源主模型（UseParameter + `{N}` 占位 + 权限过滤，H5 全空） | `TMESPUR01#9-采购申请.xml` |
+| FB 详情卡片（按钮标志位列 + btnid + contextTap） | `TMESPUR01#10-采购申请详情.xml` |
+| FB 明细 MERGE upsert 行编辑回写 | `TMESPUR01#20-采购申请明细.xml` |
+| FB 参数投影最小模型（#110）/ 复杂 CTE 查询（#120） | `TMESPUR01#110-采购申请明细查询参数.xml`、`TMESPUR01#120-申请明细查询.xml` |
+| FB 500 表单定义（formSetting：formtemplate/`"#FORMDATA#"`/tableData 保留名） | `TMESPUR0110X#500-表单设置.xml` |
+| FB 菜单/列表注册（ConnString=LINKMENUITEM 独立链路，paraCustom 查询区控件） | `TMESPUR029X#500-List.xml` |
+| 运行器卡片 SQL 契约列（TITLE/CARDSIZE/状态色/SORT_ORDER） | `ERAQATSK10X#700-检验任务信息-卡片.xml` |
+| 运行器动态列表头（COLNAME+CAPTION） | `ERAQATSK10X#721-数字控制列标题.xml` |
+| 运行器查询行为控制（`--LINKNOGROUP`/`--LINKNOFILTER`） | `ERAQATSK10X#713-检测结果汇总-数字控制.xml` |
+| 运行器 .A 子家族 + `#LINKSERVER#` 文件超链接列 | `ERAQA205010X.A#10-Tracking Information.xml` |
+| 运行器打印/导出（`#LINKSCRIPTGET` + SQLClear EXEC + CALLFUNCTION~FILEEXPORT） | `ERAQA401010X#501-客户报告-英文.xml` |
+| 运行器 ERP 回写（X3WEB + 三语 LINKPREVENT/LINKCONFIRM） | `KEEWAYZUPSCH2010X#501-转采购订单.xml` |
+| 运行器自动单号（`#LINKDOCNUM(,{0})#`） | `KEEWAYZUPSCH1010X#21-新计划单.xml` |

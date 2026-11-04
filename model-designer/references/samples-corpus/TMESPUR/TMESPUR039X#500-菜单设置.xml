@@ -1,0 +1,321 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR039X</ModelCode>
+  <ModelNum>500</ModelNum>
+  <ModelDesc>菜单设置</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>{
+    "title":"#MENUTITLE#",
+    "path":"/#PARENTNO#/#DMCODE##DMNUM#",
+    "code":"#DMCODE#",
+    "num":"#DMNUM#",
+    "icon":"#MENUICON#",
+    "column":[
+        {
+            "text":"lang:{zh:采购单号,en:Purchase Order Number,fra:Numéro de ticket d'achat,vie:Số đơn hàng,id:Nomor Perintah Pembelian}",
+            "value":"DOCNUM",
+            "width":135,
+            "fix":true
+        },
+        {
+            "text":"lang:{zh:创建人,vie:người sáng lập}",
+            "value":"CREUSR",
+            "width":"200px",
+            "fix":true
+        },
+        {
+            "text":"lang:{zh:合同号,vie:Hợp đồng số}",
+            "value":"CONTNOE",
+            "width":120
+        },
+        {
+            "text":"lang:{zh:百隆合同号,vie:Số hợp đồng blum}",
+            "value":"CONTNOI",
+            "width":120
+        },
+        {
+            "text":"lang:{zh:信用证号,vie:Số L/C}",
+            "value":"LCNO",
+            "width":120
+        },
+        {
+            "text":"lang:{zh:订单日期,vie:Ngày lập tài liệu}",
+            "value":"DOCDAT",
+            "width":110
+        },
+        {
+            "text":"lang:{zh:供应商编码,vie:Mã nhà cung cấp}",
+            "value":"BPSNO",
+            "width":100
+        },
+        {
+            "text":"lang:{zh:供应商名称,vie:Tên đệm}",
+            "value":"BPSNAM",
+            "width":200
+        },
+        {
+            "text":"lang:{zh:单据状态,vie:Tình trạng tài liệu}",
+            "value":"DOCSTA",
+            "width":100
+        },
+        {
+            "text":"lang:{zh:订单分组,vie:Nhóm đơn hàng}",
+            "value":"DOCGRP",
+            "width":125
+        },
+        {
+            "text":"lang:{zh:币种,vie:Tiền tệ}",
+            "value":"CUR",
+            "width":100
+        },
+        {
+            "text":"lang:{zh:汇率,vie:tỷ giá}",
+            "value":"CURRAT",
+            "width":100
+        },
+        {
+            "text":"lang:{zh:采购员,vie:người mua}",
+            "value":"RESNO",
+            "width":120
+        },
+        {
+            "text":"lang:{zh:项目编号,vie:Số mặt hàng}",
+            "value":"PRJNUM",
+            "width":150
+        },
+        {
+            "text":"lang:{zh:单据描述,vie:Mô tả tài liệu}",
+            "value":"DOCDES",
+            "width":200
+        },
+        {
+            "text":"lang:{zh:备注,vie:Nhận xét}",
+            "value":"REMARK",
+            "width":150
+        },
+
+        {
+            "text":"lang:{zh:修改人,vie:bổ nghĩa}",
+            "value":"UPDUSR",
+            "width":"200px"
+        },
+        {
+            "text":"lang:{zh:创建时间,vie:thời gian sáng tạo}",
+            "value":"CRETIM",
+            "width":"150px"
+        },
+        {
+            "text":"lang:{zh:修改时间,vie:Thay đổi thời gian}",
+            "value":"UPDTIM",
+            "width":"150px"
+        }
+    ],
+    "href":"DOCNUM",
+    "addBtn":false,
+    "hidden":false,
+    "redirect":"",
+    "para":"{sousuo,开始日期,结束日期,单据状态,采购员}",
+    "attach":"",
+    "paraData":{
+        "sousuo":"",
+        "开始日期":"#LINKDATE(0,-6,0,yyyy-MM-dd)#",
+        "结束日期":"#LINKDATE(0,0,0,yyyy-MM-dd)#",
+        "单据状态":"",
+        "采购员":"",
+         "X":""
+    },
+    "paraCustom":[
+        {
+            "data":[
+
+            ],
+            "type":"date",
+            "width":"10%",
+            "tip":"lang:{zh:开始日期,vie:ngày bắt đầu}",
+            "value":"开始日期"
+        },
+        {
+            "data":[
+
+            ],
+            "type":"date",
+            "width":"10%",
+            "tip":"lang:{zh:结束日期,vie:ngày cuối}",
+            "value":"结束日期"
+        },
+        {
+            "data":[
+
+            ],
+            "width":"10%",
+            "type":"select-search",
+            "dataText":"OPTDES",
+            "code":"TMESPUR069X",
+            "num":"700",
+            "reload":true,
+            "para":"DOCSTA",
+            "tip":"lang:{zh:单据状态,vie:Tình trạng tài liệu}",
+            "dataValue":"OPTID",
+            "value":"单据状态"
+        },
+        {
+          "type": "select-search",
+          "role": true,
+		  "width":"10%",
+          "align": "left",
+          "data": [],
+          "value": "采购员",
+          "justText": false,
+          "code": "TMESPUR0210X",
+          "num": "700",
+          "reload": true,
+          "loading": false,
+          "tip":"lang:{zh:采购员,vie:Nhân viên mua hàng}",
+          "dataValue": "LoginUser",
+          "dataText": "Name"
+        },
+        {
+            "data":[
+
+            ],
+            "width":"25%",
+            "tip":"lang:{zh:可通过采购订单号、单据描述、项目编号、合同号等字段进行搜索,en:Can be searched by purchase order number, document description, and project number,vie:Có thể tìm kiếm theo số đơn đặt hàng, mô tả tài liệu, số mặt hàng}",
+            "type":"input",
+            "value":"sousuo"
+        },
+        {
+            "width":"100px",
+            "height":"40px",
+            "type":"button",
+            "btnType":"search",
+            "color":"default",
+            "text":"lang:{zh:搜索,vie:tìm kiếm}",
+            "icon":"search"
+        },
+        {
+            "width":"100px",
+            "height":"40px",
+            "type":"button",
+            "btnType":"open",
+            "color":"primary",
+            "text":"lang:{zh:添加,vie:Thêm vào}",
+            "icon":"edit",
+            "code":"TMESPUR03",
+            "num":"10",
+            "para":"{X}"
+        },
+        {
+            "width":"auto",
+            "height":"40px",
+            "type":"button",
+            "btnType":"open",
+            "para":"{X}",
+            "code":"TMESPUR03",
+            "num":"110",
+            "text":"lang:{zh:明细查询,en:Details Query,vie:Thông tin chi tiết}",
+            "color":"success",
+            "padding":"7px 16px"
+        }
+    ]
+}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINKMENUITEM</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#44</ImageFile>
+  <ListPrint />
+  <MD5HASH>da678cd39be5d8da5be4c0ccd6cfdf11</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR039X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Menu settings</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR039X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Cài đặt thực đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR039X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Thiết lập trình đơn</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

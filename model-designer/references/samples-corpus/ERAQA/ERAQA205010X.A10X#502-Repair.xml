@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA205010X.A10X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>Repair</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>INSTCOD</ParaLabel01>
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>占位1</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>DUDAT</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03>?</ParaDefVal03>
+  <ParaLabel04>TRXDAT</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04>?</ParaDefVal04>
+  <ParaLabel05>TRXUSR</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05>?</ParaDefVal05>
+  <ParaLabel06>TRXDES</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06>?</ParaDefVal06>
+  <ParaLabel07>RPTREF</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07>?</ParaDefVal07>
+  <ParaLabel08>COST</ParaLabel08>
+  <ParaType08>DEC</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08>?</ParaDefVal08>
+  <ParaLabel09>REMARK</ParaLabel09>
+  <ParaType09>STR</ParaType09>
+  <ParaSearchCode09 />
+  <ParaDefVal09>?</ParaDefVal09>
+  <ParaLabel10>INSTSTA</ParaLabel10>
+  <ParaType10>DROPDOWN</ParaType10>
+  <ParaSearchCode10>ERAQAINTSTA#10</ParaSearchCode10>
+  <ParaDefVal10>?</ParaDefVal10>
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @ROUTYP VARCHAR(30) = 'INR'
+DECLARE @ITMNO VARCHAR(30) = '{0}'
+DECLARE @DATE VARCHAR(30) = '#LINKDATE(0,0,0,yyyyMMdd)#'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+DECLARE @DUDAT DATE = '{2}'
+DECLARE @TRXDAT DATE = '{3}'
+DECLARE @TRXUSR VARCHAR(30)='{4}'
+DECLARE @TRXDES VARCHAR(100)=N'{5}'
+DECLARE @RPTREF VARCHAR(100)=N'{6}'
+DECLARE @COST DECIMAL(18,6)=0{7}
+DECLARE @REMARK VARCHAR(100)=N'{8}'
+DECLARE @INSTSTA VARCHAR(30)=IIF('{9}'='','Invalid','{9}')
+DECLARE @CLBPRD INT;
+
+SELECT @CLBPRD = CLBPRD
+FROM   QAINSTLST
+WHERE  INSTCOD = @ITMNO;
+
+INSERT INTO [QAINSTTRX]
+           ([DOCNUM]
+           ,[INSTCOD]
+           ,[TRXTYP]
+           ,[TRXDAT]
+	   ,[TRXUSR]
+           ,[TRXDES]
+           ,[RPTREF]
+           ,[COST]
+           ,[INSTSTA]
+           ,[REMARK]
+           ,[CREUSR]
+           ,[CRETIM])
+     VALUES
+           (
+	   CONCAT_WS('-',@ROUTYP,@ITMNO,@DATE) --&lt;DOCNUM, varchar(30),&gt;
+           ,@ITMNO--&lt;INSTCOD, varchar(30),&gt;
+           ,@ROUTYP--&lt;TRXTYP, varchar(30),&gt;
+           ,@TRXDAT--&lt;TRXDAT, date,&gt;
+	   ,@TRXUSR--&lt;TRXUSR, varchar(30),&gt;
+           ,@TRXDES--&lt;TRXDES, nvarchar(100),&gt;
+           ,@RPTREF--&lt;RPTREF, nvarchar(100),&gt;
+           ,@COST--&lt;COST, decimal(18,6),&gt;
+           ,@INSTSTA--&lt;INSTSTA, varchar(30),&gt;
+           ,@REMARK--&lt;REMARK, nvarchar(100),&gt;
+           ,@USER--&lt;CREUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+		   );
+UPDATE QAINSTLST
+SET    CLBCTLFROM = DATEADD(MONTH, -@CLBPRD, @DUDAT),
+       CLBCTLTO = @DUDAT,
+       INSTSTA = @INSTSTA
+WHERE  INSTCOD = @ITMNO;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#94</ImageFile>
+  <ListPrint />
+  <MD5HASH>c510bfc8cff21841faf580b4db08f6bf</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Due Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>By</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION>Reference</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA08</COLNAME>
+      <CAPTION>Cost</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA09</COLNAME>
+      <CAPTION>Comments</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA10</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A10X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Repair</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0120X</ModelCode>
+  <ModelNum>703</ModelNum>
+  <ModelDesc>定制纸箱选择</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT TOP 500 SRC.ITMNAM                                             SRCITMNAM
+               ,SRC.LOT                                               PRQLOT
+               ,SRC.ITMBPC                                            PRQITMBPC
+               ,SRC.ITMQTYZ                                           ITMQTYZ
+               ,SRC.ITMQTYG                                           ITMQTYG
+               ,ITM1.TSICOD1
+               ,CASE
+                  WHEN ITM1.TSICOD1 = 'PS' THEN SRC.ITMQTYZ + 'S'
+                  ELSE SRC.ITMQTYZ + 'S/' + SRC.ITMQTYG
+                END                                                   PRQYCOUNT
+               ,SRC.QTY                                               SRCQTY--订单磅数
+               ,SRC.BPCORD                                            SRCBPCORD--客户编码	
+               ,SRC.YSOHNUM                                           SRCYSOHNUM--客户订单
+               ,SRC.YMFMEMO                                           LREMARK--生产备注	
+               ,SRC.DOCNUM                                            SRCDOC--调度单号	
+               ,'{0}'                                                 ITMNO--纸箱编码
+               ,SRC.ITMNAM + ';' + SRC.LOT                            ITMVER
+               ,ITM.PUU                                               UOM
+               ,ITM.PUUCOE                                            UOMCOE
+               ,ITM.STU
+               ,ITM.ITMNAM
+               ,ITM.ITMNAM1
+               ,ITM.ITMSIZE
+               ,ITM.ITMSPEC
+               ,T1.OPTDES                                             TSICOD1
+               ,T2.OPTDES                                             TSICOD2
+               ,Iif(ITM.PCUCOE = 0, 0, Ceiling(SRC.QTY / ITM.PCUCOE)) QTY --向上取整
+               ,(SELECT Sum(QTY)
+                 FROM   PREQUL
+                 WHERE  SRCDOC = SRC.DOCNUM
+                 GROUP  BY SRCDOC)                                    YSQQTY
+               ,Dateadd(day, 3, Getdate())                            REQDAT
+FROM   MFGSRC SRC
+       LEFT JOIN ITM
+              ON ITM.ITMNO = '{0}'
+       LEFT JOIN ITM ITM1
+              ON ITM1.ITMNO = SRC.ITMNO
+       LEFT JOIN LINKOPT T1
+              ON T1.OPTTYP = 'TSICOD1'
+                 AND T1.OPTID = ITM.TSICOD1
+       LEFT JOIN LINKOPT T2
+              ON T2.OPTTYP = 'TSICOD2'
+                 AND T2.OPTID = ITM.TSICOD2
+WHERE  SRC.DOCGRP = 'SCH'
+       AND (SRC.DEPT = '{1}' OR SRC.CONDEPT = '{1}')
+       AND SRC.ITMVER LIKE '%{2}%'
+       AND SRC.LOT LIKE '%{3}%'
+       AND SRC.BPCORD + SRC.YSOHNUM + SRC.DOCNUM LIKE '%{4}%'
+ORDER  BY SRC.CRETIM DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#84</ImageFile>
+  <ListPrint />
+  <MD5HASH>cf890cd15b7d6ab6d99874cf191db2df</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

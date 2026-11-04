@@ -1,0 +1,804 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQAROU10X</ModelCode>
+  <ModelNum>710</ModelNum>
+  <ModelDesc>工序行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKNOGROUP
+DECLARE @ROUCOD VARCHAR(30) = '{0}';
+SELECT S.[OPENUM]
+      ,S.[OPESTD]
+      ,S.[OPEGRP]
+      ,D.[OPEDES1]
+      ,D.[OPEDES2]
+      ,D.[INSTRUCTION]
+      ,S.[OPEUNT]
+      ,S.[CTLTYP] LINKDROPVALIDCTLTYP
+      ,S.[MEAFRQ] LINKDROPVALIDMEAFRQ
+      ,S.[INSTCAT] LINKDROPVALIDINSTCAT
+      ,S.[INSTCOD]
+      ,CAST(E.XESMMDWMM_0 AS DECIMAL(18,3)) XESMMDWMM
+      ,CAST(S.[VALNOR] AS DECIMAL(18,3)) VALNOR
+      ,CAST(S.[VALMIN] AS DECIMAL(18,3)) VALMIN
+      ,CAST(S.[VALMAX] AS DECIMAL(18,3)) VALMAX
+      ,S.[USERFLG]
+      ,S.[DATEFLG]
+      ,S.[INSTFLG]
+      ,S.[QTYOKFLG]
+      ,S.[QTYSCFLG]
+      ,S.[REASCFLG]
+      ,S.[CREUSR]
+      ,S.[UPDUSR]
+      ,CONVERT(VARCHAR(16),S.[CRETIM],21) CRETIM
+      ,CONVERT(VARCHAR(16),S.[UPDTIM],21) UPDTIM
+      ,S.ID LINKROWID
+  FROM [QAROULIN] S
+  LEFT JOIN #LC.X3DATA#ROUOPE E
+  ON S.ROUCOD=CONCAT_WS('-',ITMREF_0,ROUALT_0,OPENUM_0) COLLATE Chinese_PRC_CI_AI
+  LEFT JOIN QAOPESTD D
+  ON S.OPESTD=D.OPESTD
+  WHERE S.ROUCOD=@ROUCOD
+  ORDER BY S.[OPENUM]</SQLScript>
+  <SQLUpdateScript>--LINKSAVEONENTERKEY
+--LINKEDITMODE
+UPDATE QAROULIN SET
+  OPEGRP = N'#OPEGRP#'
+, OPEUNT = N'#OPEUNT#'
+, CTLTYP = N'#LINKDROPVALIDCTLTYP#'
+, MEAFRQ = N'#LINKDROPVALIDMEAFRQ#'
+, INSTCOD=N'#INSTCOD#'
+, INSTCAT=N'#LINKDROPVALIDINSTCAT#'
+, VALNOR=N'#VALNOR#'
+, VALMIN=0#VALMIN#
+, VALMAX=0#VALMAX#
+, USERFLG=IIF('#USERFLG#'='true',1,0)
+, DATEFLG=IIF('#DATEFLG#'='true',1,0)
+, INSTFLG=IIF('#INSTFLG#'='true',1,0)
+, QTYOKFLG=IIF('#QTYOKFLG#'='true',1,0)
+, QTYSCFLG=IIF('#QTYSCFLG#'='true',1,0)
+, REASCFLG=IIF('#REASCFLG#'='true',1,0)
+, UPDUSR = N'#LOGIN_USER#'
+, UPDTIM = GETDATE()
+WHERE ID=0#LINKROWID#</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>ROUCOD</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKDATAMINE~10</SQLNew>
+  <SQLRemove>DELETE FROM QAROULIN WHERE ID=0#LINKROWID#</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#97</ImageFile>
+  <ListPrint />
+  <MD5HASH>da8835f74fe5470154f58e035267a87a</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+        "OPEGRP",
+	"OPEUNT",
+        "LINKDROPVALIDMEAFRQ",
+	"LINKDROPVALIDCTLTYP",
+	"INSTCOD",
+        "LINKDROPVALIDINSTCAT",
+	"VALNOR",
+	"VALMIN",
+	"VALMAX",
+	"USERFLG",
+         "DATEFLG",
+         "INSTFLG",
+         "QTYOKFLG",
+         "QTYSCFLG",
+         "REASCFLG"
+      ],
+      "EditValueList": {
+        "LINKDROPVALIDCTLTYP": "ERAQACTLTYP#10",
+        "LINKDROPVALIDMEAFRQ": "ERAQAMEAFRQ#10",
+        "LINKDROPVALIDINSTCAT":"ERAQA2010#10",
+        "INSTCOD":"ERAQA202010X#700"
+      }
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>DATEFLG</COLNAME>
+      <CAPTION>Inspection date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>DATEFLG</COLNAME>
+      <CAPTION>质检日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION>Instrument Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION>工具分类</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>Instrument Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>工具编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTFLG</COLNAME>
+      <CAPTION>instrument</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTFLG</COLNAME>
+      <CAPTION>质检工具</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>Instruction</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>指导说明</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKDROPVALIDCTLTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKDROPVALIDCTLTYP</COLNAME>
+      <CAPTION>控制类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKDROPVALIDINSTCAT</COLNAME>
+      <CAPTION>Instrument Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKDROPVALIDINSTCAT</COLNAME>
+      <CAPTION>工具分类</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKDROPVALIDMEAFRQ</COLNAME>
+      <CAPTION>Measurement frequency</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKDROPVALIDMEAFRQ</COLNAME>
+      <CAPTION>检验频率</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Routing Lines</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>Description in English</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>英文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>Description in Chinese</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>中文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEGRP</COLNAME>
+      <CAPTION>Seq order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEGRP</COLNAME>
+      <CAPTION>工序分组</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>Sequence</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>顺序号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>Standard Operation</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>标准工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>QTYOKFLG</COLNAME>
+      <CAPTION>Total weight good</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>QTYOKFLG</COLNAME>
+      <CAPTION>合格数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>QTYSCFLG</COLNAME>
+      <CAPTION>Scrap quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>QTYSCFLG</COLNAME>
+      <CAPTION>报废数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>REASCFLG</COLNAME>
+      <CAPTION>Scrap reason</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>REASCFLG</COLNAME>
+      <CAPTION>报废原因</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>修改时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>修改用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>USERFLG</COLNAME>
+      <CAPTION>Inspection User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>USERFLG</COLNAME>
+      <CAPTION>质检用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>Max Value</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>最大值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>Mini Value</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>最小值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>VALNOR</COLNAME>
+      <CAPTION>Nominal value</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>VALNOR</COLNAME>
+      <CAPTION>公称值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>XESMMDWMM</COLNAME>
+      <CAPTION>尺寸</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>XESMMDWMM</COLNAME>
+      <CAPTION>尺寸</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

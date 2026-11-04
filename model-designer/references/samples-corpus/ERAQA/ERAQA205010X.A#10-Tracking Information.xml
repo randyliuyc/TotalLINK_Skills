@@ -1,0 +1,322 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA205010X.A</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Tracking Information</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKREFRESH
+--LINKLOADDATAIMMEDIATE
+DECLARE @INSTCOD VARCHAR(30)='{0}';
+
+SELECT S.[DOCNUM]
+      ,T.OPTDES                             TRXTYP
+      ,CONVERT(VARCHAR(16), S.[TRXDAT], 23) TRXDAT
+      ,S.[TRXDES]
+      ,S.[RPTREF]
+    --  ,'#LINKSERVER#' AA
+      ,'&lt;a href="' + '#LINKSERVER#' + F.[FILURL] + '"&gt;'
+        + F.FILNAM + '&lt;/a&gt;'                 LINKLABELFILENAME
+      ,S.[COST]
+      ,S.[INSTSTA]
+      ,S.[REMARK]
+      ,S.[CREUSR]
+      ,CONVERT(VARCHAR(16), S.[CRETIM], 21) CRETIM
+      ,S.[ID]                               LINKROWID
+      ,S.TRXTYP                             LINKROWIDTRXTYP
+FROM   [QAINSTTRX] S
+       INNER JOIN QAOPT T
+               ON T.OPTTYP = 'ROUTYP'
+                  AND T.OPTID = S.TRXTYP
+       LEFT JOIN (SELECT SRCDOC
+                        ,SRCTYP
+                        ,FILURL
+                        ,FILNAM
+                  FROM   (SELECT SRCDOC
+                                ,SRCTYP
+                                ,FILURL
+                                ,FILNAM
+                                ,Row_Number()
+                                    OVER (
+                                      partition BY SRCDOC, SRCTYP
+                                      ORDER BY CRETIM DESC) rank
+                          FROM   LINKDOCFIL) A
+                  WHERE  rank = 1) F
+              ON F.SRCDOC = S.DOCNUM
+                 AND F.SRCTYP = S.TRXTYP
+WHERE  S.INSTCOD = @INSTCOD
+ORDER  BY S.CRETIM DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>INSTCOD</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>INSTNAM</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM QAINSTTRX WHERE ID=0#LINKROWID#</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#92</ImageFile>
+  <ListPrint />
+  <MD5HASH>4bdbc444a21cf5e8dc895cddecb4bc7a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>COST</COLNAME>
+      <CAPTION>Cost</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Tracking No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCUMENT</COLNAME>
+      <CAPTION>Document</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTSTA</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKLABELFILENAME</COLNAME>
+      <CAPTION>Document</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Total Cost</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Tracking Information</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWIDTRXTYP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Comments</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTREF</COLNAME>
+      <CAPTION>Reference</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TRXDAT</COLNAME>
+      <CAPTION>Calibation Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TRXDES</COLNAME>
+      <CAPTION>Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA205010X.A</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TRXTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

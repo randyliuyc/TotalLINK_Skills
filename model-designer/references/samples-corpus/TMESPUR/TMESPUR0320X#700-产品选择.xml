@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0320X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>产品选择</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT TOP 500 S.ITMNO + '-' + Isnull(ITMVER.ITMVER, '') ITMKey
+               ,S.ITMNO
+               ,T1.OPTDES                                OPTDES1
+               ,T2.OPTDES                                OPTDES2
+               ,S.ITMNAM --中文描述
+               ,S.ITMNAM1 --越南描述 
+               ,S.ITMNAM2 --英文描述
+               ,Isnull(ITMVER.ITMVER, '')                ITMVER --品名 
+               ,'#LINKDATE(0,0,0,yyyy-MM-dd)#'           REQDAT
+               ,S.ITMSHO
+               ,S.TCLCOD
+               ,S.TSICOD1
+               ,S.TSICOD2
+               ,S.TSICOD3
+               ,S.TSICOD4
+               ,S.TSICOD5
+               ,ITMSITE.SITE
+               ,S.SEAKEY
+               ,S.ITMSTA
+               ,S.STU --库存单位
+               ,S.PUU                                    UOM --采购单位
+               ,S.SAU
+               ,S.PUUCOE                                 UOMCOE --采购单位系数
+               ,S.SAUCOE
+               ,S.WEU
+               ,S.ITMWEI
+               ,S.PCU
+               ,S.PCUCOE
+               ,S.SIZEU
+               ,S.SIZELONG
+               ,S.SIZEWIDTH
+               ,S.SIZEHIGH
+               ,S.CBU
+               ,S.ITMCUB
+               ,S.IVATTYP
+               --,(SELECT TOP 1 TAXRT
+               --  FROM   VAT
+               --  WHERE  IVATTYP = S.IVATTYP
+               --         AND BVATTYP = '{1}')             TAXRT
+	       ,0{5}  TAXRT
+FROM   ITM S
+       LEFT JOIN LINKOPT T1
+              ON S.TSICOD1 = T1.OPTID
+                 AND T1.OPTTYP = 'TSICOD1'
+       LEFT JOIN LINKOPT T2
+              ON S.TSICOD2 = T2.OPTID
+                 AND T2.OPTTYP = 'TSICOD2'
+       LEFT JOIN ITMVER
+              ON ITMVER.ITMNO = S.ITMNO --品名
+       LEFT JOIN ITMSITE
+              ON S.ITMNO = ITMSITE.ITMNO --地点
+WHERE S.ITMSTA=1   
+  AND S.ITMNO LIKE '%{2}%'
+  AND ISNULL(ITMVER.ITMVER,'') LIKE '%{3}%'
+  AND S.ITMNAM + S.TSICOD1 + S.ITMNAM1 + S.ITMNAM2 LIKE '%{4}%'
+ORDER  BY S.ITMNO ASC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>表头地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>商业伙伴税务类型</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品编码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>品名</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>其他</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#68</ImageFile>
+  <ListPrint />
+  <MD5HASH>501723c75d0145f6e2dc426b05909aa4</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0320X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lựa chọn sản phẩm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0320X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lựa chọn sản phẩm</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

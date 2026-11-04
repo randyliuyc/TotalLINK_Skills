@@ -1,0 +1,311 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR01</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>采购申请明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--取合并后的多个填报车间集
+WITH CTE_DEPT
+     AS (SELECT ITMNO
+                ,PRQNUM
+                ,String_agg(DEPT, '/') AS PRADEPT
+         FROM   (SELECT DISTINCT L.PRQNUM
+                                 ,L.ITMNO
+                                 ,H.DEPT
+                 FROM   PREQAL L
+                        INNER JOIN PREQAH H
+                                ON L.DOCNUM = H.DOCNUM
+                 WHERE  Isnull(L.PRQNUM, '') = '{0}') DP
+         GROUP  BY ITMNO
+                   ,PRQNUM)
+
+SELECT S.DOCNUM + Cast(S.DOCLIN AS VARCHAR)                                                                  LINKROWID
+       ,S.DOCNUM
+       ,S.DOCNUM                                                                                             pid --用于APP明细表格显示关联，不可删除
+       ,S.DOCLIN
+       ,S.ITMNO
+       ,ITM.ITMNOORI
+       ,S.FAC
+       ,ITM.ITMNAM
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,S.ITMVER --产品版本
+       ,dbo.Optdes('TSICOD1', ITM.TSICOD1)                                                                   TSICOD1
+       ,dbo.Optdes('TSICOD2', ITM.TSICOD2)                                                                   TSICOD2
+       ,dbo.Optdes('TSICOD3', ITM.TSICOD3)                                                                   TSICOD3
+       ,dbo.Optdes('TSICOD4', ITM.TSICOD4)                                                                   TSICOD4
+       ,S.BPSNO
+       ,BPS.BPSNAM
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,CONVERT(VARCHAR, S.REQDAT, 23)                                                                       REQDAT
+       ,S.UOM --采购单位
+       ,Cast(S.UOMCOE AS REAL)                                                                               UOMCOE --采购单位系数
+       ,Cast(S.QTY AS REAL)                                                                                  QTY --采购单位数量
+       ,S.STU --库存单位
+       ,Cast(S.QTYSTU AS REAL)                                                                               QTYSTU --库存单位数量
+       ,S.PRQLOT
+       ,S.PRQITMBPC
+       ,S.PRQYCOUNT
+       ,S.REMARK                                                                                             LREMARK
+       ,S.CLOREA                                                                                             LCLOREA
+       ,S.SRCTYP
+       ,S.SRCDOC
+       ,S.SRCLIN
+       ,dbo.Optdes('DOCSTA', S.DOCSTA)                                                                       DOCSTA
+       ,T.PRADEPT
+       ,S.CREUSR
+       ,S.UPDUSR
+       ,CONVERT(VARCHAR(16), S.[CRETIM], 21)                                                                 CRETIM
+       ,Iif(CONVERT(VARCHAR(16), S.UPDTIM, 21) = '1900-01-01 00:00', '', CONVERT(VARCHAR(16), S.UPDTIM, 21)) UPDTIM
+       ,Iif(S.DOCSTA = '1', '', '1')                                                                         LDEBFLG
+       ,Iif(S.DOCSTA IN( '1', '2' ), '', '1')                                                                LCLBFLG
+       ,ITM.ITMVERFLG
+FROM   PREQUL S
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       INNER JOIN PREQUH H
+               ON S.DOCNUM = H.DOCNUM
+       LEFT JOIN BPSUP BPS
+              ON S.BPSNO = BPS.BPSNO
+       LEFT JOIN CTE_DEPT T
+              ON T.ITMNO = S.ITMNO
+WHERE  S.DOCNUM = '{0}'
+ORDER  BY S.DOCLIN</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	PREQUL
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO
+	[PREQUL] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'@ITMNO@' ITMNO
+,IIF(CHARINDEX(';', N'#ITMVER#') &gt; 0, 
+    REPLACE(N'#ITMVER#',
+      RIGHT(N'#ITMVER#', LEN(N'#ITMVER#') - CHARINDEX(';', N'#ITMVER#')), 
+      N'#PRQLOT#'), N'#ITMVER#') AS ITMVER  --用于特殊处理纸箱调度单批号
+,N'@REQDAT@' REQDAT
+,N'@UOM@' UOM
+,N'@BPSNO@' BPSNO
+,N'@UOMCOE@' UOMCOE
+,0@QTY@ QTY
+,N'@STU@' STU
+,N'@FAC@' FAC
+--,0@QTYSTU@ QTYSTU
+,0@QTY@*0@UOMCOE@ QTYSTU
+,N'@PRQLOT@'  PRQLOT
+,N'@PRQITMBPC@' PRQITMBPC
+,N'@PRQYCOUNT@' PRQYCOUNT
+,N'@LREMARK@' REMARK
+,N'@LCLOREA@' CLOREA
+,N'@SRCTYP@' SRCTYP
+
+--,N'@SRCDOC@' SRCDOC
+-- RANDY, 2025-10-03 临时增加 ITMVER 空白时，SRCDOC 保持空白
+,IIF(N'#ITMVER#'='', '', N'#SRCDOC#') SRCDOC
+
+,0@SRCLIN@ SRCLIN
+,N'1' DOCSTA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,REQDAT = S.REQDAT
+,UOM    = S.UOM
+,UOMCOE = S.UOMCOE
+,BPSNO = S.BPSNO
+,QTY    = S.QTY
+,STU    = S.STU
+,FAC    = S.FAC
+,QTYSTU = S.QTYSTU
+,REMARK = S.REMARK
+,PRQLOT = S.PRQLOT
+,PRQITMBPC = S.PRQITMBPC
+,PRQYCOUNT = S.PRQYCOUNT
+,CLOREA = S.CLOREA
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+DOCNUM
+,DOCLIN
+,ITMNO
+,ITMVER
+,REQDAT
+,UOM   
+,UOMCOE
+,BPSNO
+,QTY   
+,STU
+,FAC
+,QTYSTU
+,PRQLOT
+,PRQITMBPC
+,PRQYCOUNT
+,REMARK
+,CLOREA
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+, CREUSR
+, CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCLIN
+,S.ITMNO
+,S.ITMVER
+,S.REQDAT
+,S.UOM   
+,S.UOMCOE
+,S.BPSNO
+,S.QTY   
+,S.STU
+,S.FAC
+,S.QTYSTU
+,S.PRQLOT
+,S.PRQITMBPC
+,S.PRQYCOUNT
+,S.REMARK
+,S.CLOREA
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.DOCSTA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>采购请求单</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM [PREQUL]
+WHERE  DOCNUM + Cast(DOCLIN AS VARCHAR) = '#LINKROWID#'
+
+UPDATE PREQAL
+SET    PRQNUM = ''
+       ,PRQQTY = QTY
+       ,PRQQTYSTU = QTYSTU
+WHERE  PRQNUM = '#DOCNUM#'
+       AND ITMNO = '#ITMNO#'
+       AND ITMVER = '#ITMVER#';</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div style="font-size: 20px;"&gt;#DOCLIN#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNO#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNAM#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMVER#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSPEC#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSIZE#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#QTY#[#UOM#]&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#REQDAT#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#LREMARK#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#06</ImageFile>
+  <ListPrint />
+  <MD5HASH>46482a689805a7742d14fb89bdfa7782</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase request details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

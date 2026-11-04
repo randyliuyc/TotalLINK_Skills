@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP60</ModelCode>
+  <ModelNum>40</ModelNum>
+  <ModelDesc>ActiveReport TotalLINKMODELDATA</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.ITMREF_0  产品编码
+      ,LEFT(S.PKORI_0, NULLIF(PATINDEX('%[- ]%', S.PKORI_0), 0) - 1)  工单号
+      ,ISNULL(B.ITMDES, ITMDES1_0) 产成品描述
+      ,ITM.YMDDES_0 产品备注 
+      ,ITM.EANCOD_0 
+      ,LEFT(S.PKORI_0, NULLIF(PATINDEX('%[- ]%', S.PKORI_0), 0) - 1) 
+        + '-' + S.ITMREF_0 + '-' 
+        + REVERSE(LEFT(REVERSE(S.PKORI_0), NULLIF(PATINDEX('%[- ]%', REVERSE(S.PKORI_0)), 0) - 1)) 条形码
+FROM   XWSSDH S
+LEFT  JOIN ITMMASTER ITM
+    ON ITM.ITMREF_0 = S.ITMREF_0
+LEFT JOIN (SELECT B.IDENT1_0 ITMREF_0
+                , B.TEXTE_0 ITMDES 
+           FROM ATEXTRA B
+           WHERE B.CODFIC_0 = 'ITMMASTER'
+             AND B.LANGUE_0 = 'GER'
+             AND B.ZONE_0 = 'DES1AXX') B
+         ON B.ITMREF_0 = ITM.ITMREF_0
+WHERE  (S.PK_0 ='{0}' OR S.SERNUM_0 ='{0}') AND '{0}'&lt;&gt;''
+ORDER  BY S.CREDATIM_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>参数</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#77</ImageFile>
+  <ListPrint />
+  <MD5HASH>6795e8f9bdcdf7243813e5c7d8004a25</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

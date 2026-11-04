@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X700X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>检查创建ICC-Incoming检验任务</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>DECLARE @DOCNUM VARCHAR(30) = '{0}'
+DECLARE @ROUTYP VARCHAR(30) = '{1}'
+DECLARE @ITMNO VARCHAR(30) = '{5}'
+DECLARE @LOT VARCHAR(30) = '{2}'
+DECLARE @TV VARCHAR(30) = '{3}'
+DECLARE @VCRNUM VARCHAR(30) = '{4}'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+
+-- 获取工单相关信息
+IF @DOCNUM = ''
+BEGIN
+    -- 拼接产生完整的检验任务单号
+    SET @DOCNUM = CONCAT_WS('-',@VCRNUM, @LOT, @TV)
+
+    -- 拼接形成 ROUCOD
+    DECLARE @ROUCOD VARCHAR(30)
+
+    SET @ROUCOD = @ITMNO
+
+    -- CREATE INSPH
+    INSERT INTO QAINSPH (
+        DOCNUM
+        , DOCDAT
+        , ROUTYP
+        , MFGNUM
+        , ITMNO
+        , LOT
+        , TV
+        , ROUCOD
+        , CREUSR
+        , CRETIM
+        )
+    VALUES (
+        @DOCNUM
+        , GETDATE()
+        , 'ICC'
+        , @VCRNUM
+        , @ITMNO
+        , @LOT
+        , @TV
+        , @ROUCOD
+        , @USER --CREUSR
+        , GETDATE() --CRETIM
+        )
+
+    -- CREATE INSPL
+    INSERT INTO QAINSPL (
+        DOCNUM
+        , OPENUM
+        , OPESTD
+        , OPEGRP
+        , OPEUNT
+        , CTLTYP
+        , MEAFRQ
+        , NMIN
+        , NNOR
+        , NMAX
+        , TRXUSER
+        , TRXDAT
+        , CREUSR
+        , CRETIM
+        )
+    SELECT @DOCNUM
+        , L.OPENUM
+        , L.OPESTD
+        , L.OPEGRP
+        , L.OPEUNT
+        , L.CTLTYP
+        , L.MEAFRQ
+        , L.VALMIN
+        , L.VALNOR
+        , L.VALMAX
+        , @USER TRXUSER
+        , GETDATE() TRXDAT
+        , @USER CREUSR
+        , GETDATE() CRETIM
+    FROM QAROULIN L
+    INNER JOIN QAROU R
+        ON R.ROUCOD = L.ROUCOD
+    WHERE R.ROUCOD = @ROUCOD;
+
+    -- 更新 Logic 的控制信息
+    UPDATE L
+    SET L1CHECK = LC.L1CHECK
+        , L2CHECK = LC.L2CHECK
+    FROM QAINSPL L
+    INNER JOIN (
+        SELECT T.OPENUM
+            , MAX(IIF(T.VALLIN = 1
+                    AND T.VALDES &lt;&gt; '', 1, 0)) L1CHECK
+            , MAX(IIF(T.VALLIN = 2
+                    AND T.VALDES &lt;&gt; '', 1, 0)) L2CHECK
+        FROM QAROULINCTL T
+        INNER JOIN QAROULIN L
+            ON L.ROUCOD = T.ROUCOD
+                AND L.OPENUM = T.OPENUM
+        WHERE L.ROUCOD = @ROUCOD
+            AND L.CTLTYP = 'L'
+            AND T.VALTYP = 'L'
+        GROUP BY T.OPENUM
+        ) LC
+        ON LC.OPENUM = L.OPENUM
+    WHERE L.DOCNUM = @DOCNUM
+END</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#71</ImageFile>
+  <ListPrint />
+  <MD5HASH>41377913ae0a7a7532a655c14c75d662</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

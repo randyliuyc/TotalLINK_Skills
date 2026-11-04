@@ -1,0 +1,667 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR09</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>棉包导入-UPLOAD</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE
+SELECT TAGNO,
+       LOT,
+       SUBLOT,
+       MIC,
+       LEN,
+       UNIF,
+       STR,
+       RD,
+       PLUSB,
+       RECWT,
+       NETREWT,
+       SHIPWT,
+       NETSHWT,
+       TAREWT,
+       CONTRACT,
+       INVOICE,
+       CREUSR,
+       FILENAM,
+       BATCHID 
+FROM   STKLOTLST WITH(NOLOCK)
+WHERE  SUBSTA = 1
+       AND CREUSR = '#LOGIN_USER#'
+       AND TAGTYP = 'CTR'
+       AND DOCTYP = 'PRC'
+       AND DOCGRP = 'IMP'
+       AND BATCHID = 'NEW-PRCIMP-#LOGIN_USER#'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKAUTOREPLACEEMPTYCOLUMNS
+--LINKUPLOAD_PATHASSIGN:D:\TotalLINK\LINKDEV\Files\Upload\STKLOTLST
+--LINKUPLOAD_FILETYPE:
+--LINKUPLOAD_KEEPFILENAME:1
+
+MERGE INTO STKLOTLST WITH (ROWLOCK) AS target
+USING (SELECT Trim([Mill Bale #])       TAGNO,
+              Trim([Mill Bale #])       CTR,
+              Trim([Category])          SUBLOT,
+              [Mic]                     [MIC],
+              [Len]                     [LEN],
+              [Str]                     [STR],
+              [Unif]                    [UNIF],
+              [PlusB]                   [PLUSB],
+              [Rd]                      [RD],
+              Trim([Contract])          [CONTRACT],
+              Trim([Mark])              LOT,
+              ''                        INVOICE,
+              0                         RECWT,
+              0                         NETREWT,
+              0                         SHIPWT,
+              0                         NETSHWT,
+              0                         TAREWT,
+              1                         SUBSTA,
+              'CTR'                     TAGTYP,
+              'PRC'                     DOCTYP,
+              'IMP'                     DOCGRP,
+              'NEW-PRCIMP-#LOGIN_USER#' BATCHID,
+              '#LINKUPLOADFILENAME#'    FILENAM,
+              Getdate()                 CRETIM,
+              '#LOGIN_USER#'            CREUSR
+       FROM   OPENROWSET('Microsoft.ACE.OLEDB.12.0',
+                         'Excel 12.0;Database=D:\TotalLINK\LINKDEV\Files\Upload\STKLOTLST\#LINKUPLOADFILENAME#;HDR=YES',
+                         'SELECT *
+                          FROM   [Sheet1$]')) AS source
+ON -- target.FILENAM COLLATE Chinese_PRC_CI_AS = source.FILENAM COLLATE Chinese_PRC_CI_AS AND 
+   target.TAGNO COLLATE Chinese_PRC_CI_AS = source.TAGNO COLLATE Chinese_PRC_CI_AS
+   AND target.TAGTYP = 'CTR'
+   AND target.DOCTYP = 'PRC'
+   AND target.DOCGRP = 'IMP'
+   AND target.FILENAM &lt;&gt; ''
+--   AND target.FILENAM IS NOT NULL
+WHEN MATCHED THEN
+  UPDATE SET -- target.TAGNO = source.TAGNO,
+             target.CTR = source.CTR,
+             target.SUBLOT = source.SUBLOT,
+             target.MIC = source.MIC,
+             target.LEN = source.LEN,
+             target.STR = source.STR,
+             target.UNIF = source.UNIF,
+             target.PLUSB = source.PLUSB,
+             target.RD = source.RD,
+             target.CONTRACT = source.CONTRACT,
+             target.LOT = source.LOT,
+             target.INVOICE = source.INVOICE,
+             target.RECWT = source.RECWT,
+             target.NETREWT = source.NETREWT,
+             target.SHIPWT = source.SHIPWT,
+             target.NETSHWT = source.NETSHWT,
+             target.TAREWT = source.TAREWT,
+             target.SUBSTA = source.SUBSTA,
+             target.TAGTYP = source.TAGTYP,
+             target.DOCTYP = source.DOCTYP,
+             target.DOCGRP = source.DOCGRP,
+             target.BATCHID = source.BATCHID,
+             target.FILENAM = source.FILENAM,
+             target.UPDTIM = Getdate(),
+             target.UPDUSR = '#LOGIN_USER#'
+WHEN NOT MATCHED THEN
+  -- 如果没有匹配到，执行插入
+  INSERT (TAGNO,
+          CTR,
+          SUBLOT,
+          [MIC],
+          [LEN],
+          [STR],
+          [UNIF],
+          [PLUSB],
+          [RD],
+          [CONTRACT],
+          LOT,
+          INVOICE,
+          RECWT,
+          NETREWT,
+          SHIPWT,
+          NETSHWT,
+          TAREWT,
+          SUBSTA,
+          TAGTYP,
+          DOCTYP,
+          DOCGRP,
+          BATCHID,
+          FILENAM,
+          CRETIM,
+          CREUSR)
+  VALUES(source.TAGNO,
+         source.CTR,
+         source.SUBLOT,
+         source.[MIC],
+         source.[LEN],
+         source.[STR],
+         source.[UNIF],
+         source.[PLUSB],
+         source.[RD],
+         source.[CONTRACT],
+         source.LOT,
+         source.INVOICE,
+         source.RECWT,
+         source.NETREWT,
+         source.SHIPWT,
+         source.NETSHWT,
+         source.TAREWT,
+         source.SUBSTA,
+         source.TAGTYP,
+         source.DOCTYP,
+         source.DOCGRP,
+         source.BATCHID,
+         source.FILENAM,
+	 source.CRETIM,
+	 source.CREUSR);
+
+
+
+
+UPDATE A
+SET    A.ITMNO = B.ITMNO,
+       A.ITMVER = B.ITMVER,
+       A.SITE = H.SITE,
+       A.SRCTYP = B.SRCTYP,
+       A.SRCDOC = B.SRCDOC,
+       A.SRCLIN = B.SRCLIN,
+       A.ORITYP = B.DOCTYP,
+       A.ORIDOC = B.DOCNUM,
+       A.ORILIN = B.DOCLIN,
+       A.UOM = B.UOM,
+       A.UOMCOE = B.UOMCOE,
+       A.QTY = 1,
+       A.QTYSTU = B.UOMCOE,
+       A.STU = B.STU
+FROM   STKLOTLST A WITH (ROWLOCK)
+       LEFT JOIN PBOLD B
+              ON A.LOT = B.LOT
+       LEFT JOIN PBOLH H
+              ON H.DOCNUM = B.DOCNUM
+WHERE  -- A.SUBSTA = 1
+       -- AND A.DOCTYP = 'PRC'
+       -- AND A.TAGTYP = 'CTR'
+       -- AND A.DOCGRP = 'IMP'
+       -- AND A.CREUSR = '#LOGIN_USER#'
+       -- AND A.FILENAM = '#LINKUPLOADFILENAME#'
+       -- AND 
+       A.BATCHID = 'NEW-PRCIMP-#LOGIN_USER#'</SQLNew>
+  <SQLRemove />
+  <SQLClear>DELETE FROM STKLOTLST
+WHERE  SUBSTA = 1
+       AND DOCTYP1 = 'PRC'
+       AND TAGTYP = 'CTR'
+       AND DOCGRP = 'IMP'
+       AND CREUSR = '#LOGIN_USER#'
+       AND BATCHID = 'NEW-PRCIMP-#LOGIN_USER#'</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#89</ImageFile>
+  <ListPrint />
+  <MD5HASH>eeeb29676a18f852973e95058c682fbb</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BATCHID</COLNAME>
+      <CAPTION>Gửi lô</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BATCHID</COLNAME>
+      <CAPTION>提交批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CONTRACT</COLNAME>
+      <CAPTION>hợp đồng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CONTRACT</COLNAME>
+      <CAPTION>合同</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>người sáng lập</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建人</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FILENAM</COLNAME>
+      <CAPTION>tên tập tin</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FILENAM</COLNAME>
+      <CAPTION>文件名</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVOICE</COLNAME>
+      <CAPTION>hóa đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVOICE</COLNAME>
+      <CAPTION>发票</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LEN</COLNAME>
+      <CAPTION>chiều dài</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LEN</COLNAME>
+      <CAPTION>长度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Nhập khẩu kiện bông-UPLOAD</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Đánh dấu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>唛头</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MIC</COLNAME>
+      <CAPTION>giá trị ngựa</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MIC</COLNAME>
+      <CAPTION>马值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NETREWT</COLNAME>
+      <CAPTION>Trọng lượng tịnh của hàng hóa nhận được</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NETREWT</COLNAME>
+      <CAPTION>收货净重</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NETSHWT</COLNAME>
+      <CAPTION>Trọng lượng tịnh vận chuyển</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NETSHWT</COLNAME>
+      <CAPTION>发货净重</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLUSB</COLNAME>
+      <CAPTION>Độ vàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLUSB</COLNAME>
+      <CAPTION>黄度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RD</COLNAME>
+      <CAPTION>độ phản chiếu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RD</COLNAME>
+      <CAPTION>反射度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RECWT</COLNAME>
+      <CAPTION>Nhận trọng lượng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RECWT</COLNAME>
+      <CAPTION>收货重量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SHIPWT</COLNAME>
+      <CAPTION>Trọng lượng vận chuyển</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SHIPWT</COLNAME>
+      <CAPTION>发货重量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STR</COLNAME>
+      <CAPTION>sức mạnh</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STR</COLNAME>
+      <CAPTION>强度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SUBLOT</COLNAME>
+      <CAPTION>Nhóm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SUBLOT</COLNAME>
+      <CAPTION>分组</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TAGNO</COLNAME>
+      <CAPTION>Số kiện bông</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TAGNO</COLNAME>
+      <CAPTION>棉包号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TAREWT</COLNAME>
+      <CAPTION>trọng lượng bì</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TAREWT</COLNAME>
+      <CAPTION>皮重</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UNIF</COLNAME>
+      <CAPTION>Ngang nhau</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR09</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UNIF</COLNAME>
+      <CAPTION>均匀度</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

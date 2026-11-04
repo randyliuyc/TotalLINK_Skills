@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA251010X501X</ModelCode>
+  <ModelNum>1000</ModelNum>
+  <ModelDesc>501校验</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@DATAQA:
+DECLARE @DEPT VARCHAR(30) = '{0}';
+DECLARE @PCPSTA VARCHAR(30) = '{1}';
+DECLARE @DEMANDER  VARCHAR(30)='{2}';
+DECLARE @INSPREA  VARCHAR(100)='{3}' ;
+DECLARE @GRADE  VARCHAR(30)='{4}';
+DECLARE @SIZE  VARCHAR(30)='{5}';
+
+
+SELECT CASE  WHEN @DEPT='' THEN 'LINKPREVENT:Department Required.部门必填'
+             WHEN @PCPSTA='' THEN 'LINKPREVENT:Product Status Required.产品状态必填'
+             WHEN @DEMANDER='' THEN 'LINKPREVENT:Demander Required.请求人员必填'
+             WHEN @INSPREA='' THEN 'LINKPREVENT:Reason Required.检验原因必填'
+             WHEN @GRADE='' THEN 'LINKPREVENT:Grade Required.钢号必填'
+             WHEN @SIZE='' THEN 'LINKPREVENT:Size Required.尺寸必填'
+	     ELSE ''
+END
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#01</ImageFile>
+  <ListPrint />
+  <MD5HASH>f284e74f4a3a0477d97ed7b8ce120f8a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

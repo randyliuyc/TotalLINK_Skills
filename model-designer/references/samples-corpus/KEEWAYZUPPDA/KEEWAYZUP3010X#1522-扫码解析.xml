@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP3010X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫码解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @ITMREF VARCHAR(30)='#产品编码#';
+DECLARE @FCY VARCHAR(30)='#地点#';
+DECLARE @REMINQTY DECIMAL(16, 2)='#需领数量#';
+DECLARE @TAG VARCHAR(30)='{0}';
+
+IF ISNULL((SELECT COUNT(*)
+           FROM   STOCK
+           WHERE  ( ITMREF_0 = @TAG
+                     OR SERNUM_0 = @TAG )
+                  AND ITMREF_0 = @ITMREF), 0) = 0
+  SELECT N'扫描产品错误或无库存:'+@TAG 数据检查
+ELSE IF ISNULL((SELECT COUNT(*)
+           FROM   STOCK
+           WHERE  ITMREF_0 = @TAG
+                   OR SERNUM_0 = @TAG), 0) &gt; 1
+  SELECT N'多个存库行，请选择' 数据检查
+ELSE
+  SELECT K.ITMREF_0         产品编码
+        ,CAST(CASE
+                 WHEN K.SERNUM_0 &lt;&gt; '' THEN 1
+                 WHEN K.QTYSTU_0 - ISNULL(XWS.QTY, 0)-CUMALLQTY_0 &gt; @REMINQTY
+                      AND K.SERNUM_0 = '' THEN @REMINQTY
+                 ELSE K.QTYSTU_0 - ISNULL(XWS.QTY, 0)-CUMALLQTY_0
+               END AS REAL) 领料数量
+        ,K.LOC_0            库位
+        ,K.SERNUM_0         序列号
+        ,CASE
+            WHEN K.QTYSTU_0 - ISNULL(XWS.QTY, 0)-CUMALLQTY_0 = 0 THEN N'可用库存为0'
+            ELSE 'OK'
+          END               数据检查
+        ,K.PALNUM_0         生产计划号
+		,K.STOCOU_0         STOCOU
+  FROM   STOCK K
+          LEFT JOIN (SELECT STOCOU_0
+                        ,SUM(QTYSTU_0) QTY
+                  FROM   XWSSCS
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY STOCOU_0
+                            ,SERNUM_0)XWS
+              ON XWS.STOCOU_0 = K.STOCOU_0
+  WHERE  K.STOFCY_0 = @FCY
+         AND ( K.ITMREF_0 = @TAG
+                OR K.SERNUM_0 = @TAG )</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#12</ImageFile>
+  <ListPrint />
+  <MD5HASH>c88ede1ff78113043e0c46e193d41390</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP3010X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP3010X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

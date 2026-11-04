@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP305X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>APP领料明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @STOFCY VARCHAR(50)='{0}'
+DECLARE @X9HNUM VARCHAR(50)='{1}';
+DECLARE @ITMREF VARCHAR(50)='{2}';
+
+DECLARE @DESLOC VARCHAR(50);
+
+SELECT @DESLOC=X9HDESLOC_0 FROM XCN09SGH WHERE X9HNUM_0=@X9HNUM
+
+SELECT K.STOCOU_0                                   LINKROWID
+      ,CAST(ISNULL(XWS.QTYSTU, K.QTYSTU_0) AS REAL) 数量
+      ,K.LOC_0                                      库位
+      ,K.LOT_0                                      批次
+      ,K.SERNUM_0                                   序列号
+      ,XWS.RPNUM                                    移库单号
+      ,CONVERT(VARCHAR(16), XWS.CREDATIM, 21)       操作时间
+      ,XWS.CREUSR                                   操作人员
+      ,CASE
+          WHEN ISNULL(XWS.RPFLG, 3) = 3 THEN 'mui-hidden'
+          ELSE ''
+        END                                         LINKROWIDBTNFLG
+     ,CASE WHEN XWS.RPFLG IN(1,2) THEN 'E02'
+           WHEN XWS.RPFLG=3 THEN 'H02'
+           ELSE '' END ROW_BACKCOLOR
+FROM   STOCK K
+       INNER JOIN ITMMASTER ITM
+               ON K.ITMREF_0 = ITM.ITMREF_0
+       RIGHT JOIN (SELECT STOCOU_0        STOCOU
+                        ,SUM(QTYSTU_0)   QTYSTU
+                        ,MIN(RPFLG_0)    RPFLG
+                        ,MAX(CREDATIM_0) CREDATIM
+                        ,MAX(CREUSR_0)   CREUSR
+                        ,MAX(RPNUM_0)    RPNUM
+                  FROM   XWSSCS
+                  WHERE  VCRNUM_0 = @X9HNUM
+                         AND ITMREF_0 = @ITMREF
+                  GROUP  BY STOCOU_0) XWS
+              ON XWS.STOCOU = K.STOCOU_0
+WHERE  (K.STOFCY_0 = @STOFCY OR K.STOFCY_0 IS NULL)  -- 允许STOCK为空
+       AND (K.ITMREF_0 = @ITMREF OR K.ITMREF_0 IS NULL)
+       AND (K.LOC_0&lt;&gt;@DESLOC OR K.LOC_0 IS NULL)
+       AND (K.STA_0 LIKE 'A%' OR K.STA_0 IS NULL)
+ORDER  BY ISNULL(XWS.RPFLG, 3)
+          ,ISNULL(K.LOT_0, '')  -- 批次空值排序兜底</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>通知单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品编码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSSCS WHERE STOCOU_0='{0}'AND RPFLG_0&lt;&gt;3</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div class='#ROW_BACKCOLOR#'&gt;&lt;button type="button" linkquick="12" linklocation="0" api="2" code="KEEWAYZUP305X" num="700" para="#LINKROWID#" script="3" confirm="lang:{zh:确认删除,en:confirm delete,de:Löschung bestätigen}?" style="width:30px;height:25px" class="mui-btn mui-btn-danger #LINKROWIDBTNFLG#"&gt;
+&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#数量#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#库位#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#批次#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#序列号#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#操作人员#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#操作时间#&lt;/div&gt;
+&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#移库单号#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle>批量删除</AllDataTreatTitle>
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#11</ImageFile>
+  <ListPrint />
+  <MD5HASH>469a8228970160550a0ec63f201a3cfd</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP305X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>APP Picking Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP305X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>APP Picking Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

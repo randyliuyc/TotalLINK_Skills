@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP10</ModelCode>
+  <ModelNum>110</ModelNum>
+  <ModelDesc>收货记录查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDETAILLIST(KEEWAYZUP10110X,700,{0},{1},{5})
+
+DECLARE @SITE VARCHAR(10)='{0}'; --收货地点
+DECLARE @PTHNUM VARCHAR(50)=N'%{1}%'; --收货单号
+DECLARE @BPSNUM NVARCHAR(100)=N'%{2}%'; --供应商
+DECLARE @STATIM DATE='{3}'
+DECLARE @ENDTIM DATE='{4}'
+DECLARE @BATCHID VARCHAR(100)='{5}';  
+
+SELECT T.BPSNDE_0                            送货单号
+       ,T.PTHNUM_0                           单据号
+       ,CONVERT(VARCHAR(10), T.RCPDAT_0, 21) 入库日期
+       ,T.BPSNUM_0                           供应商编码
+       ,T.BPONAM_0                           供应商
+       ,BPS.BPSSHO_0                         供应商简称
+       ,ISNULL(S.NOMUSR_0, T.CREUSR_0)       收货人
+       ,T.ZRMK_0                             备注
+       ,T.PTHNUM_0                           id
+FROM   PRECEIPT T
+       LEFT JOIN (SELECT MAX(BATCHID_0) BATCHID_0
+                         ,RPNUM_0
+                  FROM   XWSPTH
+                  WHERE  RPFLG_0 = 3
+                  GROUP  BY RPNUM_0)XWS
+              ON XWS.RPNUM_0 = T.PTHNUM_0
+       LEFT JOIN AUTILIS S
+              ON T.CREUSR_0 = S.USR_0
+       INNER JOIN BPSUPPLIER BPS 
+              ON BPS.BPSNUM_0=T.BPSNUM_0
+WHERE  T.PRHFCY_0 = @SITE
+       AND T.PTHNUM_0 LIKE @PTHNUM
+       AND ISNULL(BPS.BPSNUM_0,'')+ISNULL(BPS.BPSNAM_0,'')+ISNULL(BPS.BPSSHO_0,'') LIKE @BPSNUM
+       AND ( CONVERT(VARCHAR(10), T.RCPDAT_0, 21) BETWEEN @STATIM AND @ENDTIM
+              OR @STATIM = '' )
+       AND (ISNULL(XWS.BATCHID_0, '') = @BATCHID OR @BATCHID ='')</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>收货地点</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>X3SITE#1</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>收货单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>供应商</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>开始日期</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>结束日期</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>BACTHID</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' style="color: black"&gt;
+    &lt;div class='mui-card-header H02'&gt;
+        &lt;h4&gt;#单据号#&lt;/h4&gt;
+        &lt;button type="button " class="mui-btn mui-btn-blue mui-hidden" style="padding:0 20px;height:35px" id="print" api="3"
+            linkquick="12" formula="{openFileMethod(result)}" rowdata="#no#" script="501"
+            style="font-size:16px"&gt;lang:{zh:打印,en:Print,de:Drucken}&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="mui-card-body mui-table-view-cell mui-collapse"&gt;
+        &lt;a class='mui-navigate-right' href=''&gt;
+            &lt;div style="white-space: normal;"&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;lang:{zh:入库日期,en:Receipt Date,de:Eingangsdatum}:&lt;/span&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;#入库日期#&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div style="white-space: normal;"&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;lang:{zh:供应商编码,en:Supplier Code,de:Lieferantencode}:&lt;/span&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;#供应商编码#&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div style="white-space: normal;"&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;lang:{zh:供应商名称,en:Supplier Name,de:Lieferantenname}:&lt;/span&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;#供应商#&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div style="white-space: normal;"&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;lang:{zh:备注,en:Notes,de:Bemerkung}:&lt;/span&gt;
+                &lt;span style="font-size:16px;font-weight: bold;"&gt;#备注#&lt;/span&gt;
+            &lt;/div&gt;
+        &lt;/a&gt;
+        &lt;ul class='mui-collapse-content'&gt;
+            &lt;div style="overflow: auto; padding:0;"&gt;
+                &lt;div class="link-table-default" style="margin:0"&gt;
+                    &lt;div class="link-table-fixed"&gt;
+                        &lt;div style="min-width:100px;background-color:#546E7A;"&gt;lang:{zh:存货编码,en:Product,de:Artikel}&lt;/div&gt;
+                        &lt;div style="min-width:200px;background-color:#546E7A;"&gt;lang:{zh:存货名称,en:Product Name,de:Bezeichnung}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:单位,en:Unit,de:Einheit}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:数量,en:Qty,de:Menge}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:收货库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                        &lt;div style="min-width:100px;background-color:#546E7A;"&gt;lang:{zh:备注,en:Notes,de:Bemerkung}&lt;/div&gt;
+                       &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:采购订单号,en:Purchase Order No.,de:Bestellnummer}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作人员,en:Operator,de:Mitarbeiter}&lt;/div&gt;
+                        &lt;div style="min-width:190px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Operation Time,de:Zeitpunkt}&lt;/div&gt;
+                    &lt;/div&gt;#LINKDETAILLIST#
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>500</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Location,de:Standort}&lt;/label&gt;
+&lt;input type="button" required class="link-pick-btn mui-input-clear" placeholder="lang:{zh:请输入地点,en:Location,de:Standort eingeben}"  readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:收货单号,en:Receipt No.,de:Wareneingangsnr.}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:收货单号,en:Receipt No.,de:Wareneingangsnr.}" 
+id="收货订单" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:供应商信息,en:Supplier,de:Lieferant}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:供应商编码/名称,en:Supplier Code/Name,de:Lieferantencode/Name}" 
+id="供应商" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:开始日期,en:Start Date,de:Startdatum}&lt;/label&gt;
+&lt;input type="date" class="mui-input-clear" placeholder="lang:{zh:开始日期,en:Start Date,de:Startdatum}" 
+id="开始日期" paratype="DATEVAL" paradm="" value="#LINKDATE(0,-1,0,yyyy-MM-dd)#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:结束日期,en:End Date,de:Enddatum}&lt;/label&gt;
+&lt;input type="date" class="mui-input-clear" placeholder="lang:{zh:结束日期,en:End Date,de:Enddatum}" 
+id="结束日期" paratype="DATEVAL" paradm="" value="#LINK_TODAY#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;BACTHID&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:BACTHID,en:BACTHID,de:BACTHID}" 
+id="BACTHID" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+function openFileMethod(r){
+var file=r.data.retData[0]
+if(file)
+openFile(file.FILEURL)
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#18</ImageFile>
+  <ListPrint />
+  <MD5HASH>e5b9e452189e1dfa193588fa5632eee8</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lieferscheinabfrage</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Receipt Lines</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

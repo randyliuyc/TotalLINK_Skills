@@ -1,0 +1,330 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA2010</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Instrument Category</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.[INSTCAT]
+      ,S.[CATDES]
+      ,S.[INSTSTA]  LINKDROPVALIDINSTSTA
+      ,S.[REMARK]
+      ,S.[CREUSR]
+      ,S.[UPDUSR]
+      ,CONVERT(VARCHAR(16),S.[CRETIM],21) CRETIM
+      ,CONVERT(VARCHAR(16),S.[UPDTIM],21) UPDTIM
+      ,[ID]      LINKROWID
+  FROM [QAINSTCAT] S
+ORDER BY S.INSTCAT</SQLScript>
+  <SQLUpdateScript>--LINKSAVEONENTERKEY
+--LINKEDITMODE
+UPDATE [QAINSTCAT]
+   SET [CATDES] = '#CATDES#'
+      ,[INSTSTA] = '#LINKDROPVALIDINSTSTA#'
+      ,[REMARK] = N'#REMARK#'
+      ,[UPDUSR] = '#LOGIN_USER#'
+      ,[UPDTIM] = GETDATE()
+ WHERE ID=0#LINKROWID#</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+INSERT INTO [dbo].[QAINSTCAT]
+           ([INSTCAT]
+           ,[CATDES]
+           ,[INSTSTA]
+           ,[REMARK]
+           ,[CREUSR]
+           ,[CRETIM]
+)
+     VALUES
+           ('#INSTCAT#'
+           ,'#CATDES#'
+           ,'#LINKDROPVALIDINSTSTA#'
+           ,'#REMARK#'
+           ,'#LOGIN_USER#'
+           ,GETDATE()
+)</SQLNew>
+  <SQLRemove>DELETE   FROM [QAINSTCAT]  WHERE ID=0#LINKROWID#</SQLRemove>
+  <SQLClear>DELETE   FROM [QAINSTCAT]  WHERE ID=0#LINKROWID#</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#82</ImageFile>
+  <ListPrint />
+  <MD5HASH>054a52cbdc323daaa9f52396ff72a61f</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+        "INSTCAT",
+        "CATDES",
+        "LINKDROPVALIDINSTSTA",
+        "REMARK"
+      ]
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CATDES</COLNAME>
+      <CAPTION>Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CATDES</COLNAME>
+      <CAPTION>描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION>Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION>分类</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTSTA</COLNAME>
+      <CAPTION>状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDINSTSTA</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDINSTSTA</COLNAME>
+      <CAPTION>状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>工具分类</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Comment</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>备注</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>修改时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA2010</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>修改用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

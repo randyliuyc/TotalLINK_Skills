@@ -1,0 +1,342 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR06</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>采购填报明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DOCNUM VARCHAR(30) = '{0}'
+
+SELECT S.DOCNUM + CAST(S.DOCLIN AS VARCHAR) LINKROWID
+    , S.DOCNUM --请求填报单号      
+    , S.DOCNUM  pid --请求填报单号
+    , S.DOCLIN --行号
+    , S.ITMNO --产品编码
+    , ITM.ITMNAM --产品描述
+    , ITM.ITMNAM1
+    , ITM.ITMNAM2
+    , S.ITMVER --产品版本
+    , ITM.TSICOD1 --产品分类
+    , ITM.TSICOD2
+    , ITM.TSICOD3
+    , ITM.TSICOD4
+    , ITM.TSICOD5
+    , ITM.ITMSIZE
+    , ITM.ITMSPEC
+    , CONVERT(VARCHAR, S.REQDAT, 23) REQDAT --要求日期
+    , S.UOM --采购单位
+    , S.UOMCOE --采购单位系数
+    , CAST(S.QTY AS REAL) QTY --采购单位数量
+    , S.STU --库存单位
+    , CAST(S.QTYSTU AS REAL) QTYSTU --库存单位数量
+    , CAST(S.PRQQTY AS REAL) PRQQTY --订购采购单位数量
+    , CAST(S.PRQQTYSTU AS REAL) PRQQTYSTU --订购库存单位数量
+    , S.REMARK LREMARK --备注
+    , S.SRCTYP --来源类型
+    , S.SRCDOC --来源单据
+    , S.SRCLIN --来源行号
+    , DOCSTA.OPTDES DOCSTA --单据状态
+    , S.CLOREA LCLOREA --关闭原因
+    , S.CREUSR
+    , S.UPDUSR
+    , CONVERT(VARCHAR(16), S.[CRETIM], 21) CRETIM
+    , CONVERT(VARCHAR(16), S.[UPDTIM], 21) UPDTIM
+    , IIF(S.DOCSTA = '1', '', '1') LDEBFLG
+    , IIF(S.DOCSTA IN ('1', '2'), '', '1') LCLBFLG
+    , ITM.ITMVERFLG
+FROM PREQAL S
+INNER JOIN PREQAH H
+    ON S.DOCNUM = H.DOCNUM
+INNER JOIN ITM
+    ON ITM.ITMNO = S.ITMNO
+LEFT JOIN LINKOPT DOCSTA
+    ON DOCSTA.OPTID = S.DOCSTA
+        AND DOCSTA.OPTTYP = 'DOCSTA'
+WHERE S.DOCNUM = @DOCNUM
+ORDER BY S.DOCLIN</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	PREQAL
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO 
+	[PREQAL] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'@ITMNO@' ITMNO
+,N'@ITMVER@'  ITMVER
+,N'@REQDAT@' REQDAT
+,N'@UOM@' UOM          --采购单位
+,0@UOMCOE@ UOMCOE      --采购单位系数
+,0@QTY@  QTY           --采购单位数量
+,N'@STU@' STU          --库存单位
+,0@QTY@*0@UOMCOE@ QTYSTU      --库存单位数量
+,N'@LREMARK@' REMARK   --备注
+,N'@SRCTYP@' SRCTYP
+,N'@SRCDOC@' SRCDOC
+,0@SRCLIN@ SRCLIN
+,N'@LCLOREA@' CLOREA   --关闭原因
+,N'1' DOCSTA
+,N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,REQDAT = S.REQDAT
+,UOM = S.UOM
+,UOMCOE = S.UOMCOE
+,QTY = S.QTY
+,STU = S.STU
+,QTYSTU = S.QTYSTU
+,PRQQTY=S.QTY
+,PRQQTYSTU=S.QTYSTU
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+DOCNUM
+,DOCLIN
+,ITMNO
+,ITMVER
+,REQDAT
+,UOM
+,UOMCOE
+,QTY
+,STU
+,QTYSTU
+,PRQQTY
+,PRQQTYSTU
+,REMARK
+,CLOREA
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+,CREUSR
+,CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCLIN
+,S.ITMNO
+,S.ITMVER
+,S.REQDAT
+,S.UOM
+,S.UOMCOE
+,S.QTY
+,S.STU
+,S.QTYSTU
+,S.QTY
+,S.QTYSTU
+,S.REMARK
+,S.CLOREA
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.DOCSTA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	PREQAL
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO
+	[PREQAL] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'@ITMNO@' ITMNO
+,N'@ITMVER@' ITMVER
+,N'@REQDAT@' REQDAT
+,N'@UOM@' UOM          --采购单位
+,0@UOMCOE@ UOMCOE      --采购单位系数
+,0@QTY@  QTY           --采购单位数量
+,N'@UOM@' STU          --库存单位
+,0@QTYSTU@ QTYSTU      --库存单位数量
+,N'@LREMARK@' REMARK
+,N'@LCLOREA@' CLOREA
+,N'@SRCTYP@' SRCTYP
+,N'@SRCDOC@' SRCDOC
+,0@SRCLIN@ SRCLIN
+,N'1' DOCSTA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,REQDAT = S.REQDAT
+,UOM = S.UOM
+,UOMCOE = S.UOMCOE
+,QTY = S.QTY
+,STU = S.STU
+,QTYSTU = S.QTYSTU
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+DOCNUM
+,DOCLIN
+,ITMNO
+,ITMVER
+,REQDAT
+,UOM
+,UOMCOE
+,QTY
+,STU
+,QTYSTU
+,REMARK
+,CLOREA
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+, CREUSR
+, CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCLIN
+,S.ITMNO
+,S.ITMVER
+,S.REQDAT
+,S.UOM
+,S.UOMCOE
+,S.QTY
+,S.STU
+,S.QTYSTU
+,S.REMARK
+,S.CLOREA
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.DOCSTA
+,S.CREUSR
+,S.CRETIM
+);</SQLNew>
+  <SQLRemove>DELETE FROM [PREQAL] WHERE DOCNUM+CAST(DOCLIN AS VARCHAR) ='#LINKROWID#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div style="font-size: 20px;"&gt;#DOCLIN#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNO#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNAM#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMVER#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSPEC#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSIZE#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#QTY#[#UOM#]&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#REQDAT#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#LREMARK#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#79</ImageFile>
+  <ListPrint />
+  <MD5HASH>e9d5a72cc5e44c04e76d18f81d095d57</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Báo cáo mua sắm chi tiết</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

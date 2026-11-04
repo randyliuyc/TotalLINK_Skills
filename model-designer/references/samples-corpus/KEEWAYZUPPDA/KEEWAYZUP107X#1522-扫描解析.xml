@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP107X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫描解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @TAG VARCHAR(200) = '{0}';
+DECLARE @PAL VARCHAR(30) = '';
+DECLARE @CTR VARCHAR(30) = '';
+DECLARE @CTRFLG BIT = 0;
+
+--对标签内容进行处理，兼容原标签
+SELECT @TAG = CASE 
+        WHEN CHARINDEX('|', @TAG) &gt; 0
+            THEN LEFT(@TAG, CHARINDEX('|', @TAG) - 1)
+        ELSE @TAG
+        END
+
+SET @CTRFLG = IIF(CHARINDEX('/', @TAG) &gt; 0, 1, 0)
+
+IF @CTRFLG = 0
+  BEGIN
+      -- 托的处理逻辑
+      SELECT TOP 1 @PAL = YPALNUM_0
+      FROM   YPALLET
+      WHERE  YPALNUM_0 = @TAG;
+
+      IF ISNULL(@PAL, '') = ''
+        BEGIN
+            SELECT N'lang:{zh:托号不存在:,en:Pallet No. not found:,de:Paletten-Nr. nicht gefunden:} ' + @TAG 数据检查
+            RETURN
+        END
+
+      IF EXISTS (SELECT TOP 1 *
+                 FROM   XWSPTHD
+                 WHERE  XTXT_2 = @TAG
+                        AND RPFLG_0&lt;&gt;3)
+        BEGIN
+            SELECT N'lang:{zh:托号已扫描过:,en:Pallet already scanned:,de:Palette bereits gescannt:} ' + @TAG 数据检查
+            RETURN;
+        END
+
+      SELECT MAX(H.ZXLOT_0)  计划号 
+            ,H.YPALNUM_0 托号
+            ,COUNT(*)  箱数
+            ,''      数据检查
+            ,ISNULL((SELECT COUNT(DISTINCT XTXT_2) FROM XWSPTHD WHERE RPFLG_0&lt;&gt;3 AND USERID_0=@USER), 0)
+              + 1      已扫托数
+      FROM   YZXH H
+      WHERE  H.YPALNUM_0 =@TAG
+      GROUP  BY H.YPALNUM_0
+  END
+ELSE
+  BEGIN
+      -- 箱的处理逻辑
+      SELECT TOP 1 @CTR = ZXNUM_0
+      FROM   YZXH
+      WHERE  ZXLOT_0 + '-' + ZXNUM_0 + '/' = @TAG;
+
+      IF ISNULL(@CTR, '') = ''
+        BEGIN
+            SELECT N'lang:{zh:箱号不存在:,en:Carton No. not found:,de:Karton-Nr. nicht gefunden:} ' + @TAG 数据检查
+            RETURN
+        END
+
+      IF EXISTS (SELECT TOP 1 *
+                 FROM   XWSPTHD
+                 WHERE  PALNUM_0 + '-' + CTRNUM_0 + '/' = @TAG)
+        BEGIN
+            SELECT N'lang:{zh:箱号已扫描过:,en:Carton already scanned:,de:Karton bereits gescannt:} ' + @TAG 数据检查
+            RETURN;
+        END
+
+      SELECT  H.ZXLOT_0 计划号
+            ,H.ZXNUM_0 箱单号
+            ,''     数据检查
+            ,ISNULL((SELECT COUNT(DISTINCT PALNUM_0+CTRNUM_0) FROM XWSPTHD WHERE RPFLG_0&lt;&gt;3 AND USERID_0=@USER), 0)
+              + 1      已扫箱数
+      FROM   YZXH H	
+      WHERE  H.ZXLOT_0 + '-' + H.ZXNUM_0 + '/' = @TAG
+  END</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>码</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#02</ImageFile>
+  <ListPrint />
+  <MD5HASH>ff1afd89fef6833f0acc08b1079e1042</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP107X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP107X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

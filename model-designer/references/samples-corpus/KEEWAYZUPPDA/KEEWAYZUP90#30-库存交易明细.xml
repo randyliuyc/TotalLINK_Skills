@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP90</ModelCode>
+  <ModelNum>30</ModelNum>
+  <ModelDesc>库存交易明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @VCRNUM VARCHAR(30)=N'%{1}%';
+DECLARE @ITMREF VARCHAR(50)=N'%{2}%';
+DECLARE @ITMDES NVARCHAR(100)=N'%{3}%';
+SELECT S.STOFCY_0                           地点
+      ,S.ITMREF_0                           产品编码
+      ,ISNULL(L1.ITMDES, I.ITMDES1_0)       产品描述1
+      ,ISNULL(L2.ITMDES, I.ITMDES2_0)       产品描述2
+      ,S.BPRNUM_0                           客户
+      ,LOT_0                                批次
+      ,LOC_0                                库位
+      ,S.PALNUM_0                           计划号
+      ,S.CTRNUM_0                           箱单号
+      ,S.VCRNUM_0                           单据号
+      ,S.VCRNUMORI_0                        来源单据
+      ,CAST(QTYSTU_0 AS REAL)               交易数量
+      ,S.STU_0                              存货单位
+      ,S.CREUSR_0                           创建用户
+      ,CAST(S.QTYSTU_0 AS REAL)             库存数量
+      ,S.PCU_0                              单位
+      ,S.SERNUM_0                           序列号
+      ,S.STOFLD1_0                          电池码
+      ,S.STOFLD2_0                          电机码
+FROM STOJOU S
+       INNER JOIN ITMMASTER I
+               ON S.ITMREF_0 = I.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = I.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = I.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+WHERE S.STOFCY_0=@FCY
+      AND S.VCRNUM_0 LIKE @VCRNUM
+      AND S.ITMREF_0 LIKE @ITMREF
+      AND UPPER(I.ITMDES1_0)+UPPER(I.ITMDES2_0) LIKE @ITMDES
+ORDER  BY S.CREDATTIM_0  DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode>PDA</ModuleCode>
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>PICKERSTR</ParaType01>
+  <ParaSearchCode01>X3SITE</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>单据号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品编码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品名称</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+&lt;div class='mui-card-header '&gt;&lt;h4&gt;#单据号#&lt;/h3&gt;&lt;/div&gt;
+&lt;div class='mui-card-content' style="background-color:#f7f7f7; font-size:14px; font-weight:normal; color:#333; line-height:1.4;"&gt;
+&lt;h4&gt;lang:{zh:产品编码,en:Product Code,de:Artikelnummer}:#产品编码#&lt;/h4&gt;
+&lt;h4 style="white-space:pre-wrap;word-wrap:break-word;"&gt;lang:{zh:产品描述1,en:Product Description1,de:Artikelbeschreibung1}:#产品描述1#&lt;/h4&gt;
+&lt;h4 style="white-space:pre-wrap;word-wrap:break-word;"&gt;lang:{zh:产品描述2,en:Product Description2,de:Artikelbeschreibung2}:#产品描述2#&lt;/h4&gt;
+&lt;h4&gt;lang:{zh:库位,en:Location,de:Lagerplatz}:#库位#&lt;/h4&gt;
+&lt;h4&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}:#序列号#&lt;/h4&gt;    
+&lt;h4&gt;lang:{zh:数量,en:Quantity,de:Menge}:#交易数量#【#存货单位#】&lt;/h4&gt;
+&lt;h4&gt;lang:{zh:创建用户,en:Created By,de:Erstellt von}:#创建用户#&lt;/h4&gt;
+&lt;/div&gt;&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>500</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button" class="link-pick-btn mui-input-clear" placeholder="lang:{zh:地点,en:Site,de:Standort}"  readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK" required&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:单据号,en:Document Number,de:Belegnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:可搜索,en:Searchable,de:Durchsuchbar}"  
+id="单据号" paratype="STR" paradm="" value="{2}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product Code,de:Artikelnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:可搜索,en:Searchable,de:Durchsuchbar}"  
+id="产品编码" paratype="STR" paradm="" value="{2}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品描述,en:Product Description,de:Artikelbeschreibung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:可搜索,en:Searchable,de:Durchsuchbar}"  
+id="产品描述" paratype="STR" paradm="" value="{3}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#67</ImageFile>
+  <ListPrint />
+  <MD5HASH>47057dce56a912174c20cc1f1519a028</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP90</DMCODE>
+      <DMNUM>30</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lagertransaktionen Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP90</DMCODE>
+      <DMNUM>30</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Inventory transaction details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

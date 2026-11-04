@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA301010X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>Copy Inspection Order</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@DATAQA:
+
+SELECT CASE WHEN '#DOCNUM#'&lt;&gt;'' THEN 'LINKPREVENT:The current work order already has quality inspection records and cannot be duplicated..
+
+当前工单已存在质检记录，不可复制'
+END
+
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>ITMNO</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>CUSCOD</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>ROUDES</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>MFGNUM</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>P1</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>P2</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>P3</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>P4</ParaLabel08>
+  <ParaType08>STR</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09>P5</ParaLabel09>
+  <ParaType09>STR</ParaType09>
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10>COPYDOCNUM</ParaLabel10>
+  <ParaType10>STR</ParaType10>
+  <ParaSearchCode10>ERAQA301010X.COPY</ParaSearchCode10>
+  <ParaDefVal10>?</ParaDefVal10>
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @COPYDOCNUM VARCHAR(30) = '{9}';
+DECLARE @MFGNUM VARCHAR(30)='#MFGNUM#';
+DECLARE @ROUOPE VARCHAR(30)='#ROUOPE#';
+DECLARE @DOCNUM VARCHAR(30);
+DECLARE @ROUALT VARCHAR(30);
+DECLARE @CUSCOD VARCHAR(30);
+DECLARE @INTSPE VARCHAR(30);
+DECLARE @ITMNO VARCHAR(30);
+
+SELECT @DOCNUM= CONCAT_WS('-',@MFGNUM,@ROUOPE);
+SELECT @ROUALT = H.ROUALT_0
+        , @ITMNO = H.ROUNUM_0
+        , @CUSCOD = I.BPCNUM_0
+        , @INTSPE = I.INTSPE_0
+    FROM #LC.X3DATA#MFGHEAD H
+    INNER JOIN #LC.X3DATA#MFGITM I
+        ON I.MFGNUM_0 = H.MFGNUM_0
+            AND I.ITMTYP_0 = 1
+    WHERE H.MFGNUM_0 = @MFGNUM;
+
+INSERT INTO [QAINSPH]
+           ([DOCNUM]
+           ,[DOCDAT]
+           ,[ROUTYP]
+           ,[ROUCOD]
+           ,[ITMNO]
+           ,[MFGNUM]
+           ,[ROUALT]
+           ,[LOT]
+           ,[TV]
+           ,[ROUOPE]
+           ,[CUSCOD]
+           ,[INTSPEC]
+           ,[HEATTITLE]
+           ,[STA]
+           ,[CLOSTA]
+           ,[CLOUSR]
+           ,[CLOTIM]
+           ,[INSPINF]
+           ,[DEMANDER]
+           ,[INSPREA]
+           ,[PROFILE]
+           ,[CREUSR]
+           ,[CRETIM])
+  SELECT 
+	    @DOCNUM--&lt;DOCNUM, varchar(30),&gt;
+           ,GETDATE()--&lt;DOCDAT, date,&gt;
+           ,H.ROUTYP--&lt;ROUTYP, varchar(30),&gt;
+           ,H.ROUCOD--&lt;ROUCOD, varchar(30),&gt;
+           ,@ITMNO--&lt;ITMNO, varchar(30),&gt;
+           ,@MFGNUM--&lt;MFGNUM, varchar(30),&gt;
+           ,@ROUALT--&lt;ROUALT, int,&gt;
+           ,H.LOT--&lt;LOT, varchar(30),&gt;
+           ,H.TV --&lt;TV, varchar(30),&gt;
+           ,@ROUOPE--&lt;ROUOPE, varchar(30),&gt;
+           ,@CUSCOD--&lt;CUSCOD, varchar(30),&gt;
+           ,@INTSPE--&lt;INTSPEC, varchar(30),&gt;
+           ,H.HEATTITLE--&lt;HEATTITLE, nvarchar(100),&gt;
+           ,H.STA--&lt;STA, tinyint,&gt;
+           ,0--&lt;CLOSTA, bit,&gt;
+           ,''--&lt;CLOUSR, varchar(30),&gt;
+           ,NULL--&lt;CLOTIM, datetime,&gt;
+           ,H.INSPINF--&lt;INSPINF, nvarchar(500),&gt;
+           ,H.DEMANDER--&lt;DEMANDER, varchar(30),&gt;
+           ,H.INSPREA--&lt;INSPREA, nvarchar(100),&gt;
+           ,H.PROFILE--&lt;PROFILE, nvarchar(200),&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+FROM QAINSPH H
+WHERE H.DOCNUM=@COPYDOCNUM;
+
+INSERT INTO [QAINSPL]
+           ([DOCNUM]
+           ,[OPENUM]
+           ,[OPESTD]
+           ,[OPEGRP]
+           ,[OPEUNT]
+           ,[TRXUSER]
+           ,[TRXDAT]
+           ,[INSTCOD]
+           ,[QTYOK]
+           ,[QTYSC]
+           ,[REASC]
+           ,[CTLTYP]
+           ,[MEAFRQ]
+           ,[NMIN]
+           ,[NNOR]
+           ,[NMAX]
+           ,[L1CHECK]
+           ,[L2CHECK]
+           ,[SAMAC_QTY]
+           ,[SAMRE_QTY]
+           ,[STA]
+           ,[CREUSR]
+           ,[CRETIM])
+SELECT 
+	    @DOCNUM--&lt;DOCNUM, varchar(30),&gt;
+           ,L.OPENUM--&lt;OPENUM, int,&gt;
+           ,L.OPESTD--&lt;OPESTD, varchar(30),&gt;
+           ,L.OPEGRP--&lt;OPEGRP, varchar(30),&gt;
+           ,L.OPEUNT--&lt;OPEUNT, varchar(30),&gt;
+           ,L.TRXUSER--&lt;TRXUSER, varchar(30),&gt;
+           ,L.TRXDAT--&lt;TRXDAT, date,&gt;
+           ,L.INSTCOD--&lt;INSTCOD, varchar(30),&gt;
+           ,L.QTYOK--&lt;QTYOK, decimal(18,6),&gt;
+           ,L.QTYSC--&lt;QTYSC, decimal(18,6),&gt;
+           ,L.REASC--&lt;REASC, decimal(18,6),&gt;
+           ,L.CTLTYP--&lt;CTLTYP, varchar(30),&gt;
+           ,L.MEAFRQ--&lt;MEAFRQ, varchar(30),&gt;
+           ,L.NMIN--&lt;NMIN, decimal(18,6),&gt;
+           ,L.NNOR--&lt;NNOR, decimal(18,6),&gt;
+           ,L.NMAX--&lt;NMAX, decimal(18,6),&gt;
+           ,L.L1CHECK--&lt;L1CHECK, bit,&gt;
+           ,L.L2CHECK--&lt;L2CHECK, bit,&gt;
+           ,L.SAMAC_QTY--&lt;SAMAC_QTY, int,&gt;
+           ,L.SAMRE_QTY--&lt;SAMRE_QTY, int,&gt;
+           ,L.STA--&lt;STA, tinyint,&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+ FROM QAINSPL L
+WHERE L.DOCNUM=@COPYDOCNUM;
+
+INSERT INTO [QAINSPVAL]
+           ([DOCNUM]
+           ,[OPENUM]
+           ,[VALLIN]
+           ,[TRXLIN]
+           ,[SPOOL]
+           ,[COIL]
+           ,[SAMP]
+           ,[N1]
+           ,[N2]
+           ,[N3]
+           ,[N4]
+           ,[N5]
+           ,[N6]
+           ,[N7]
+           ,[N8]
+           ,[VALMIN]
+           ,[VALAVG]
+           ,[VALMAX]
+           ,[L1]
+           ,[L2]
+           ,[STA]
+           ,[NCTYP]
+           ,[NCUSR]
+           ,[NCTIM]
+           ,[REMARK]
+           ,[CREUSR]
+           ,[CRETIM])
+  SELECT 
+              @DOCNUM
+           ,V.[OPENUM]
+           ,V.[VALLIN]
+           ,V.[TRXLIN]
+           ,V.[SPOOL]
+           ,V.[COIL]
+           ,V.[SAMP]
+           ,V.[N1]
+           ,V.[N2]
+           ,V.[N3]
+           ,V.[N4]
+           ,V.[N5]
+           ,V.[N6]
+           ,V.[N7]
+           ,V.[N8]
+           ,V.[VALMIN]
+           ,V.[VALAVG]
+           ,V.[VALMAX]
+           ,V.[L1]
+           ,V.[L2]
+           ,V.[STA]
+           ,V.[NCTYP]
+           ,V.[NCUSR]
+           ,V.[NCTIM]
+           ,V.[REMARK]
+           ,'#LOGIN_USER#'
+           ,GETDATE()
+FROM QAINSPVAL V
+WHERE V.DOCNUM=@COPYDOCNUM;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile />
+  <ListPrint />
+  <MD5HASH>001e419bb11c6fe20957f63631411118</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

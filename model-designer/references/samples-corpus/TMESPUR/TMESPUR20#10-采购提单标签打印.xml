@@ -1,0 +1,1517 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR20</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>采购提单标签打印</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKAPPMENUHIDE
+DECLARE @SITE VARCHAR(30)='{0}';
+DECLARE @STADAT DATE='{1}';
+DECLARE @ENDDAT DATE='{2}';
+DECLARE @BPSNO VARCHAR(30)='%{3}%';
+DECLARE @DOCNUM VARCHAR(30)='%{4}%'; 
+
+SELECT D.[CTRNUM] - Isnull(A.NUM, 0) NPTNUM --需要打印包数
+       ,Isnull(A.NUM, 0)  CPTNUM--已打印包数
+       ,D.[CTRNUM] --包数
+       ,D.[ITMNO]
+       ,D.[ITMVER]
+       ,D.[LOT]
+       ,ISNULL(B.BPSNAM,H.BPSNO)  [BPSNO]
+       ,ISNULL(P.OPTDES,H.[PLACEORI])  [PLACEORI]
+       ,H.[BLNO]
+       ,ISNULL(S.SITENAM,H.SITE)  [SITE]
+       ,D.[FAC]
+       ,H.[DEPT]
+       ,D.[REQDAT]
+       ,D.[QTYSTU]
+       ,D.[STU]
+       ,D.[UOMCOE]
+       ,D.[QTY]
+       ,D.[UOM]
+       ,D.[CTRQTY]
+       ,D.[DOCNUM]
+       ,D.[DOCLIN]
+       ,D.[SRCTYP]
+       ,D.[SRCDOC]
+       ,D.[SRCLIN]
+       ,D.[DOCSTA]
+       ,D.[CLOREA]
+       ,D.[CREUSR]
+       ,D.[UPDUSR]
+       ,D.[CRETIM]
+       ,D.[UPDTIM]
+FROM   [PBOLH] H
+       INNER JOIN [PBOLD] D
+               ON H.DOCNUM = D.DOCNUM
+       LEFT JOIN (SELECT Count(*) NUM
+                         ,ITMNO
+                         ,ITMVER
+                         --,LOT
+                         --,SUBLOT
+                         ,ORIDOC
+                         ,ORILIN
+                  FROM   STKLOTLST WITH(NOLOCK)
+                  WHERE  DOCTYP = 'PRC'
+                         AND DOCGRP = ''
+                         AND ORIDOC &lt;&gt; '' --提单收货
+                  GROUP  BY ITMNO
+                            ,ITMVER
+                            --,LOT
+                            --,SUBLOT
+                            ,ORIDOC
+                            ,ORILIN) A
+              ON D.DOCNUM = A.ORIDOC
+                 AND D.DOCLIN = A.ORILIN
+			LEFT JOIN LINKOPT P ON P.OPTID=H.PLACEORI AND P.OPTTYP='PLACEORI'
+			LEFT JOIN ENTSITE S ON H.SITE=S.SITE
+			LEFT JOIN BPSUP   B ON H.BPSNO=B.BPSNO
+WHERE  H.SITE = @SITE
+/*
+       AND ( D.REQDAT BETWEEN @STADAT AND @ENDDAT
+              OR @STADAT = '' )
+*/
+    AND H.BPSNO LIKE @BPSNO
+    AND H.DOCNUM+H.BLNO  LIKE @DOCNUM
+    AND H.DOCSTA = '2'
+ORDER BY H.CRETIM DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>SITE</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>LINKSITE#1</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>STADAT</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>ENDDAT</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>BPSNO</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>DOCNUM</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>NPTNUM</ParaLabel06>
+  <ParaType06>DEC</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>CLOT</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>SUBLOT</ParaLabel08>
+  <ParaType08>STR</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#85</ImageFile>
+  <ListPrint />
+  <MD5HASH>32c526ddd813faa8baba4752551b3ca5</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BLNO</COLNAME>
+      <CAPTION>Supplier Delivery Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BLNO</COLNAME>
+      <CAPTION>Số đơn của nhà cung cấp</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BLNO</COLNAME>
+      <CAPTION>供应商提单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BLNO</COLNAME>
+      <CAPTION>Số phiếu đề xuất nhà cung cấp</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BPSNO</COLNAME>
+      <CAPTION>Supplier Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BPSNO</COLNAME>
+      <CAPTION>Mã đơn nhà cung cấp</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BPSNO</COLNAME>
+      <CAPTION>供应商编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>BPSNO</COLNAME>
+      <CAPTION>Mã nhà cung cấp</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOREA</COLNAME>
+      <CAPTION>Close Reason</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOREA</COLNAME>
+      <CAPTION>Lý do đóng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOREA</COLNAME>
+      <CAPTION>关闭原因</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOREA</COLNAME>
+      <CAPTION>Lý do đóng cửa</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CPTNUM</COLNAME>
+      <CAPTION>Packed Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CPTNUM</COLNAME>
+      <CAPTION>Số lượng đã đóng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CPTNUM</COLNAME>
+      <CAPTION>已打包数</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CPTNUM</COLNAME>
+      <CAPTION>Số lượng Đã đóng gói</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Creation Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Thời gian lập</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Thời gian tạo</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Created User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Người lập</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Người dùng tạo</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRNUM</COLNAME>
+      <CAPTION>Order Pack Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRNUM</COLNAME>
+      <CAPTION>Số kiện trong vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRNUM</COLNAME>
+      <CAPTION>提单包数</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRNUM</COLNAME>
+      <CAPTION>Số lượng đơn hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRQTY</COLNAME>
+      <CAPTION>Single Pack Box Weight</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRQTY</COLNAME>
+      <CAPTION>Trọng lượng mỗi thùng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRQTY</COLNAME>
+      <CAPTION>单包箱重</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTRQTY</COLNAME>
+      <CAPTION>Trọng lượng mỗi bao</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION>Workshop/Department</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION>Xưởng/bộ phận</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION>车间/部门</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION>Xưởng/Bộ phận</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCLIN</COLNAME>
+      <CAPTION>Order Line Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCLIN</COLNAME>
+      <CAPTION>Hàng phối liệu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCLIN</COLNAME>
+      <CAPTION>提单行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCLIN</COLNAME>
+      <CAPTION>Số dòng đơn hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Mã số vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>提单编号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Mã đơn hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION>Document Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION>Trạng thái</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION>单据状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION>Trạng thái chứng từ</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION>Factory</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION>Xưởng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION>厂区</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION>Nhà máy</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Mã số sản phẩm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Mã sản phẩm</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION>Product Name/Color Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION>Sản phẩm/mã màu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION>品名/色号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION>Tên sản phẩm/Mã màu</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Địa điểm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Ngày bắt đầu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>开始日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Ngày kết thúc</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>结束日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Mã đơn nhà cung cấp</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>供应商编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>Số vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>提单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Số lượng thẻ</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>标签数</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION>Số lô</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION>批号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA08</COLNAME>
+      <CAPTION>Số lô phụ/Thông số kỹ thuật</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA08</COLNAME>
+      <CAPTION>子批号/规格</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA09</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA09</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Mua in nhãn vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Mua in nhãn B/L</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Batch Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Số lô</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>批号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Số lô</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NPTNUM</COLNAME>
+      <CAPTION>Packaging Required Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NPTNUM</COLNAME>
+      <CAPTION>Số lượng cần đóng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NPTNUM</COLNAME>
+      <CAPTION>需打包数</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NPTNUM</COLNAME>
+      <CAPTION>Số lượng Cần đóng gói</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLACEORI</COLNAME>
+      <CAPTION>Origin</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLACEORI</COLNAME>
+      <CAPTION>Nước sản xuất</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLACEORI</COLNAME>
+      <CAPTION>原产地</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLACEORI</COLNAME>
+      <CAPTION>Xuất xứ</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION>Document Unit Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION>Số lượng đơn vị đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION>单据单位数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION>Số lượng đơn vị chứng từ</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTYSTU</COLNAME>
+      <CAPTION>Received Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTYSTU</COLNAME>
+      <CAPTION>Số lượng nhận hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTYSTU</COLNAME>
+      <CAPTION>收货数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>QTYSTU</COLNAME>
+      <CAPTION>Số lượng nhận hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REQDAT</COLNAME>
+      <CAPTION>Order Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REQDAT</COLNAME>
+      <CAPTION>Ngày vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REQDAT</COLNAME>
+      <CAPTION>提单日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REQDAT</COLNAME>
+      <CAPTION>Ngày đơn hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION>Location</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION>Địa điểm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION>Địa điểm</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION>Source Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION>Số đơn đầu vào</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION>来源单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION>Số lượng đơn đầu vào</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION>Order Line Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION>Hàng đặt hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION>订单行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION>Số dòng đơn hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCTYP</COLNAME>
+      <CAPTION>Source Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCTYP</COLNAME>
+      <CAPTION>Lỗi đầu vào</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCTYP</COLNAME>
+      <CAPTION>来源类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SRCTYP</COLNAME>
+      <CAPTION>Loại nguồn</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>Inventory Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>Đơn vị tồn kho</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>库存单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>Đơn vị tồn kho</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION>Document Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION>Đơn vị</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION>单据单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION>Đơn vị chứng từ</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION>Conversion Rate</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION>Tỉ lệ chuyển đổi đơn vị</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION>换算率</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION>Tỷ lệ quy đổi</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Modification Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Thời gian thay đổi</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>修改时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Thời gian Sửa đổi</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Modifier</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Người thay đổi</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>1</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>修改用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR20</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Người Sửa đổi</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

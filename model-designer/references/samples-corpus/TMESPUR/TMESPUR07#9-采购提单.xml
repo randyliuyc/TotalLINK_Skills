@@ -1,0 +1,344 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR07</ModelCode>
+  <ModelNum>9</ModelNum>
+  <ModelDesc>采购提单</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT TOP (1000) S.[ID]                              LINKROWID
+                  ,S.[DOCNUM]
+                  ,S.[DOCGRP]
+                  ,DOCGRP.OPTDES                      [DOCGRPDES]
+                  ,S.[DOCSTA]
+                  ,DOCSTA.OPTDES                      [DOCSTADES]
+                  ,CONVERT(VARCHAR(16), S.DOCDAT, 23) [DOCDAT]
+                  ,S.[WFLSTA]
+                  ,WFLSTA.OPTDES                      [WFLSTADES]
+                  ,S.[DOCDES]
+                  ,S.[SITE]
+                  ,SI.SITENAM
+                  ,S.[DEPT]
+                  ,DE.DEPTNAM
+                  ,CASE
+                     WHEN Isnull(S.CLRSTA, 0) = 0 THEN '否'
+                     WHEN Isnull(S.CLRSTA, 0) = 1 THEN '是'
+                   END                                CLRSTADES
+                  ,S.[GRP]
+                  ,GR.GRPNAM
+                  ,S.[RESNO]
+                  ,RE.RESNAM
+                  ,S.[PRJNUM]
+                  ,S.[BPSNO]
+                  ,BP.BPSNAM
+                  ,S.[CUR]
+                  ,S.[CURRAT]
+                  ,S.[BVATTYP]
+                  ,S.[SRCTYP]
+                  ,S.[SRCDOC]
+                  ,S.[SRCLIN]
+                  ,S.[REMARK]
+                  ,S.[CLOREA]
+                  ,S.[PRNCNT]
+                  ,S.[SSCO]
+                  ,S.[BLNO]
+                  ,CONVERT(VARCHAR, S.[ETD], 23)      [ETD]
+                  ,CONVERT(VARCHAR, S.[ETA], 23)      [ETA]
+                  ,S.[INVNO]
+                  ,S.[INVAMT]
+                  ,S.[PACQTY]
+                  ,S.[LCDOX]
+                  ,S.[COPHYTOFUMI]
+                  ,S.[HVI]
+                  ,S.[PLACEORI]
+                  ,PLACEORI.OPTDES                    [PLACEORIDES]
+                  ,S.[CONTROLLER]
+                  ,S.[CREUSR]
+                  ,S.[UPDUSR]
+                  ,CONVERT(VARCHAR(16), S.CRETIM, 21) CRETIM
+                  ,CONVERT(VARCHAR(16), S.UPDTIM, 21) UPDTIM
+FROM   [PBOLH] S
+       INNER JOIN ENTSITE SI
+               ON SI.SITE = S.SITE
+       LEFT JOIN ENTDEPT DE
+              ON DE.DEPT = S.DEPT
+       LEFT JOIN ENTGRP GR
+              ON GR.GRP = S.GRP
+       LEFT JOIN ENTRES RE
+              ON RE.RESNO = S.RESNO
+       LEFT JOIN BPSUP BP
+              ON BP.[BPSNO] = S.[BPSNO]
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = S.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'POR'
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = S.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN LINKOPT PLACEORI
+              ON PLACEORI.OPTID = S.PLACEORI
+                 AND PLACEORI.OPTTYP = 'PLACEORI'
+       LEFT JOIN LINK.DBO.SYSUSER USR
+              ON S.CREUSR = USR.LOGINUSER
+WHERE  ( S.CREUSR = N'#LOGIN_USER#' --用户自己 
+          OR '#LINKUSER(#LOGIN_USER#).DOCGRP#' = ''
+          OR Charindex(USR.UDF001, '#LINKUSER(#LOGIN_USER#).DOCGRP#') &gt; 0 ) --用户组权限
+       AND S.DOCNUM + S.BLNO + S.INVNO + S.BPSNO
+           + Isnull(BP.BPSNAM, '') LIKE '%{0}%'
+       AND S.DOCDAT BETWEEN '{1}' AND '{2}'
+       AND S.DOCSTA LIKE '%{3}%'
+       AND ( S.CREUSR = '{4}'
+              OR '{4}' = '' )
+       AND ( S.CLRSTA = '{5}'
+              OR '{5}' = '' )
+ORDER  BY S.ID DESC</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE
+INTO
+[PREQAH] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,N'@DOCGRP@' DOCGRP
+,N'1' DOCSTA
+,N'SAVED' WFLSTA
+,N'@DOCDAT@' DOCDAT
+,N'@DOCDES@' DOCDES
+,N'@PRJNUM@' PRJNUM
+,N'@SITE@' SITE
+,N'@DEPT@' DEPT
+,N'@GRP@' GRP
+,N'@RESNO@' RESNO
+,N'@REMARK@' REMARK
+,N'@CLOREA@' CLOREA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM])
+	WHEN MATCHED THEN
+UPDATE
+SET 
+ DOCNUM = S.DOCNUM
+,DOCGRP = S.DOCGRP
+,DOCDAT = S.DOCDAT
+,DOCDES = S.DOCDES
+,PRJNUM = S.PRJNUM
+,SITE = S.SITE
+,DEPT = S.DEPT
+,GRP = S.GRP
+,RESNO = S.RESNO
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,UPDUSR='#LOGIN_USER#'
+,UPDTIM=GETDATE()
+WHEN NOT MATCHED THEN
+INSERT
+(DOCNUM
+,DOCGRP
+,DOCSTA
+,WFLSTA
+,DOCDAT
+,DOCDES
+,PRJNUM
+,SITE
+,DEPT
+,GRP
+,RESNO
+,REMARK
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCGRP
+,S.DOCSTA
+,S.WFLSTA
+,S.DOCDAT
+,S.DOCDES
+,S.PRJNUM
+,S.SITE
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.REMARK
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>搜索内容</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>开始日期</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>结束日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03>#LINK_TODAY#</ParaDefVal03>
+  <ParaLabel04>单据状态</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>采购员</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE
+INTO
+[PREQAH] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,N'@DOCGRP@' DOCGRP
+,N'1' DOCSTA
+,N'SAVED' WFLSTA
+,N'@DOCDAT@' DOCDAT
+,N'@DOCDES@' DOCDES
+,N'@PRJNUM@' PRJNUM
+,N'@SITE@' SITE
+,N'@DEPT@' DEPT
+,N'@GRP@' GRP
+,N'@RESNO@' RESNO
+,N'@REMARK@' REMARK
+,N'@CLOREA@' CLOREA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM])
+	WHEN MATCHED THEN
+UPDATE
+SET 
+ DOCNUM = S.DOCNUM
+,DOCGRP = S.DOCGRP
+,DOCDAT = S.DOCDAT
+,DOCDES = S.DOCDES
+,PRJNUM = S.PRJNUM
+,SITE = S.SITE
+,DEPT = S.DEPT
+,GRP = S.GRP
+,RESNO = S.RESNO
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,UPDUSR='#LOGIN_USER#'
+,UPDTIM=GETDATE()
+WHEN NOT MATCHED THEN
+INSERT
+(DOCNUM
+,DOCGRP
+,DOCSTA
+,WFLSTA
+,DOCDAT
+,DOCDES
+,PRJNUM
+,SITE
+,DEPT
+,GRP
+,RESNO
+,REMARK
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCGRP
+,S.DOCSTA
+,S.WFLSTA
+,S.DOCDAT
+,S.DOCDES
+,S.PRJNUM
+,S.SITE
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.REMARK
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLNew>
+  <SQLRemove>DELETE FROM PREQAH WHERE DOCNUM='#DOCNUM#' AND DOCSTA='1';</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#78</ImageFile>
+  <ListPrint />
+  <MD5HASH>2face7e205141af56615950b37a5a5ca</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase bill of lading</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Mua vận đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Mua hóa đơn vận đơn</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

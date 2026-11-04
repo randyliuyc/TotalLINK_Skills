@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5610X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫码解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>-- 成品包装入库功能
+-- 扫描半成品工单→匹配可用成品工单（未关闭+有剩余量，按时间取）→扫描电池码→完成入库消耗
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';       
+DECLARE @TAG VARCHAR(200) = '{0}';    
+DECLARE @XTXT_2 VARCHAR(200) = '';                -- 半成品/成品序列号（物理值相同）
+DECLARE @XTXT_0 VARCHAR(200) = '';                -- 电池码
+DECLARE @QTY DECIMAL(18,3) = 1;                   -- 入库数量
+DECLARE @SEMIITM VARCHAR(50);                     -- 半成品产品编码
+DECLARE @CPITM VARCHAR(50);                       -- 成品产品编码
+DECLARE @CPMFGNUM VARCHAR(50);                    -- 匹配到的成品工单号
+DECLARE @CPREMAINQTY DECIMAL(18,3);               -- 成品工单剩余可入库数量
+
+-- 判断扫描类型（半成品工单/电池码）
+IF CHARINDEX('-', @TAG) &gt; 0
+BEGIN
+    -- 扫描的是半成品工单序列号（带-）
+    SET @XTXT_2 = @TAG;
+
+
+    -- 该序列号已入库（XWSMKI中存在相同序列号+成品编码）
+    IF EXISTS (
+        SELECT 1 FROM XWSMKI 
+        WHERE XTXT_2 = @XTXT_2 
+          AND CHARINDEX('-SEMI', ISNULL(ITMREF_0, '')) = 0  -- 产品编码不含-SEMI（成品态）
+    )
+    BEGIN
+        SELECT N'lang:{zh:序列号已入库' + @XTXT_2 + ',en:This serial number has been converted to finished product storage, cannot scan repeatedly：' + @XTXT_2 + ',de:Diese Seriennummer wurde zu Fertigproduktlagerung umgewandelt, kann nicht wiederholt gescannt werden：' + @XTXT_2 + '}' AS 数据检查;
+        RETURN;
+    END
+
+    --  该序列号为半成品态已扫描（未入库）
+    IF EXISTS (
+        SELECT 1 FROM XWSMKI 
+        WHERE XTXT_2 = @XTXT_2 
+          AND CHARINDEX('-SEMI', ITMREF_0) &gt; 0  -- 产品编码含-SEMI（半成品态）
+          AND RPFLG_0 &lt;&gt; 3                       -- 已扫描未入库
+    )
+    BEGIN
+        SELECT N'lang:{zh:序列号已扫描' + @XTXT_2 + ',en:This semi-finished serial number has been scanned but not stored, cannot scan repeatedly：' + @XTXT_2 + ',de:Diese Halbfabrikatsseriennummer wurde gescannt aber nicht gelagert, kann nicht wiederholt gescannt werden：' + @XTXT_2 + '}' AS 数据检查;
+        RETURN;
+    END
+
+ 
+    SELECT TOP 1 
+        @SEMIITM = ITMREF_0
+    FROM XWSMKI
+    WHERE XTXT_2 = @XTXT_2 
+      AND CHARINDEX('-SEMI', ITMREF_0) &gt; 0; 
+
+    -- 半成品工单校验（不存在/非半成品）
+    IF @SEMIITM IS NULL
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM XWSMKI WHERE XTXT_2 = @XTXT_2)
+        BEGIN
+            SELECT N'lang:{zh:半成品工单序列号不存在：' + @XTXT_2 + ',en:Semi-finished WO serial not exist：' + @XTXT_2 + ',de:Halbfabrikatsseriennummer existiert nicht：' + @XTXT_2 + '}' AS 数据检查;
+        END
+        ELSE
+        BEGIN
+            SELECT N'lang:{zh:序列号非半成品工单：' + @XTXT_2 + ',en:Serial is not semi-finished WO：' + @XTXT_2 + ',de:Seriennummer ist kein Halbfabrikatsauftrag：' + @XTXT_2 + '}' AS 数据检查;
+        END
+        RETURN;
+    END
+
+    -- 推导成品产品编码
+    SET @CPITM = REPLACE(@SEMIITM, '-SEMI', '');
+
+    -- 匹配可用成品工单 未关闭+有剩余量，按创建时间取  
+    -- 剩余数量：计划量-已完成量-已扫描未提交量
+    SELECT TOP 1 
+        @CPMFGNUM = D.MFGNUM_0,
+        @CPREMAINQTY = (M.EXTQTY_0 - M.CPLQTY_0) - ISNULL(
+            (SELECT SUM(UOMCPLQTY_0) FROM XWSMKI WHERE MFGNUM_0 = D.MFGNUM_0 AND RPFLG_0 &lt;&gt; 3), 0
+        )
+    FROM MFGHEAD D
+    INNER JOIN MFGITM M ON D.MFGNUM_0 = M.MFGNUM_0
+    WHERE D.MFGFCY_0 = 'ZUPK'                      
+      AND D.MFGSTA_0 &lt;&gt; 4                          
+      AND M.ITMREF_0 = @CPITM                      
+      AND (M.EXTQTY_0 - M.CPLQTY_0) &gt; 0           
+      AND ((M.EXTQTY_0 - M.CPLQTY_0) - ISNULL(    
+            (SELECT SUM(UOMCPLQTY_0) FROM XWSMKI WHERE MFGNUM_0 = D.MFGNUM_0 AND RPFLG_0 &lt;&gt; 3), 0
+          )) &gt; 0
+    ORDER BY D.CREDATTIM_0 ASC;                 
+
+    -- 无可用成品工单（所有工单都关闭/无剩余量）
+    IF @CPMFGNUM IS NULL
+    BEGIN
+        SELECT N'lang:{zh:无可用成品工单,en:No available finished WO ,de:Kein verfügbarer Fertigproduktauftrag }' AS 数据检查;
+        RETURN;
+    END
+
+    -- 返回半成品信息+匹配到的成品工单信息
+    SELECT 
+        X.XTXT_2 AS 半成品序列号,
+        X.SERNUM_0 AS 车架序列号,
+        X.XTXT_1 AS 电机序列号,
+        @QTY AS 入库数量,
+        X.STA_0 AS 存货状态,
+        N'' AS 数据检查,                          
+        @CPMFGNUM AS 工单编号,
+        @CPITM AS 产品编码,
+        @CPREMAINQTY AS 剩余数量
+    FROM XWSMKI X
+    WHERE X.XTXT_2 = @XTXT_2;
+END
+ELSE
+BEGIN
+   
+    SET @XTXT_0 = @TAG;
+
+    -- 校验电池码是否已扫描
+    IF EXISTS (SELECT 1 FROM XWSMKI WHERE XTXT_0 = @XTXT_0 AND RPFLG_0 &lt;&gt; 3)
+    BEGIN
+        SELECT N'lang:{zh:电池码已扫描：' + @XTXT_0 + ',en:Battery code scanned：' + @XTXT_0 + ',de:Batteriecode wurde gescannt：' + @XTXT_0 + '}' AS 数据检查;
+        RETURN;
+    END
+	-- 校验电池码是否已存在库存表中
+    IF EXISTS (SELECT 1 FROM STOCK WHERE STOFLD1_0 = @XTXT_0 )
+    BEGIN
+        SELECT N'lang:{zh:电池码已入库：' + @XTXT_0 + ',en:Battery code scanned：' + @XTXT_0 + ',de:Batteriecode wurde gescannt：' + @XTXT_0 + '}' AS 数据检查;
+        RETURN;
+    END
+
+    -- 返回电池码信息
+    SELECT 
+        @XTXT_0 AS 电池序列号,
+        N'' AS 数据检查;
+END</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#46</ImageFile>
+  <ListPrint />
+  <MD5HASH>b95089ff9ed7670055e2713da4bb6307</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5610X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5610X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

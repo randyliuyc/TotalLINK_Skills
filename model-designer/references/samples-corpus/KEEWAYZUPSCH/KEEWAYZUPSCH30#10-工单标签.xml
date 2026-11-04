@@ -1,0 +1,714 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH30</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>工单标签</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+
+SELECT C.CPYNAM_0                             公司名称
+      ,ISNULL(B.BPAADDLIG_0, '')
+        + ISNULL(B.BPAADDLIG_1, '')
+        + ISNULL(B.BPAADDLIG_2, '')           公司地址
+      ,MFG.MFGNUM_0                           工单号
+      ,MFG.ITMREF_0                           产品编码
+      ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)       产品描述1
+      ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)       产品描述2
+      ,CAST(MFG.EXTQTY_0 AS REAL)             计划数量
+      ,CONVERT(VARCHAR(16), MFG.CREDAT_0, 23) 创建日期
+FROM   MFGITM MFG
+       LEFT JOIN COMPANY C
+              ON C.CPY_0 = 'DE01'
+       LEFT JOIN BPADDRESS B
+              ON B.BPAADD_0 = C.BPAADD_0
+                 AND B.BPANUM_0 = C.CPY_0
+       INNER JOIN ITMMASTER ITM
+               ON MFG.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+WHERE  MFG.MFGFCY_0 = N'{0}'
+       AND MFG.MFGNUM_0 LIKE N'%{1}%'
+       AND MFG.ITMREF_0 LIKE N'%{2}%'
+       AND MFG.STRDAT_0 BETWEEN '{6}' AND '{7}'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>工单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品编码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>打印机</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>打印机编码</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>名称地址</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>开始日期</ParaLabel07>
+  <ParaType07>DATEVAL</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>结束日期</ParaLabel08>
+  <ParaType08>DATEVAL</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card linksearch' style="color: black;"&gt;
+&lt;p class='linkcheck' data="#工单号#" hidden&gt;lang:{zh:工单号,en:Work Order No,de:Auftragsnummer}&lt;/p&gt;
+    &lt;div class="mui-card-body mui-table-view-cell H02"&gt;
+        &lt;a &gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:工单号,en:Work Order No,de:Auftragsnummer}: #工单号#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:产品编码,en:Product,de:Artikel}: #产品编码#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}:#产品描述1#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}:#产品描述2#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:计划数量,en:Planned Quantity,de:Planmenge}: #计划数量#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:操作时间,en:Creation Date,de:Erstellungsdatum}: #创建日期#&lt;/h4&gt;
+        &lt;/a&gt;  
+    &lt;/div&gt;
+
+    &lt;div class="mui-card-footer "&gt;
+       &lt;h4&gt;&lt;/h4&gt;
+       &lt;button class="mui-btn mui-hidden" style="padding:0 20px;height:35px; background-color: #a5d6a5; border: none;" 
+        type="button" linkquick="8" btnid="503" linkrefresh="1" linkparafill="1" linktitle="lang:{zh:标签打印,en:Label Printing,de:Etikettendrucken}" &gt;
+       &lt;b style="font-size:16px"&gt;lang:{zh:标签打印,en:Label Printing,de:Etikettendrucken}&lt;/b&gt;
+       &lt;/button&gt;
+	       &lt;button class="mui-btn mui-btn-blue " style="padding:0 20px;height:35px;" 
+        type="button" linkquick="8" btnid="504" linkrefresh="1" linkparafill="1" linktitle="lang:{zh:标签打印,en:Label Printing,de:Etikettendrucken}" &gt;
+       &lt;b style="font-size:16px"&gt;lang:{zh:标签打印,en:Label Printing,de:Etikettendrucken}&lt;/b&gt;
+       &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly "&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button" required class="link-pick-btn mui-input-clear" not-reset placeholder="" readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:工单号,en:Work Order No.,de:Auftragsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入工单号,en:Fuzzy query of work order number,de:Arbeitsnummer vage Abfrage}"
+id="工单号" paratype="STR" paradm="" value="{1}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:产品编码,en:Product Fuzzy Query,de:Produktabfrage}"
+id="产品编码" paratype="STR" paradm="" value="{2}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:打印机,en:Printer,de:Drucker}&lt;/label&gt;
+&lt;input type="button" class="link-pick-btn mui-input-clear" placeholder="" 
+id="打印机" paratype="PICKERSTR" code="KEEWAYZUPSCH30" num="20"   para="{地点}"  text-value="XPRTNAM_0-XPRTCOD_0"  automatch='{"打印机编码":"XPRTCOD_0","打印机":"XPRTNAM_0"}' reload value="{3}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:打印机,en:Printer,de:Drucker}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="打印机编码" paratype="STR" paradm="" value="{4}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:名称地址,en:name and address,de:Name Adresse}&lt;/label&gt;
+&lt;input type="button" class="link-pick-btn mui-input-clear"  required  placeholder="" 
+id="名称地址" paratype="PICKERSTR" code="KEEWAYZUPSCH3010X" num="10" text-value="MODELNAM-MODECODE" value="true"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:开始日期,en:Start Date,de:Startdatum}&lt;/label&gt;
+&lt;input type="date" class="mui-input-clear" placeholder="请输入开始日期"
+id="开始日期" paratype="DATEVAL" paradm="" value="{6}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:结束日期,en:End Date,de:Enddatum}&lt;/label&gt;
+&lt;input type="date" class="mui-input-clear" placeholder="请输入结束日期"
+id="结束日期" paratype="DATEVAL" paradm="" value="{7}"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#80</ImageFile>
+  <ListPrint />
+  <MD5HASH>b42333ea42c0ce1df489ec72c76cac0e</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Standort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Arbeitsauftragsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Work Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>工单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Drucker</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Print</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>打印机</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>Drucker-Codierung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>Print Num</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>打印机编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Startdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Start date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>开始日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION>Enddatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION>End Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION>结束日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Work Order Label</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Work Order Label</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Product Name1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Product Name2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Produktname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Product Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>产品名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品型号</COLNAME>
+      <CAPTION>Produktmodell</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品型号</COLNAME>
+      <CAPTION>Product Model</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品型号</COLNAME>
+      <CAPTION>产品型号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>创建日期</COLNAME>
+      <CAPTION>Erstellungsdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>创建日期</COLNAME>
+      <CAPTION>Creation Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>创建日期</COLNAME>
+      <CAPTION>创建日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单号</COLNAME>
+      <CAPTION>Arbeitsauftragsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单号</COLNAME>
+      <CAPTION>Work Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单号</COLNAME>
+      <CAPTION>工单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>公司地址</COLNAME>
+      <CAPTION>Firmenadresse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>公司地址</COLNAME>
+      <CAPTION>Company Address</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>公司地址</COLNAME>
+      <CAPTION>公司地址</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>公司名称</COLNAME>
+      <CAPTION>Firmenname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>公司名称</COLNAME>
+      <CAPTION>Company Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>公司名称</COLNAME>
+      <CAPTION>公司名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>计划数量</COLNAME>
+      <CAPTION>Planmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>计划数量</COLNAME>
+      <CAPTION>Planned Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH30</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>计划数量</COLNAME>
+      <CAPTION>计划数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

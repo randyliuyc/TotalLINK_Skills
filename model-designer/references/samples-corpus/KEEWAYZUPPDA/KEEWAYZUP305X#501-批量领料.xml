@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP305X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>批量领料</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+-- 使用参数化变量
+DECLARE 
+    @STOFCY VARCHAR(50) = '{0}',
+    @X9HNUM VARCHAR(50) = '{1}',--X9HZUPK251200001
+    @LOC VARCHAR(30) = '#库位#';--A010101
+
+-- 1. 使用窗口函数获取每个物料的库存记录并统计数量
+WITH CTE_STK AS (
+    SELECT 
+        ITMREF_0,
+        LOT_0,
+        STA_0,
+        SERNUM_0,
+        LOC_0,
+        STOCOU_0,
+        STOFCY_0,
+        QTYSTU_0,
+        SLO_0,
+        PALNUM_0,
+        CTRNUM_0,
+        STOFLD1_0,
+        STOFLD2_0,
+        -- 统计每个物料在指定库位的库存记录数
+        COUNT(*) OVER (PARTITION BY ITMREF_0) AS STK_COUNT,
+        -- 为每个物料的库存记录排序，取第一条
+        ROW_NUMBER() OVER (PARTITION BY ITMREF_0 ORDER BY STOCOU_0) AS RN
+    FROM STOCK
+    WHERE STOFCY_0 = @STOFCY
+        AND LOC_0 = @LOC
+        AND STA_0 LIKE 'A%'
+),
+-- 筛选每个物料的第一条库存记录，且该物料只有一个库存记录
+SingleStock AS (
+    SELECT 
+        ITMREF_0,
+        LOT_0,
+        STA_0,
+        SERNUM_0,
+        LOC_0,
+        STOCOU_0,
+        STOFCY_0,
+        QTYSTU_0,
+        SLO_0,
+        PALNUM_0,
+        CTRNUM_0,
+        STOFLD1_0,
+        STOFLD2_0
+    FROM CTE_STK
+    WHERE RN = 1 AND STK_COUNT = 1  -- 只取有且仅有一条库存记录的情况
+),
+-- 检查已存在的记录
+ExistingRecords AS (
+    SELECT DISTINCT VCRNUM_0, VCRLIN_0
+    FROM XWSSCS
+    WHERE VCRNUM_0 = @X9HNUM
+)
+-- 2. 插入XWSSCS表
+INSERT INTO XWSSCS (
+    MACHINEID_0, USERID_0, CUSERID_0, VCRTYP_0, PK_0, BATCHID_0, PKORI_0, 
+    CREDATIM_0, STAT_0, SUBDATIM_0, RPFLG_0, RPNUM_0, RPLIN_0, RPNOTE_0, 
+    RPDATE_0, RPDATIM_0, VCRNUM_0, VCRLIN_0, STOFCY_0, IPTDAT_0, VCRDES_0, 
+    PJT_0, TRSFAM_0, ITMREF_0, STU_0, QTYSTU_0, LOT_0, SLO_0, SERNUM_0, 
+    STOCOU_0, STA_0, STA_1, LOCTYP_0, LOCTYP_1, LOC_0, LOC_1, PALNUM_0, 
+    PALNUM_1, CTRNUM_0, CTRNUM_1, NOTE_0, NOTE_1, NOTE_2, NOTE_3, NOTE_4, 
+    BPRNUM_0, CREDATTIM_0, UPDDATTIM_0, AUUID_0, CREUSR_0, UPDUSR_0, WRH_0,STOFLD1_0,STOFLD2_0
+)
+SELECT 
+    '#LOGIN_ID#' AS MACHINEID_0,
+    '#LOGIN_USER#' AS USERID_0,
+    '#LOGIN_USER#' AS CUSERID_0,
+    29 AS VCRTYP_0,
+    NEWID() AS PK_0,
+    '' AS BATCHID_0,
+    '' AS PKORI_0,
+    GETDATE() AS CREDATIM_0,
+    1 AS STAT_0,
+    '' AS SUBDATIM_0,
+    1 AS RPFLG_0,
+    '' AS RPNUM_0,
+    0 AS RPLIN_0,
+    '' AS RPNOTE_0,
+    '' AS RPDATE_0,
+    '' AS RPDATIM_0,
+    T.X9HNUM_0 AS VCRNUM_0,
+    T.X9DLIN_0 AS VCRLIN_0,
+    H.STOFCY_0 AS STOFCY_0,
+    GETDATE() AS IPTDAT_0,
+    N'批量领料' AS VCRDES_0,
+    '' AS PJT_0,
+    'MFGT' AS TRSFAM_0,
+    T.ITMREF_0 AS ITMREF_0,
+    T.PCU_0 AS STU_0,
+    -- 计算领料数量：取可用库存和需求量的最小值
+    CASE 
+        WHEN S.QTYSTU_0 &gt; T.QTYPCU_0 THEN T.QTYPCU_0
+        ELSE S.QTYSTU_0
+    END AS QTYSTU_0,
+    S.LOT_0,
+    S.SLO_0,
+    S.SERNUM_0,
+    S.STOCOU_0,
+    S.STA_0 AS STA_0,
+    S.STA_0 AS STA_1,
+    '' AS LOCTYP_0,
+    '' AS LOCTYP_1,
+    S.LOC_0 AS LOC_0,
+    H.X9HDESLOC_0 AS LOC_1,
+    S.PALNUM_0 AS PALNUM_0,
+    S.PALNUM_0 AS PALNUM_1,
+    S.CTRNUM_0 AS CTRNUM_0,
+    S.CTRNUM_0 AS CTRNUM_1,
+    '' AS NOTE_0,
+    '' AS NOTE_1,
+    '' AS NOTE_2,
+    '' AS NOTE_3,
+    '' AS NOTE_4,
+    '' AS BPRNUM_0,
+    GETDATE() AS CREDATTIM_0,
+    '' AS UPDDATTIM_0,
+    NEWID() AS AUUID_0,
+    'TTLNK' AS CREUSR_0,
+    '' AS UPDUSR_0,
+    (
+        SELECT TOP 1 WRH_0
+        FROM STOLOC
+        WHERE LOC_0 = S.LOC_0
+            AND STOFCY_0 = S.STOFCY_0
+    ) AS WRH_0,
+    S.STOFLD1_0,
+    S.STOFLD2_0
+FROM XCN09SGD T
+INNER JOIN XCN09SGH H 
+    ON T.X9HNUM_0 = H.X9HNUM_0
+INNER JOIN SingleStock S  -- 改为INNER JOIN，确保只有单个库存记录的物料才被处理
+    ON T.ITMREF_0 = S.ITMREF_0
+LEFT JOIN ExistingRecords XWS
+    ON T.X9HNUM_0 = XWS.VCRNUM_0
+    AND T.X9DLIN_0 = XWS.VCRLIN_0
+WHERE T.X9HNUM_0 = @X9HNUM
+    AND XWS.VCRNUM_0 IS NULL  -- 排除已存在的记录
+ORDER BY T.X9DLIN_0;  -- 按行号排序，保持插入顺序</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="" id="库位" paratype="STR" paradm="" value=""&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"  
+not-para target-id="库位"  paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{0}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#82</ImageFile>
+  <ListPrint />
+  <MD5HASH>7c4cca60ccfc6a02c7cbe6c6c72ff386</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP305X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Batch Picking</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP305X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Batch Picking</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

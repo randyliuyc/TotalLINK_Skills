@@ -1,0 +1,367 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP56</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>成品包装</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDETAILLIST(KEEWAYZUP5610X,700)
+--LINKMYROWDATA
+DECLARE @MFGFCY VARCHAR(30) = '{0}';
+SELECT 
+       ''                                     工单号
+      ,''                                     产品编码
+	  ,0                                      计划数量
+	  ,0                                      未提交数量
+	  ,0                                      已入数量
+      ,0                                      可入库数量
+	  ,''                                     单位
+      ,''                                     LINKROWIDHIDH
+      ,'mui-hidden'                           LINKROWIDHIDL
+     ,'' id
+UNION ALL
+SELECT
+       XWS.MFGNUM_0                           工单号
+      ,XWS.ITMREF_0                           产品编码
+	  ,CAST(MFI.EXTQTY_0 AS REAL)             计划数量
+      ,SUM(CAST(ISNULL(XWS.UOMCPLQTY_0, 0) AS REAL)   )     未提交数量
+	  ,CAST(MFI.CPLQTY_0 AS REAL)                                             已入数量
+      ,CAST(MFI.EXTQTY_0 - MFI.CPLQTY_0 - ISNULL(XWS.UOMCPLQTY_0, 0) AS REAL) 可入库数量
+	  ,ITM.STU_0                              单位
+
+      ,'mui-hidden'                           LINKROWIDHIDH
+      ,''                                     LINKROWIDHIDL
+     ,XWS.MFGNUM_0  id
+FROM   XWSMKI XWS
+INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = XWS.ITMREF_0
+	   LEFT JOIN MFGITM MFI
+	   ON MFI.MFGNUM_0=XWS.MFGNUM_0
+WHERE  RPFLG_0 &lt;&gt; 3
+       AND USERID_0 = '#LOGIN_USER#'
+	   AND XWS.MFGFCY_0= @MFGFCY
+GROUP  BY XWS.MFGNUM_0 ,XWS.ITMREF_0,MFI.EXTQTY_0,ITM.STU_0,MFI.CPLQTY_0,XWS.UOMCPLQTY_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>入库库位</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKEXECOUTPUT
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @RPTSTA INT = 1;
+DECLARE @RPTMSG NVARCHAR(300) = '';
+DECLARE @CanInsert BIT = 1; -- 新增标志变量
+
+-- 仅保留电池序列号重复校验
+IF EXISTS(SELECT 1 FROM XWSMKI WHERE XTXT_0 = '#电池序列号#' AND MFGFCY_0 = @FCY AND '#电池序列号#' &lt;&gt; '')
+BEGIN
+    SET @CanInsert = 0;
+    SET @RPTSTA = 0;
+    SET @RPTMSG = N'LINKPREVENT:lang:{zh:电池序列号重复,请检查,en:Battery serial number duplicate, please check,de:Batterie-Seriennummer doppelt, bitte prüfen}';
+END
+IF EXISTS(SELECT 1 FROM STOCK WHERE STOFLD1_0 = '#电池序列号#' AND STOFCY_0 = @FCY AND '#电池序列号#' &lt;&gt; '')
+BEGIN
+    SET @CanInsert = 0;
+    SET @RPTSTA = 0;
+    SET @RPTMSG = N'LINKPREVENT:lang:{zh:电池序列号已入库,请检查,en:Battery serial number duplicate, please check,de:Batterie-Seriennummer doppelt, bitte prüfen}';
+END
+
+-- 只有当检查通过时才执行插入
+IF @CanInsert = 1
+BEGIN
+INSERT INTO XWSMKI
+    (
+        MACHINEID_0, USERID_0, CUSERID_0, VCRTYP_0, PK_0, BATCHID_0, PKORI_0, CREDATIM_0, 
+        STAT_0, SUBDATIM_0, RPFLG_0, RPNUM_0, RPLIN_0, RPNOTE_0, RPDATE_0, RPDATIM_0, 
+        MFGFCY_0, MFGNUM_0, ITMREF_0, UOMCPLQTY_0, UOM_0, UOMSTUCOE_0, MFGTRKNUM_0, 
+        PCU_0, QTYPCU_0, PCUSTUCOE_0, LOC_0, STA_0, LOT_0, SLO_0, PALNUM_0, CTRNUM_0, 
+        SHLDAT_0, XCREUSR_0, VCRLIN_0, YUOMCPLQTY_0, UOMCPLQTY2_0, YUOMCPLQTY2_0, 
+        UOM2_0, BPSLOT_0, CREDATTIM_0, UPDDATTIM_0, AUUID_0, CREUSR_0, UPDUSR_0, WRH_0, 
+        XTXT_0, XTXT_1, XTXT_2, XDCB_0, XDCB_1, XDCB_2, XDAT_0, XDAT_1, XDAT_2, 
+        SERNUM_0, XRMK1_0, XRMK2_0, XRMK3_0, XRMK4_0
+    )
+    SELECT
+        '#LOGIN_ID#' AS MACHINEID_0,
+        '#LOGIN_USER#' AS USERID_0,
+        '' AS CUSERID_0,
+        15 AS VCRTYP_0,
+        '#LINKID_ACTION#' AS PK_0,
+        '#LINKID_ACTION#' AS BATCHID_0,
+        ' ' AS PKORI_0,
+        GETDATE() AS CREDATIM_0,
+        1 AS STAT_0,
+        '1900-01-01' AS SUBDATIM_0,
+        1 AS RPFLG_0,
+        ' ' AS RPNUM_0,
+        0 AS RPLIN_0,
+        ' ' AS RPNOTE_0,
+        '1900-01-01' AS RPDATE_0,
+        '1900-01-01' AS RPDATIM_0,
+        O.MFGFCY_0 AS MFGFCY_0,
+        O.MFGNUM_0 AS MFGNUM_0,
+        O.ITMREF_0 AS ITMREF_0,
+        0#入库数量# AS UOMCPLQTY_0,
+        ITM.STU_0 AS UOM_0,
+        1 AS UOMSTUCOE_0,
+        ' ' AS MFGTRKNUM_0,
+        ITM.STU_0 AS PCU_0,
+        #入库数量# QTYPCU_0,
+        1 AS PCUSTUCOE_0,
+        '#库位#' AS LOC_0,
+        '#存货状态#' AS STA_0,
+        '' AS LOT_0,
+        ' ' AS SLO_0,
+        '' AS PALNUM_0,
+        '' AS CTRNUM_0,
+        GETDATE() AS SHLDAT_0,
+        '',
+        O.MFGLIN_0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        GETDATE(), GETDATE(), NEWID(), LEFT('#LOGIN_USER#', 5), ' ',
+        ISNULL((SELECT WRH_0 FROM STOLOC WHERE LOC_0 = '#入库库位#' AND O.MFGFCY_0 = STOFCY_0), ''),
+        '#电池序列号#' AS XTXT_0,
+        '#电机序列号#' AS XTXT_1,
+        '#半成品序列号#' AS XTXT_2,
+        0,
+        0,
+        0,
+        '1900-01-01',
+        '1900-01-01',
+        '1900-01-01',
+        '#车架序列号#', '', '', '', ''
+    FROM MFGITM O
+    INNER JOIN MFGHEAD H ON H.MFGNUM_0 = O.MFGNUM_0
+    LEFT JOIN ITMMASTER ITM ON ITM.ITMREF_0 = O.ITMREF_0
+    LEFT JOIN ITMFACILIT ITF ON ITF.ITMREF_0 = O.ITMREF_0 AND ITF.STOFCY_0 = O.MFGFCY_0
+    WHERE O.MFGNUM_0 = '#工单编号#'
+        AND O.ITMREF_0 = '#产品编码#';
+
+    -- 如果插入成功且之前没有错误，设置成功消息
+    IF @RPTSTA = 1
+    BEGIN
+        SET @RPTMSG = N'lang:{zh:操作成功,en:Operation successful,de:Vorgang erfolgreich}';
+    END
+END
+
+SELECT @RPTSTA AS RPTSTA, @RPTMSG AS RPTMSG;</SQLNew>
+  <SQLRemove>DELETE FROM XWSMKI WHERE RPFLG_0&lt;&gt;3 AND USERID_0='#LOGIN_USER#' AND MFGNUM_0='#工单号#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' style="color: black;"&gt;
+    &lt;div class='mui-card-header #LINKROWIDHIDH#'&gt;
+        &lt;div class="#LINKROWIDHIDH#" style="display: flex; justify-content: flex-end; width: 100%;"&gt;
+            &lt;button type="button" id="linknewrecord" linktitle="lang:{zh:扫码,en:Scan,de:Scannen}"
+                    class="mui-btn mui-btn-blue" style="min-width:100px;height:35px"&gt;
+                &lt;b style="font-size:16px"&gt;lang:{zh:扫码,en:Scan,de:Scannen}&lt;/b&gt;
+            &lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="mui-media-body #LINKROWIDHIDL# mui-table-view-cell mui-collapse "&gt;
+        &lt;h4 style="white-space:pre-wrap"&gt;工单编号:#工单号#&lt;/h4&gt;
+        &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品编码,en:Product,de:Artikel}:#产品编码#&lt;/h4&gt;
+        &lt;h4&gt;lang:{zh:计划数量,en:Planned Qty,de:Geplante Menge}:#计划数量#[#单位#]&lt;/h4&gt;
+        &lt;h4&gt;lang:{zh:已入数量,en:Received Qty,de:Erfasste Menge}:#已入数量#[#单位#]&lt;/h4&gt;
+        &lt;h4&gt;lang:{zh:可入库数量,en:Available Qty,de:Verfügbare Menge}:#可入库数量#[#单位#]&lt;/h4&gt;
+        &lt;div style="overflow: auto; padding:0;"&gt;
+            &lt;div class="link-table-default" style="margin:0;"&gt;
+                &lt;div class="link-table-fixed" style="display: flex; width: 100%;"&gt;
+                    &lt;div style="min-width:50px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:操作,en:Action,de:Aktion}&lt;/div&gt;
+                    &lt;div style="min-width:80px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:车架序列号,en:Frame Serial Number,de:Rahmenseriennummer}&lt;/div&gt;
+                    &lt;div style="min-width:80px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:电机序列号,en:Motor Serial Number,de:Motorseriennummer}&lt;/div&gt;
+                    &lt;div style="min-width:80px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:电池序列号,en:Battery Serial Number,de:Batterieseriennummer}&lt;/div&gt;
+                    &lt;div style="min-width:180px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:工单序列号,en:Work Order Serial Number,de:Arbeitsauftrag-Seriennummer}&lt;/div&gt;
+                    &lt;div style="min-width:80px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:入库数量,en:Qty,de:Menge}&lt;/div&gt;
+                    &lt;div style="min-width:80px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                    &lt;div style="min-width:80px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:操作人员,en:Operator,de:Mitarbeiter}&lt;/div&gt;
+                    &lt;div style="min-width:150px;background-color:#546E7A;color:white;padding:4px;"&gt;lang:{zh:操作时间,en:Operation Time,de:Zeitpunkt}&lt;/div&gt;
+                &lt;/div&gt;
+                #LINKDETAILLIST#
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="mui-card-footer #LINKROWIDHIDL#"&gt;
+        &lt;h4&gt;lang:{zh:未提交数量,en:Pending Qty,de:Offene Menge}:#未提交数量#[#单位#]&lt;/h4&gt;
+        &lt;button type="button" id="linkremove" style="padding:0 20px;height:35px" class="mui-btn mui-btn-danger"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:删除,en:Delete,de:Löschen}&lt;/b&gt;
+        &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec>&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:电池序列号,en:Battery Serial Number,de:Batterieseriennummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Please Scan the Code,de:Bitte scannen Sie den Code}" 
+id="电池序列号" paratype="STR" paradm="" value="" &gt; 
+&lt;/div&gt;
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:入库库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list"   not-reset
+placeholder="" id="库位" required paratype="STR" paradm="" value="{1}"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"   
+not-para target-id="库位"   paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{0}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:车架序列号,en:Frame Serial Number,de:Rahmenseriennummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder=""  required 
+id="车架序列号" paratype="STR" paradm="" value="" readonly="readonly"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:电机序列号,en:Motor Serial Number,de:Motorseriennummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder=""  
+id="电机序列号" paratype="STR" paradm="" value="" readonly="readonly"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:半成品标签,en:Semi-finished Product Label,de:Halbzeug-Etikett}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{}" required
+id="半成品序列号" paratype="STR" paradm="" value=""  readonly="readonly"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:工单编号,en:Work Order Number,de:Arbeitsauftragsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="工单编号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product Code,de:Produktcode}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品编码" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:剩余数量,en:Remaining Quantity,de:Verbleibende Menge}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="剩余数量" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:入库数量,en:Warehousing Quantity,de:Einlagerungsmenge}&lt;/label&gt;
+&lt;input type="number" required class="mui-input-clear" placeholder="" readonly="readonly"
+id="入库数量" paratype="DEC" paradm="" value="" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:存货状态,en:Inventory Status,de:Lagerbestandsstatus}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" required placeholder="" 
+id="存货状态" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:数据检查,en:Data Validation,de:Datenvalidierung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5NewRec>
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:生产地点,en:Production Site,de:Produktionsstandort}&lt;/label&gt;
+&lt;input type="text" class="mui-input"  not-reset placeholder=""  
+id="生产地点" readonly="readonly" paratype="STR" required paradm="" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:入库库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="" id="库位" required paratype="STR" paradm="" value="{1}"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"   
+not-para target-id="库位"   paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{生产地点}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+//删除后自动刷新
+afterFunction=function(id){ 
+    if(id=="linkquick12")
+    reloadModelData()
+}
+
+//扫描状态正常直接查询，不正常跳框提示
+scanAfterAction = function (id) {
+    if ($("#数据检查").val() !== "") {
+        alert($("#数据检查").val());
+    keep_focus("linkinput");
+        return;
+    }
+    keep_focus("linkinput");
+};</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#45</ImageFile>
+  <ListPrint />
+  <MD5HASH>64dd54213c8dee2cc2d7d78c1ffcafff</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP56</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Verpackung des Fertigprodukts</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP56</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Finished product packaging</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5020X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫码解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--更新语句用于处理ERP删除了入库单的情况
+DECLARE @SERNUM NVARCHAR(30)=N'{0}';
+UPDATE XWSMKI SET RPNUM_0='',RPFLG_0=1,STAT_0=1,RPNOTE_0=''
+FROM XWSMKI XWS
+LEFT JOIN MFGITMTRK TRK
+ON XWS.RPNUM_0=TRK.MFGTRKNUM_0
+WHERE XWS.SERNUM_0=@SERNUM  AND TRK.MFGTRKNUM_0 IS NULL AND XWS.STAT_0=2;
+
+SELECT 
+ XWS.MFGFCY_0 生产地点
+,XWS.MFGNUM_0 工单编号
+,XWS.ITMREF_0 产品编码
+,ITM.ITMDES1_0 产品名称
+,R.ZPLANNUM_0 生产计划号
+,XWS.SERNUM_0 车架码
+,XWS.XTXT_0   电池码
+,XWS.XTXT_1   电机码
+--,XWS.LOC_0 入库库位
+,CASE WHEN XWS.STAT_0=9 THEN N'该车架码：'+XWS.SERNUM_0+N'已扫描'
+  WHEN XWS.RPFLG_0=3 THEN N'该车架码：'+XWS.SERNUM_0+N'已入库'
+  WHEN XWS.STAT_0=2 AND RPFLG_0&lt;&gt;3 THEN N'未提交成功' ELSE '' END 数据检查
+FROM XWSMKI XWS
+INNER JOIN ITMMASTER ITM
+ON XWS.ITMREF_0=ITM.ITMREF_0
+INNER JOIN MFGITM MFG
+ON MFG.MFGNUM_0=XWS.MFGNUM_0
+ AND MFG.ITMREF_0=XWS.ITMREF_0
+LEFT JOIN SORDER R
+ON R.SOHNUM_0=MFG.VCRNUMORI_0
+WHERE XWS.SERNUM_0=@SERNUM  AND XWS.RPFLG_0&lt;&gt;3</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>TAG</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#17</ImageFile>
+  <ListPrint />
+  <MD5HASH>6a260ec3db7771662f58b5771510aa6e</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5020X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5020X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

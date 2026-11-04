@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0110X</ModelCode>
+  <ModelNum>508</ModelNum>
+  <ModelDesc>判断是否需要审批</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMULTIROWS
+
+SELECT PUH.DOCNUM
+       ,PUH.DEPT
+       ,PUH.DOCDES
+       ,CASE
+          WHEN Count(*) = Sum(CASE
+                                WHEN ITM.TCLCOD = 'PACK'
+                                     AND ITM.TSICOD1 IN ( '201', '202' ) THEN 1
+                                ELSE 0
+                              END) THEN 1
+          ELSE 0
+        END AS APRSKIP-- 全部符合才为 1，否则 0
+       ,CASE
+          WHEN Count(*) = Sum(CASE
+                                WHEN ITM.TCLCOD = 'PACK'
+                                     AND ITM.TSICOD1 IN ( '201', '202' ) THEN 1
+                                ELSE 0
+                              END) THEN 0
+          ELSE 1
+        END AS NOAPRSKIP -- 有一条不符合就是 1
+       --,1   APRSKIP
+       --,0   NOAPRSKIP
+FROM   PREQUL PUL
+       LEFT JOIN PREQUH PUH
+              ON PUH.DOCNUM = PUL.DOCNUM
+       LEFT JOIN ITM
+              ON PUL.ITMNO = ITM.ITMNO
+WHERE  PUL.DOCNUM = '#DOCNUM#'
+GROUP  BY PUH.DOCNUM
+          ,PUH.DEPT
+          ,PUH.DOCDES;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--DINA 20240624取消该中间状态的更新，考虑到频繁更新该表的问题
+--update XWSPOH SET STAT_0=9 WHERE RPNUM_0='#订单号1#'</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~LINKACTIONLIST~
+[{
+	"dm": {
+		"dmCode": "TMESPUR0110X",
+		"dmNum": 501,
+		"Para": ["#DOCNUM#", "#DEPT#", "#DOCDES#"]
+	},
+	"scriptType": 4,
+	"skip": "#APRSKIP#",
+	"rowData": {}
+},
+{
+	"dm": {
+		"dmCode": "TMESPUR0110X",
+		"dmNum": 504,
+		"Para": ["#DOCNUM#"]
+	},
+	"scriptType": 4,
+	"skip": "#NOAPRSKIP#",
+	"rowData": {}
+}]</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#35</ImageFile>
+  <ListPrint />
+  <MD5HASH>99fea21b6557e569d8263db4adc32815</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

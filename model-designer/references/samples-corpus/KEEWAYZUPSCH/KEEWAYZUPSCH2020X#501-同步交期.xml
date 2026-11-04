@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH2020X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>同步交期</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>LINKCONFIRM:lang:{zh:确认同步交期吗？,en:Confirm to synchronize delivery date?,de:Möchten Sie das Lieferdatum synchronisieren?}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @SOHNUM VARCHAR(30) = '#销售订单#';
+-- 获取订单的发货方式
+DECLARE @MDL VARCHAR(50);
+
+SELECT TOP 1 @MDL = MDL_0
+FROM SORDER
+WHERE SOHNUM_0 = @SOHNUM;
+
+WITH SOHData
+AS (
+  SELECT Q.SOHNUM_0
+    , Q.SOPLIN_0
+    , Q.SOQSEQ_0
+    , Q.ITMREF_0
+    , Q.QTY_0 AS QTYSTU_0
+    , S.BPCINV_0 AS BPRNUM_0
+    , Q.EXTDLVDAT_0 AS EXTDAT_0
+    , DATEADD(DAY, CASE @MDL
+        WHEN 1
+          THEN 50
+        WHEN 2
+          THEN 60
+        WHEN 3
+          THEN 10
+        WHEN 4
+          THEN 5
+        WHEN 10
+          THEN 30
+        END, Q.EXTDLVDAT_0) EXTRCPDAT_0
+  FROM SORDERQ Q
+  INNER JOIN SORDER S
+    ON Q.SOHNUM_0 = S.SOHNUM_0
+  INNER JOIN SORDERP P
+    ON Q.SOHNUM_0 = P.SOHNUM_0
+      AND Q.SOPLIN_0 = P.SOPLIN_0
+  WHERE S.SALFCY_0 = 'ZJKC'
+    AND S.BPCORD_0 = 'DE01'
+    AND P.LINTYP_0 &lt;&gt; 6
+    AND Q.SOHNUM_0 = @SOHNUM
+  )
+  , POHData
+AS (
+  SELECT Q.XREFSOH_0 AS SOHNUM_0
+    , Q.XREFSLIN_0 AS SOPLIN_0
+    , Q.XREFSSEQ_0 AS SOQSEQ_0
+    , Q.ITMREF_0
+    , Q.QTYSTU_0
+    , Q.BPSNUM_0 AS BPRNUM_0
+    , Q.EXTRCPDAT_0 AS EXTDAT_0
+    , Q.POHNUM_0
+    , Q.POPLIN_0
+  FROM PORDERQ Q
+  WHERE Q.POHFCY_0 = 'ZUPK'
+    AND Q.BPSNUM_0 IN ('JXTD', 'BPS00002', 'CN01') -- 兼容历史数据，先保留 CN01
+    AND Q.XREFSOH_0 = @SOHNUM
+  )
+  , CTE_DATECHANGE
+AS (
+  SELECT S.SOHNUM_0
+    , S.SOPLIN_0
+    , P.POHNUM_0
+    , P.POPLIN_0
+    , P.ITMREF_0
+    , S.EXTDAT_0 SALDLVDAT_0
+    , S.EXTRCPDAT_0
+    , P.EXTDAT_0 PURRCPDAT_0
+  FROM SOHData S
+  INNER JOIN POHData P
+    ON S.SOHNUM_0 = P.SOHNUM_0
+      AND S.SOPLIN_0 = P.SOPLIN_0
+      AND S.SOQSEQ_0 = P.SOQSEQ_0
+      AND S.ITMREF_0 = P.ITMREF_0
+  WHERE S.EXTRCPDAT_0 &lt;&gt; P.EXTDAT_0
+  )
+SELECT *
+INTO #TPURDATECHANGE
+FROM CTE_DATECHANGE D;
+
+-- 更改采购订单的日期
+UPDATE Q
+SET EXTRCPDAT_0 = T.EXTRCPDAT_0
+-- SELECT Q.EXTRCPDAT_0
+--   , T.EXTRCPDAT_0
+FROM PORDERQ Q
+INNER JOIN #TPURDATECHANGE T
+  ON T.POHNUM_0 = Q.POHNUM_0
+    AND T.POPLIN_0 = Q.POPLIN_0;
+
+-- 更改采购订单 ORDERS 的日期
+UPDATE Q
+SET ENDDAT_0 = T.EXTRCPDAT_0
+-- SELECT Q.ENDDAT_0
+--   , T.EXTRCPDAT_0
+FROM ORDERS Q
+INNER JOIN #TPURDATECHANGE T
+  ON T.POHNUM_0 = Q.VCRNUM_0
+    AND T.POPLIN_0 = Q.VCRLIN_0
+
+-- INNER JOIN PORDERQ Q
+DROP TABLE #TPURDATECHANGE;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#42</ImageFile>
+  <ListPrint />
+  <MD5HASH>cff869215d12be5a2ed7d36f72c1fa20</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Liefertermin synchronisieren</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2020X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Synchronize the delivery date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

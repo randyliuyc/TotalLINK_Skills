@@ -1,0 +1,243 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0710X</ModelCode>
+  <ModelNum>509</ModelNum>
+  <ModelDesc>采购提单复制的数据插入</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript></SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>NEW</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>OLD</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--添加表头
+INSERT INTO PBOLH
+(
+DOCNUM
+,DOCGRP
+,DOCSTA
+,DOCDAT
+,WFLSTA
+,DOCDES
+,SITE
+,DEPT
+,GRP
+,RESNO
+,PRJNUM
+,BPSNO
+,CUR
+,CURRAT
+,BVATTYP
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,REMARK
+,CLOREA
+,PRNCNT
+,SSCO
+,BLNO
+,ETD
+,ETA
+,BLD
+,INVNO
+,INVAMT
+,PACQTY
+,LCDOX
+,COPHYTOFUMI
+,HVI
+,PLACEORI
+,CONTROLLER
+,CREUSR
+,CRETIM
+)
+SELECT 
+N'{0}'  DOCNUM
+,S.DOCGRP
+,1
+,S.DOCDAT
+,S.WFLSTA
+,S.DOCDES
+,S.SITE
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.PRJNUM
+,S.BPSNO
+,S.CUR
+,S.CURRAT
+,S.BVATTYP
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.REMARK
+,S.CLOREA
+,S.PRNCNT
+,S.SSCO
+,N''
+,S.ETD
+,S.ETA
+,S.BLD
+,S.INVNO
+,S.INVAMT
+,S.PACQTY
+,S.LCDOX
+,S.COPHYTOFUMI
+,S.HVI
+,S.PLACEORI
+,S.CONTROLLER
+,N'#LOGIN_USER#'  CREUSR
+,GETDATE()    CRETIM
+FROM PBOLH S WHERE S.DOCNUM=N'{1}'
+
+--复制明细
+INSERT INTO PBOLD 
+(
+DOCNUM
+,DOCLIN
+,FAC
+,ITMNO
+,ITMVER
+,IVATTYP
+,REQDAT
+,UOM
+,UOMCOE
+,STU
+,QTY
+,QTYSTU
+,CTRQTY
+,CTRNUM
+,NETPRI
+,GROPRI
+,TAXRT
+,NETAMT
+,TAXAMT
+,GRPAMT
+,REMARK
+,LOT
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,ORITYP
+,ORIDOC
+,ORILIN
+,DOCSTA
+,CLOREA
+,CREUSR
+,CRETIM
+)
+SELECT 
+N'{0}' DOCNUM
+,L.DOCLIN
+,L.FAC
+,L.ITMNO
+,L.ITMVER
+,L.IVATTYP
+,L.REQDAT
+,L.UOM
+,L.UOMCOE
+,L.STU
+,L.QTY
+,L.QTYSTU
+,L.CTRQTY
+,L.CTRNUM
+,L.NETPRI
+,L.GROPRI
+,L.TAXRT
+,L.NETAMT
+,L.TAXAMT
+,L.GRPAMT
+,L.REMARK
+--,L.LOT
+,N''
+,L.SRCTYP
+,L.SRCDOC
+,L.SRCLIN
+,L.ORITYP
+,L.ORIDOC
+,L.ORILIN
+,1
+,L.CLOREA
+,N'#LOGIN_USER#'    CREUSR
+,GETDATE()    CRETIM
+FROM PBOLD  L
+WHERE L.DOCNUM=N'{1}'
+ORDER BY L.DOCNUM;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#58</ImageFile>
+  <ListPrint />
+  <MD5HASH>cf90680e2b8bf788359fa99da5f82393</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0710X</DMCODE>
+      <DMNUM>509</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chèn dữ liệu cho bản sao vận đơn mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

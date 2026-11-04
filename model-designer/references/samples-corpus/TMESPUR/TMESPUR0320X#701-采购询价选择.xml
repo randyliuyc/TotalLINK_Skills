@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0320X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>采购询价选择</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.DOCNUM + '-' + Cast(S.DOCLIN AS VARCHAR) DOCKEY
+       ,S.ITMNO
+       ,ITM.ITMNAM
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,T1.OPTDES                                 OPTDES1
+       ,T2.OPTDES                                 OPTDES2
+       ,S.FAC
+       ,S.ITMVER
+       ,( S.QTY - Isnull(P.PORQTY, 0) )           QTY--采购单位数量
+       ,( S.QTYSTU - Isnull(P.PORQTYSTU, 0) )     QTYSTU--库存单位数量
+       ,S.STU--库存单位
+       ,S.UOM--采购单位
+       ,S.UOMCOE--采购单位系数
+       ,CONVERT(VARCHAR(16), S.REQDAT, 21)        REQDAT--要求到货日期
+       --,S.NETPRI--未税单价
+       ,CAST(S.GROPRI/(1+0{7}) AS DECIMAL(18,6))  NETPRI--未税单价
+       ,S.GROPRI--含税单价
+       ,S.CUR
+       --,S.TAXRT--税率
+       ,0{7} TAXRT--税率
+       ,S.DOCTYP                                  SRCTYP--来源类型
+       ,S.DOCNUM                                  SRCDOC--来源单据
+       ,S.DOCLIN                                  SRCLIN--来源行号
+       ,S.DOCSTA--单据状态
+       ,H.RESNO--申请人
+       ,R.RESNAM                                  RESNODES
+       ,S.IVATTYP
+       ,S.REMARK                                  LREMARK
+       ,CASE
+          WHEN S.CUR = '{6}' THEN '1'
+          ELSE ''
+        END                                       CHOOSEFLG --20250820SHIDA
+FROM   PINQUL S
+       LEFT JOIN ITM
+              ON ITM.ITMNO = S.ITMNO --产品 
+       LEFT JOIN LINKOPT T1
+              ON ITM.TSICOD1 = T1.OPTID
+                 AND T1.OPTTYP = 'TSICOD1'
+       LEFT JOIN LINKOPT T2
+              ON ITM.TSICOD2 = T2.OPTID
+                 AND T2.OPTTYP = 'TSICOD2'
+       LEFT JOIN PINQUH H
+              ON H.DOCNUM = S.DOCNUM --询价完成
+       LEFT JOIN [ENTRES] R
+              ON H.[RESNO] = R.RESNO --申请人
+       LEFT JOIN (SELECT L.SRCDOC
+                         ,L.SRCLIN
+                         ,Sum(L.QTY)    PORQTY
+                         ,Sum(L.QTYSTU) PORQTYSTU
+                  FROM   PORDLIN L
+                         INNER JOIN PORDER R
+                                 ON L.DOCNUM = R.DOCNUM
+                  WHERE  ( Isnull(R.CLOREA, '') + Isnull(L.CLOREA, '') = ''
+                            OR L.DOCSTA = 6 ) --排除手动关闭的记录  --SHIDA20250524 OR L.DOCSTA = 6
+                         AND L.SRCTYP = 'PIN'
+                  GROUP  BY L.SRCDOC
+                            ,L.SRCLIN)P
+              ON P.SRCDOC = S.DOCNUM
+                 AND P.SRCLIN = S.DOCLIN
+WHERE  S.DOCSTA = '2 '
+       AND S.QTY - Isnull(P.PORQTY, 0) &gt; 0
+       AND H.SITE = '{0}'
+       AND S.BPSNO = '{1}'
+       AND S.ITMNO LIKE N'%{2}%'
+       AND S.ITMVER LIKE N'%{3}%'
+       AND ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMSPEC
+           + ITM.ITMSIZE LIKE N'%{4}%'
+       AND S.DOCNUM LIKE N'%{5}%'
+ORDER  BY REQDAT DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>供应商</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>模糊查询</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#07</ImageFile>
+  <ListPrint />
+  <MD5HASH>bd8df53787bcaea217920c428eccb415</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0320X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Tùy chọn yêu cầu mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0320X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Mua sắm hỏi giá lựa chọn</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

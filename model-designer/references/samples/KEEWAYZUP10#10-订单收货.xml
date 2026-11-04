@@ -1,0 +1,477 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP10</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>订单收货</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMYROWDATA
+--LINKDETAILLIST(KEEWAYZUP1010X,700,{0},{1},{2},{3},{4})
+--LINKDATAMINEOVERVIEW,H,60,AUTOREFRESH
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @POHNUM VARCHAR(30)='%{1}%';
+DECLARE @BPS NVARCHAR(100)=N'%{3}%';
+DECLARE @ITM NVARCHAR(100)=N'%{4}%';
+
+SELECT TOP 100 Q.POHNUM_0                                                      AS 采购单号
+               ,Q.POPLIN_0                                                     AS 行号
+               ,R.BPSNUM_0                                                     AS 供应商
+               ,Iif(BPS.BPSSHO_0 = '', BPS.BPSNAM_0, BPS.BPSSHO_0)             AS 供应商名称
+               ,Q.ITMREF_0                                                     AS 产品编码
+               --,#LC.X3ERP#GetITMDES(ITM.ITMREF_0, @LAN)                        AS 产品名称
+               ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)                               AS 产品描述1
+               ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)                               AS 产品描述2
+               ,Cast(Q.QTYUOM_0 AS REAL)                                       AS 订单数量
+               ,Q.UOM_0                                                        AS 单位
+               ,Cast(Isnull(Q.RCPQTYPUU_0, 0) AS REAL)                         AS 已收数量
+               ,Cast(Isnull(A.RECQTY, 0) AS REAL)                              AS 已收未提交
+               ,Cast(Q.QTYUOM_0 - Q.RCPQTYPUU_0 AS REAL)                       AS 未收数量
+               ,Cast(Q.QTYUOM_0 - Q.RCPQTYPUU_0 - Isnull(A.RECQTY, 0) AS REAL) AS 需收数量
+               ,ITF.DEFLOC_0                                                   AS 默认收货库位
+               ,Iif(ITM.SERMGTCOD_0 = 3, '1', '')                              AS 默认收货数量
+               ,CASE
+                  WHEN ITF.QUAFLG_0 = 1
+                        OR ITF.QUAFLG_0 = 0 THEN 'A'
+                  ELSE 'Q'
+                END                                                            AS 收货状态
+               ,Q.PRHFCY_0                                                     AS 收货地点
+               ,CASE
+                  WHEN ( Isnull(A.RECQTY, 0) ) &gt; 0 THEN 'E02'
+                  WHEN ( Q.QTYUOM_0 - Q.RCPQTYPUU_0 ) &gt; 0
+                       AND ( Q.QTYUOM_0 - Q.RCPQTYPUU_0 ) &lt; Q.QTYUOM_0 THEN 'A02'
+                  ELSE 'C01'
+                END                                                            AS ROW_BACKCOLOR2
+               ,Iif(ITM.SERMGTCOD_0 = 3, 'required', '')                       AS REQFLG
+               ,Iif(ITM.SERMGTCOD_0 = 3, '', 'mui-hidden')                     AS HIDFLG
+               ,'{5}'                                                          过账日期
+               ,Q.POHNUM_0 + Cast(Q.POPLIN_0 AS VARCHAR)                       id
+       ,CASE WHEN ITF.YLOTCAN_0&lt;&gt;2 AND ITM.LOTMGTCOD_0&gt;1 THEN '*' ELSE '' END LOTMGT  
+	          ,CASE
+          WHEN ITM.LOTMGTCOD_0 &gt; 1 AND ITF.YLOTCAN_0&lt;&gt;2 THEN N'lang:{zh:批次号管理,en:Batch Management,de:Chargenverwaltung}'
+          ELSE ''
+        END                              LOTFLG
+	   ,CASE
+          WHEN SERMGTCOD_0 =3 THEN N'lang:{zh:序列号管理,en:Serial Number Management,de:Seriennummernverwaltung}'
+          ELSE ''
+        END                              SERFLG
+FROM   PORDER R
+       INNER JOIN PORDERQ Q
+               ON R.POHNUM_0 = Q.POHNUM_0
+       INNER JOIN PORDERP P
+               ON P.POHNUM_0 = Q.POHNUM_0
+                  AND P.POPLIN_0 = Q.POPLIN_0
+       LEFT JOIN (SELECT POHNUM_0
+                         ,POPLIN_0
+                         ,Sum(QTYPCU_0) RECQTY
+                  FROM   XWSPTH
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                         AND PKORI_0 = 'POH'
+                  GROUP  BY POHNUM_0
+                            ,POPLIN_0) A
+              ON A.POHNUM_0 = Q.POHNUM_0
+                 AND A.POPLIN_0 = Q.POPLIN_0
+       INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = Q.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       INNER JOIN ITMFACILIT ITF
+               ON ITF.ITMREF_0 = Q.ITMREF_0
+                  AND ITF.STOFCY_0 = Q.POHFCY_0
+       INNER JOIN BPSUPPLIER BPS
+               ON BPS.BPSNUM_0 = R.BPSNUM_0
+WHERE  Q.LINTYP_0 &lt;&gt; 3
+       AND Q.LINCLEFLG_0 &lt;&gt; 2
+       AND R.BETCPY_0 &lt;&gt; 2
+       AND R.POHFCY_0 = @FCY
+       AND Q.POHNUM_0 LIKE @POHNUM
+       AND BPS.BPSNUM_0 + BPS.BPSNAM_0 + BPS.BPSSHO_0 LIKE @BPS
+       AND UPPER(ITM.ITMREF_0+ISNULL(L1.ITMDES, ITM.ITMDES1_0) + ISNULL(L2.ITMDES, ITM.ITMDES2_0)) LIKE Upper(@ITM)
+ORDER  BY A.RECQTY DESC</SQLScript>
+  <SQLUpdateScript>--LINKREFRESH
+INSERT INTO XWSPTH(MACHINEID_0, USERID_0, CUSERID_0, VCRTYP_0, PK_0, BATCHID_0, PKORI_0, CREDATIM_0, STAT_0, SUBDATIM_0,
+                   RPFLG_0,
+                   RPNUM_0, RPLIN_0, RPNOTE_0, RPDATE_0, RPDATIM_0, PRTFLG_0, PRHFCY_0, RCPDAT_0, PTHNUM_0, BPSNUM_0,
+                   CUR_0, POHNUM_0, POPLIN_0, ITMREF_0, ITMDES_0, UOM_0, QTYUOM_0, STU_0, QTYSTU_0, UOMSTUCOE_0,
+                   GROPRI_0, PJT_0, X5HNUM_0, X5DLIN_0, STA_0, PCU_0, QTYPCU_0, QTYUNI_0, LOC_0, LOT_0, BPSLOT_0,
+                   PALNUM_0, CTRNUM_0, SERNUM_0, CREDATTIM_0, UPDDATTIM_0, AUUID_0, CREUSR_0, UPDUSR_0, QTYWEU_0,WRH_0,
+                   XTXT_0,XTXT_1,XTXT_2,XDCB_0,XDCB_1,XDCB_2,XDAT_0,XDAT_1,XDAT_2,SDHNUM_0,SDDLIN_0,YINVQTY_0,YBONQTY_0)
+SELECT '#LOGIN_ID#'   AS MACHINEID_0,
+       '#LOGIN_USER#' AS USERID_0,
+       ''             AS CUSERID_0,
+       6              AS VCRTYP_0,
+       NEWID()        AS PK_0,
+       ''             AS BATCHID_0,
+       'POH'          AS PKORI_0,
+       GETDATE()      AS CREDATIM_0,
+       1              AS STAT_0,
+       '1999-01-01'   AS SUBDATIM_0,
+       1              AS RPFLG_0,
+       ''             AS RPNUM_0,
+       0              AS RPLIN_0,
+       ''             AS RPNOTE_0,
+       '1999-01-01'   AS RPDATE_0,
+       '1999-01-01'   AS RPDATIM_0,
+       0              AS PRTFLG_0,
+       Q.PRHFCY_0     AS PRHFCY_0,
+       '#过账日期#'   AS RCPDAT_0,
+       '#送货单号#'   AS PTHNUM_0,
+       Q.BPSNUM_0     AS BPSNUM_0,
+       O.CUR_0        AS CUR_0,
+       Q.POHNUM_0     AS POHNUM_0,
+       Q.POPLIN_0     AS POPLIN_0,
+       Q.ITMREF_0     AS ITMREF_0,
+       P.ITMDES1_0    AS ITMDES_0,
+       Q.UOM_0        AS UOM_0,
+       0#收货数量#    AS QTYUOM_0,
+       Q.STU_0        AS STU_0,
+       0#收货数量#    AS QTYSTU_0,
+       1              AS UOMSTUCOE_0,
+       0              AS GROPRI_0,
+       ''             AS PJT_0,
+       ''             AS X5HNUM_0,
+       ''             AS X5DLIN_0,
+       '#收货状态#'   AS STA_0,
+       Q.UOM_0        AS PCU_0,
+       0#收货数量#    AS QTYPCU_0,
+       0              AS QTYUNI_0,
+       '#收货库位#'   AS LOC_0,
+       N'#批次#'      AS LOT_0,
+       N'#供应商批次#'AS BPSLOT_0,
+       N''            AS PALNUM_0,
+       ''             AS CTRNUM_0,
+       N'#序列号#'    AS SERNUM_0,
+       GETDATE() AS CREDATTIM_0,
+       GETDATE() AS UPDDATTIM_0,
+        NEWID() AS AUUID_0,
+        'TTLNK' AS CREUSR_0,
+       '' AS UPDUSR_0,
+       0 AS QTYWEU_0,
+     ISNULL((SELECT WRH_0 FROM STOLOC WHERE LOC_0='#收货库位#'AND STOFCY_0='#收货地点#'),''),
+'',
+'',
+'',
+0,
+0,
+0,
+'1900-01-01',
+'1900-01-01',
+'1900-01-01',
+'',
+0,
+0,
+0
+FROM PORDERP P 
+    INNER JOIN PORDERQ Q 
+        ON P.POHNUM_0=Q.POHNUM_0 AND P.POPLIN_0=Q.POPLIN_0
+    INNER JOIN PORDER O 
+        ON O.POHNUM_0 =Q.POHNUM_0 
+    INNER JOIN ITMMASTER I 
+        ON I.ITMREF_0=Q.ITMREF_0
+WHERE Q.POHNUM_0=N'#采购单号#'
+      AND Q.POPLIN_0=N'#行号#'</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>采购地点</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>X3SITE#1</ParaSearchCode01>
+  <ParaDefVal01>ZUPK</ParaDefVal01>
+  <ParaLabel02>采购单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>送货单号</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>供应商</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>产品信息</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>过账日期</ParaLabel06>
+  <ParaType06>DATEVAL</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06>#LINK_TODAY#</ParaDefVal06>
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSPTH WHERE POHNUM_0 =N'#采购单号#' AND POPLIN_0=0#行号# AND RPFLG_0&lt;&gt;3 AND USERID_0=N'#LOGIN_USER#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' style="color: black"&gt;
+
+    &lt;div class='mui-card-header #ROW_BACKCOLOR2#'&gt;
+        &lt;h4&gt;#产品编码##LOTMGT#&lt;/h4&gt;
+        &lt;button class="mui-btn mui-btn-blue" style="padding:0 20px;height:35px" type="button" id="linkedit"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:收货,en:Receipt,de:Wareneingang}&lt;/b&gt;
+        &lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="mui-card-body mui-table-view-cell mui-collapse #LINKROWIDHIDL#"&gt;
+        &lt;a class='mui-navigate-right' href=''&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:订单号-行,en:Order-Line,de:Auftragsposition}:#采购单号#-#行号#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}:#产品描述1#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}:#产品描述2#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:供应商,en:Supplier,de:Lieferant}:#供应商名称#&lt;/h4&gt;
+            &lt;h4&gt; lang:{zh:订单,en:Ordered Qty,de:Auftragsmenge}:#订单数量# &lt;/h4&gt;
+            &lt;h4&gt; lang:{zh:已收,en:Received Qty,de:Eingangsmenge}:#已收数量#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:待收数量,en:Remaining Qty,de:Ausstehende Menge}:#需收数量#[#单位#]&lt;/h4&gt;
+        &lt;/a&gt;
+
+        &lt;ul class='mui-collapse-content'&gt;
+            &lt;div style="overflow: auto; padding:0;"&gt;
+                &lt;div class="link-table-default" style="margin:0"&gt;
+                    &lt;div class="link-table-fixed"&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作,en:Action,de:Operation}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:数量,en:Qty,de:Menge}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作人员,en:Operator,de:Bediener}&lt;/div&gt;
+                        &lt;div style="min-width:150px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Operating Time,de:Bearbeitungszeit}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:批次,en:Lot,de:Losnummer}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/div&gt;
+                        &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:收货单号,en:Receipt No.,de:Wareneingangsnummer}&lt;/div&gt;
+                    &lt;/div&gt;#LINKDETAILLIST#
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/ul&gt;
+
+    &lt;/div&gt;
+    &lt;div class="mui-card-footer"&gt;
+       &lt;h4 style="white-space:pre-wrap ;color: #FF4757; margin: 8px 0;"&gt;lang:{zh:未提交,en:Unsubmitted Qty,de:Nicht gebuchte Menge}:#已收未提交# #LOTFLG#-#SERFLG#&lt;/h4&gt;
+        &lt;button type="button" id="linkremove" style="padding:0 20px;height:35px" class="mui-btn mui-btn-danger"&gt;&lt;b
+                style="font-size:16px"&gt;lang:{zh:删除,en:Delete,de:Löschen}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit>&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:收货地点,en:Location,de:Wareneingangsort}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="收货地点" paratype="STR" paradm="" value="#收货地点#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:送货单号,en:Delivery Note Number,de:Lieferscheinnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="送货单号" paratype="STR" paradm="" value="{2}"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:采购单号,en:Purchase Order,de:Bestellnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="采购单号" paratype="STR" paradm="" value="#采购单号#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:行号,en:Line Number,de:Positionsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="行号" paratype="STR" paradm="" value="#行号#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品编码" paratype="STR" paradm="" value="#产品编码#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品描述1" paratype="STR" paradm="" value="#产品描述1#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品描述2" paratype="STR" paradm="" value="#产品描述2#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row  linkreadonly"&gt;
+&lt;label&gt;lang:{zh:待收数量,en:Remaining Quantity,de:Ausstehende Menge}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="待收数量" paratype="STR" paradm="" value="#需收数量#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:收货数量,en:Received Quantity,de:Erhaltene Menge}&lt;/label&gt;
+&lt;input type="number" required class="mui-input-clear" placeholder="lang:{zh:请输入收货数量,en:Enter received quantity,de:Bitte Menge eingeben}" 
+id="收货数量" paratype="DEC" paradm="" value="#默认收货数量#" onkeyup="one();" &gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:批次,en:Lot,de:Losnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入批次,en:Enter lot,de:Bitte Lot eingeben}"
+id="批次" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:供应商批次,en:Supplier Lot,de:Lieferantencharge}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入供应商批次,en:Enter supplier lot,de:Bitte Lieferantencharge eingeben}"
+id="供应商批次" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row #HIDFLG#"&gt;
+&lt;label&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/label&gt;
+&lt;input type="text" #REQFLG# class="mui-input-clear" placeholder="lang:{zh:请输入或扫码序列号,en:Enter or scan serial no.,de:Seriennummer eingeben/scannen}"
+id="序列号" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:收货库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="lang:{zh:请扫描收货库位,en:Scan storage location,de:Bitte Lagerplatz scannen}" id="收货库位" paratype="STR" paradm="" value="#默认收货库位#"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"  
+not-para target-id="收货库位" paratype="STR" code="KEEWAYZUP.LOC" num="10" text-value="库位-库位" para="#收货地点#" &gt;
+&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:收货状态,en:Receipt Status,de:Eingangsstatus}&lt;/label&gt;
+&lt;input type="text" required class="mui-input-clear" placeholder=""
+id="收货状态" paratype="STR" paradm="" value="#收货状态#" &gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row  mui-hidden"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="过账日期" paratype="DATEC10" paradm="" value="#过账日期#"&gt;
+&lt;/div&gt;</H5Edit>
+  <H5Chart />
+  <H5MaxLines>500</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Location,de:Standort}&lt;/label&gt;
+&lt;input type="button" required class="link-pick-btn mui-input-clear" placeholder="lang:{}" readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:采购单号,en:Purchase Order,de:Bestellnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入采购单号,en:Enter PO,de:Bitte Bestellnr.}"
+id="采购单号" paratype="STR" paradm="" value="{1}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:送货单号,en:Delivery Note Number,de:Lieferscheinnummer}&lt;/label&gt;
+&lt;input type="text" required class="mui-input-clear" placeholder="lang:{zh:请输入送货单号,en:Enter delivery note,de:Bitte Lieferschein}"
+id="生产计划号" paratype="STR" paradm="" value="{2}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:供应商,en:Supplier,de:Lieferant}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入供应商,en:Enter supplier,de:Bitte Lieferant}" 
+id="供应商" paratype="STR" paradm="" value="{3}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:产品信息,en:Product Information,de:Produktinformation}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入产品信息,en:Enter product,de:Bitte Produkt}"
+id="产品信息" paratype="STR" paradm="" value="{4}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="date" required class="mui-input-clear" placeholder="lang:{}" 
+id="过账日期" paratype="DATEC10" paradm="" value="#LINK_TODAY#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:状态,en:Status,de:Status}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="状态" paratype="STR" paradm="" value="" &gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+scanAfterAction = function (id) {
+    var b = plus.webview.currentWebview().id
+    if (b.indexOf("modelpara") != -1) {
+        var dmPara = reParaList();
+        showModelData(dmPara)
+    }
+}
+
+
+beforeFunction=function(sta){
+    var a=$("#收货数量").val();
+    var b=$("#待收数量").val();
+    if (a*1&gt;b*1)
+    {
+        alert("lang:{zh:收货数量超出待收数量，不允许,en:Received quantity exceeds pending quantity,de:Empfangene Menge übersteigt ausstehende Menge}");
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+//删除后自动刷新
+afterFunction=function(id){ 
+    if(id=="linkquick12")
+    reloadModelData()
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#71</ImageFile>
+  <ListPrint />
+  <MD5HASH>06b4af481d8aa08db9b6438dffb7bdfe</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Bestellung erhalten</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Order Receipt</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

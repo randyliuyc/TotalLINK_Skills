@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR07</ModelCode>
+  <ModelNum>120</ModelNum>
+  <ModelDesc>采购提单明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE    @CLMCHS   VARCHAR(30) = '{0}';
+DECLARE    @STRDATE  DATE='{1}'
+DECLARE    @ENDDATE  DATE='{2}'
+DECLARE    @BLNO     VARCHAR(30) = '%{3}%';
+DECLARE    @INVNO	 VARCHAR(30) = '%{4}%';
+DECLARE    @CONTNOE	 VARCHAR(30) = '%{5}%';
+
+SELECT TOP (500) S.[ID]
+      ,S.[DOCNUM]
+      ,S.[DOCLIN]
+      ,S.[ITMNO]
+	  ,ITM.ITMNAM+ITM.ITMNAM1+ITM.ITMNAM2    ITMNAM          --产品描述     
+      ,S.[ITMVER]
+      ,S.[IVATTYP]
+	  ,H.BLNO
+      ,CONVERT(VARCHAR(10),H.ETD, 21)   ETD
+      ,CONVERT(VARCHAR(10),H.ETA, 21)   ETA
+      ,CONVERT(VARCHAR(10),H.BLD, 21)   BLD
+      ,H.INVNO
+	  ,P.CONTNOE
+	  ,IVATTYP.OPTDES   IVATTYPDES
+      ,S.[REQDAT]
+      ,S.[UOM]
+      ,S.[UOMCOE]
+      ,S.[STU]
+      ,S.[QTY]
+      ,S.[QTYSTU]
+      ,S.[PRCQTY]
+      ,S.[PRCQTYSTU]
+      ,S.[PRTQTY]
+      ,S.[PRTQTYSTU]
+      ,S.[NETPRI]
+      ,S.[GROPRI]
+      ,S.[TAXRT]
+      ,S.[NETAMT]
+      ,S.[TAXAMT]
+      ,S.[GRPAMT]
+      ,S.[REMARK]
+      ,S.[LOT]
+      ,S.[SRCTYP]
+      ,S.[SRCDOC]
+      ,S.[SRCLIN]
+      ,dbo.OPTDES('DOCSTA', H.DOCSTA) DOCSTA
+      ,S.[CLOREA]
+      ,S.[CREUSR]
+      ,S.[UPDUSR]
+      ,CONVERT(VARCHAR(16), S.[CRETIM], 21) CRETIM
+      ,CONVERT(VARCHAR(16), S.[UPDTIM], 21) UPDTIM
+      ,IIF(S.DOCSTA='1','','1') LDEBFLG
+      ,IIF(S.DOCSTA IN('1','2'),'','1') LCLBFLG
+  FROM [PBOLD]   S 
+ LEFT JOIN PBOLH H 
+              ON S.DOCNUM=H.DOCNUM
+ LEFT JOIN PORDER P 
+              ON S.SRCDOC=P.DOCNUM
+ LEFT JOIN ITM 
+              ON ITM.ITMNO=S.ITMNO
+ LEFT JOIN LINKOPT DOCSTA  
+              ON DOCSTA.OPTID=H.DOCSTA AND DOCSTA.OPTTYP='DOCSTA'
+ LEFT JOIN LINKOPT IVATTYP
+              ON IVATTYP.OPTID=S.IVATTYP AND IVATTYP.OPTTYP='IVATTYP'
+WHERE  CONVERT(VARCHAR(10),[{0}],21) BETWEEN  @STRDATE AND @ENDDATE
+AND H.BLNO LIKE @BLNO
+AND H.INVNO LIKE @INVNO
+AND P.CONTNOE  LIKE @CONTNOE
+ORDER BY S.DOCNUM DESC,S.DOCLIN</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>字段选择</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>开始日期</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02>#LINKDATE(0,-1,0,yyyy-MM-dd)#</ParaDefVal02>
+  <ParaLabel03>结束日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03>#LINK_TODAY#</ParaDefVal03>
+  <ParaLabel04>供应商提单号</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>发票号</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>合同号</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#98</ImageFile>
+  <ListPrint />
+  <MD5HASH>4641a4371b9ec66cfb61f6694663d047</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu chi tiết vận đơn mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Thông tin chi tiết về vận đơn mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

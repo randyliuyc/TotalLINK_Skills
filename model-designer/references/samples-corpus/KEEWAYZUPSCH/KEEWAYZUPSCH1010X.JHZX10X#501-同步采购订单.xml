@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH1010X.JHZX10X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>同步采购订单</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@LINK01:
+SELECT CASE 
+    WHEN COUNT(*) = 0 THEN N'LINKPREVENT:lang:{zh:当前用户没有确认记录，请先勾选确认再同步,en:No confirmation records found for the current user. Please check confirmations before synchronizing.,de:Keine Bestätigungseinträge für den aktuellen Benutzer. Bitte bestätigen Sie die Auswahl vor der Synchronisierung.}'
+    WHEN SUM(CASE WHEN BPSNUM_0 = '' OR BPSNUM_0 IS NULL THEN 1 ELSE 0 END) &gt; 0 
+        THEN N'LINKPREVENT:lang:{zh:已确认中供应商不完整，请检查,en:Incomplete supplier information in confirmed records. Please check.,de:Unvollständige Lieferanteninformationen in den bestätigten Einträgen. Bitte überprüfen.}'
+    ELSE N'LINKCONFIRM:lang:{zh:确认同步采购订单到ERP吗？,en:Confirm synchronization of purchase orders to ERP?,de:Synchronisation der Bestellungen zum ERP bestätigen?}'  
+  END 
+FROM XWSPOH 
+WHERE RPFLG_0 &lt;&gt; 3 
+  AND USERID_0 = '#LOGIN_USER#' 
+  AND XMHNUM_0 = '{1}'
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+UPDATE XWSPOH SET STAT_0=2
+                 ,RPFLG_0=1
+                 ,SUBDATIM_0=GETDATE()
+                 ,BATCHID_0 = '#LINKID_ACTION#'
+WHERE RPFLG_0&lt;&gt;3 
+ AND STAT_0=1
+ AND USERID_0='#LOGIN_USER#'
+ AND XMHNUM_0='{1}'</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~X3WEB~RUN~XWSTTLINKU~
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;PARAM&gt;
+ &lt;FLD NAM="XWS_MACHINEID"&gt;#LOGIN_ID#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_USERID"&gt;#LOGIN_USER#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_TRSTYP"&gt;14&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_PK"&gt;&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_BATCHID"&gt;#LINKID_ACTION#&lt;/FLD&gt;
+&lt;/PARAM&gt;
+~{"codeLang": "#LINKFUNC.GETLANX3#"}</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#70</ImageFile>
+  <ListPrint />
+  <MD5HASH>633220d73b68c7a374ba5d5dc11ccc32</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Bestellung synchronisieren</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Synchronous Purchase Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.JHZX10X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

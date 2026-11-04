@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA353040X</ModelCode>
+  <ModelNum>702</ModelNum>
+  <ModelDesc>维修内容</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT 
+CASE WHEN SAMP = '车把/把立调整' THEN N'lang:{zh:车把/把立调整,de:Lenker/Vorbau einstellen}'
+     WHEN SAMP = '车座/座管调整' THEN N'lang:{zh:车座/座管调整,de:Sattel/Sattelstütze einstellen}'
+     WHEN SAMP = '握把更换' THEN N'lang:{zh:握把更换,de:Griffwechsel}'
+     WHEN SAMP = '变速线更换' THEN N'lang:{zh:变速线更换,de:Schaltzugwechsel}'
+     WHEN SAMP = '飞轮/卡式飞轮拆装' THEN N'lang:{zh:飞轮/卡式飞轮拆装,de:Zahnkranz/Kassette demontieren/montieren}'
+     WHEN SAMP = '后拨/内变速调整' THEN N'lang:{zh:后拨/内变速调整,de:Schaltwerk/Nabenschaltung einstellen}'
+     WHEN SAMP = '链条更换' THEN N'lang:{zh:链条更换,de:Kettenwechsel}'
+     WHEN SAMP = '链条清洁润滑' THEN N'lang:{zh:链条清洁润滑,de:Kette reinigen und schmieren}'
+     WHEN SAMP = '灯线更换/维修' THEN N'lang:{zh:灯线更换/维修,de:Lichtkabelwechsel/Reparatur}'
+     WHEN SAMP = '前灯或尾灯拆装' THEN N'lang:{zh:前灯或尾灯拆装,de:Vorder- oder Rücklicht demontieren/montieren}'
+     WHEN SAMP = '车轮校正' THEN N'lang:{zh:车轮校正,de:Laufrad zentrieren}'
+     WHEN SAMP = '更换辐条并校正' THEN N'lang:{zh:更换辐条并校正,de:Speichenwechsel und Zentrieren}'
+     WHEN SAMP = '后轮内胎/外胎更换（中置电机）' THEN N'lang:{zh:后轮内胎/外胎更换（中置电机）,de:Hinterrad Schlauch/Reifen wechseln (Mittelmotor)}'
+     WHEN SAMP = '前轮内胎/外胎更换' THEN N'lang:{zh:前轮内胎/外胎更换,de:Vorderrad Schlauch/Reifen wechseln}'
+     WHEN SAMP = '真空胎拆装/维护' THEN N'lang:{zh:真空胎拆装/维护,de:Tubeless-Reifen demontieren/montieren/Wartung}'
+     WHEN SAMP = '车锁安装' THEN N'lang:{zh:车锁安装,de:Schlossmontage}'
+     WHEN SAMP = '挡泥板安装/调整' THEN N'lang:{zh:挡泥板安装/调整,de:Schutzblechmontage/Einstellung}'
+	 WHEN SAMP = '儿童座椅安装' THEN N'lang:{zh:儿童座椅安装,de:Kindersitzmontage}'
+	 WHEN SAMP = '货架安装（不带电池）' THEN N'lang:{zh:货架安装（不带电池）,de:Gepäckträgermontage (ohne Batterie)}'
+	 WHEN SAMP = '脚撑安装/更换' THEN N'lang:{zh:脚撑安装/更换,de:Ständermontage/Wechsel}'
+	ELSE SAMP END SAMP
+FROM QAINSPVAL 
+WHERE DOCNUM = 'MFG24100102-65' 
+AND OPENUM = '150' 
+AND VALLIN = 0{0}
+AND TRXLIN &lt;&gt; 0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>检查内容</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#53</ImageFile>
+  <ListPrint />
+  <MD5HASH>88e183e5e8254e4ccf73b53ad9941c31</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

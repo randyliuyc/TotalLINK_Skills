@@ -1,0 +1,212 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0150X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>生成请求汇总</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @PRQNUM VARCHAR(30) = '#DOCNUM#';
+-- 源数据准备（聚合 + 排序，计算行号）
+-- 声明临时变量保存最大 DOCLIN
+DECLARE @MAX_DOCLIN INT;
+
+-- 获取当前PINNUM在PINQUL表中的最大DOCLIN
+SELECT @MAX_DOCLIN = Isnull(Max(DOCLIN), 0)
+FROM   PREQUL
+WHERE  DOCNUM = @PRQNUM;
+
+-- 主查询
+WITH BaseData
+     AS (SELECT L.ITMNO
+                ,L.ITMVER
+                ,L.STU
+                ,L.UOM
+                ,L.UOMCOE
+                ,Min(L.REQDAT)                                                          AS REQDAT
+                ,Sum(L.PRQQTY)                                                             AS QTY
+                ,Sum(L.PRQQTYSTU)                                                          AS QTYSTU
+                ,String_agg(Iif(L.REMARK = '', H.DEPT , H.DEPT + '(' + L.REMARK + ')'), ';') AS REMARK
+                ,Max(PRE.DOCLIN)                                                        AS DOCLIN -- 可能为空
+         FROM   PREQAL L
+                INNER JOIN PREQAH H
+                        ON H.DOCNUM = L.DOCNUM
+                LEFT JOIN PREQUL PRE
+                       ON PRE.ITMNO = L.ITMNO
+                          AND PRE.ITMVER = L.ITMVER
+                          AND PRE.STU = L.STU
+                          AND PRE.UOM = L.UOM
+                          AND PRE.UOMCOE = L.UOMCOE
+                          AND PRE.DOCNUM = L.PRQNUM
+         WHERE  L.PRQNUM = @PRQNUM
+         GROUP  BY L.ITMNO
+                   ,L.ITMVER
+                   ,L.STU
+                   ,L.UOM
+                   ,L.UOMCOE)
+    ,Numbered AS (
+    SELECT *,
+        RN = CASE WHEN DOCLIN IS NULL 
+            THEN ROW_NUMBER() OVER (
+                PARTITION BY CASE WHEN DOCLIN IS NULL THEN 1 ELSE 0 END 
+                ORDER BY ITMNO, ITMVER, STU, UOM, UOMCOE
+            ) 
+            ELSE NULL 
+        END
+    FROM BaseData)
+    ,SourceData
+     AS (SELECT ITMNO
+                ,ITMVER
+                ,STU
+                ,UOM
+                ,UOMCOE
+                ,REQDAT
+                ,QTY
+                ,QTYSTU
+                ,REMARK
+                ,
+                -- 如果有PINQUL.DOCLIN就用它，否则按最大DOCLIN + RN * 10 来生成
+                COALESCE(DOCLIN, @MAX_DOCLIN + RN * 10) AS DOCLIN
+         FROM   Numbered )
+
+-- 合并更新或插入
+MERGE INTO PREQUL AS TARGET
+USING SourceData AS SOURCE
+ON TARGET.DOCNUM = @PRQNUM
+   AND TARGET.ITMNO = SOURCE.ITMNO
+   AND TARGET.ITMVER = SOURCE.ITMVER
+   AND TARGET.STU = SOURCE.STU
+   AND TARGET.UOM = SOURCE.UOM
+   AND TARGET.UOMCOE = SOURCE.UOMCOE
+-- 存在则更新
+WHEN MATCHED THEN
+  UPDATE SET TARGET.REQDAT = SOURCE.REQDAT
+             ,TARGET.QTY = SOURCE.QTY
+             ,TARGET.QTYSTU = SOURCE.QTYSTU
+             ,TARGET.DOCSTA = 1
+             ,TARGET.UPDUSR = @USER
+             ,TARGET.UPDTIM = Getdate()
+-- 不存在则插入
+WHEN NOT MATCHED THEN
+  INSERT ( DOCNUM --请求单号
+             ,DOCLIN --行号
+             ,ITMNO --产品编码
+             ,ITMVER --产品版本
+             ,REQDAT --要求日期
+             ,STU --库存单位
+             ,UOM --采购单位
+             ,UOMCOE --采购单位系数
+             ,QTY --采购单位数量
+             ,QTYSTU --库存单位数量
+             ,REMARK --备注
+             ,SRCTYP --来源类型
+             ,SRCDOC --来源单据
+             ,SRCLIN --来源行号
+             ,DOCSTA --单据状态
+             ,CREUSR --创建用户
+             ,CRETIM --创建时间
+             ,CLOREA --关闭原因 
+			 )
+  VALUES ( @PRQNUM-- 单据号
+           ,SOURCE.DOCLIN-- 行号
+           ,SOURCE.ITMNO-- 产品编码
+           ,SOURCE.ITMVER-- 产品版本
+           ,SOURCE.REQDAT-- 要求日期
+           ,SOURCE.STU-- 库存单位
+           ,SOURCE.UOM-- 采购单位
+           ,SOURCE.UOMCOE-- 采购单位系数
+           ,SOURCE.QTY-- 采购单位数量
+           ,SOURCE.QTYSTU-- 库存单位数量
+           ,SOURCE.REMARK-- 部门备注
+           ,''-- 来源类型
+           ,''-- 来源单据号
+           ,0-- 来源行号
+           ,1-- 单据状态
+           ,@USER-- 创建用户
+           ,Getdate() -- 创建时间
+	   ,''
+);</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#29</ImageFile>
+  <ListPrint />
+  <MD5HASH>45c7135d8ff19baf0926e8345f1be32a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0150X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Tạo tóm tắt yêu cầu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

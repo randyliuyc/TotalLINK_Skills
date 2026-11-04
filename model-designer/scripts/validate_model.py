@@ -2,10 +2,12 @@
 """模型 XML 静态诊断（零网络）。由 `tlk model validate` 调用，本身不提供命令行入口。
 
 入口：
-    validate_file(path, expect_code=None, expect_num=None, columns=None) -> dict
+    validate_file(path, expect_code=None, expect_num=None, columns=None,
+                  env=None) -> dict
 
 诊断在导入之前完成：找出「导入会被拒」「模型必然跑不通」的硬错误，
-以及「大概率不对」的警告。规则依据 references/ 与 21 个真实样例。
+以及「大概率不对」的警告。规则依据 references/ 与 43 个精选样例 + samples-corpus/
+640 个语料（盘点 2026-10-29 / 2026-11-04）。
 
 严重级别:
     error    导入会被拒 / 反序列化必然失败 / 必填项缺失
@@ -17,6 +19,15 @@
 
 columns 传 `tlk model run` 返回的 columns（列表），用于对齐
 「CubeSetting 是否覆盖实际返回列」；不传则跳过该检查。
+
+env 传目标环境标签（"app" / "fb"），启用模型族一致性检查（FAMILY_*）：
+    app  H5LIST 或 H5GRIDHDR+H5GRIDDTL（成对）必须二选一、H5PARA 不得为空；
+         H5EDIT/H5NEWREC 缺失而对应提交脚本存在时给 warning（不依赖服务端兜底）。
+    fb   500 伴生模型（ModelNum=500）：H5PARA(formSetting) 须可解析为 JSON、
+         SEARCHSELECT(formData) 非空、"#FORMDATA#" 必须写成带双引号的字面量
+         （服务端按 '"#FORMDATA#"' 整体替换，SysDataModel2.vb:58）；
+         formtemplate 缺失给 warning（语料 21 处全填）；formbtns/selectData
+         非空给 info（语料 259 个 FB 模型恒空）。
 """
 
 import json
@@ -41,10 +52,12 @@ ROW_SCRIPT_FIELDS = ("SQLUpdateScript", "SQLNew", "SQLRemove", "SQLClear",
 
 # 经 string.Format 处理、字面花括号需转义的字段。
 # CallFunction / ModelSetting 的花括号是 JSON 结构本身，转义反而破坏语义。
-BRACE_FIELDS = ("SQLScript", "SQLUpdateScript", "SQLNew", "SQLRemove",
-                "SQLClear", "JavaScript")
+# JavaScript 不检查：语料 26 个非空 JS 全部含对象字面量且正常工作（FormatException 兜底为原系统设计）。
+BRACE_FIELDS = ("SQLScript", "SQLUpdateScript", "SQLNew", "SQLRemove", "SQLClear")
 
-PARA_TYPES = {"STR", "DROPDOWN", "DROPRELOAD", "MOREFUNC"}
+# 权威词汇表：EParamType（旧库 GlobeEnum.vb:61-81），语料实证 DATEVAL（KEEWAYZUP10#10、TMESPUR01#9）
+PARA_TYPES = {"DATEC8", "DATEC10", "DATEINT8", "DATEVAL", "DATETIME", "DEC",
+              "STR", "SPEECHSTR", "PICKERSTR", "DROPDOWN", "DROPRELOAD", "MOREFUNC"}
 
 CUBE_ATTRS = ("DMCODE", "DMNUM", "COLNAME", "CAPTION", "COLTYPE",
               "COLFORMAT", "COLAGGREGATE", "DISPORDER", "FORMULA")
@@ -54,8 +67,9 @@ USAGE_INT = {"DMNUM", "SCRIPT"}
 
 # 行级占位符白名单：前缀命中即视为运行时占位符，不是「本模型的列名」
 TOKEN_PREFIXES = ("LINKSCRIPTGET", "LINKSCRIPTRUN", "LINKRES", "LINKID_",
-                  "SYSUSER", "LC.", "LINKDROP", "LINKLIST", "LINKTEXT", "LOAD")
-TOKEN_EXACT = {"LINKROWID", "LOGIN_USER", "TAG"}
+                  "SYSUSER", "LC.", "LINKDROP", "LINKLIST", "LINKTEXT", "LOAD",
+                  "LINKFUNC", "LINKROWID", "LINK_")
+TOKEN_EXACT = {"LINKROWID", "LOGIN_USER", "LOGIN_ID", "LINK_TODAY", "TAG"}
 # 行级占位符大小写不敏感（脚本里既有 #LINKROWID# 也有 #LOGIN_USER#）
 TOKEN_PREFIXES_UPPER = tuple(p.upper() for p in TOKEN_PREFIXES)
 
@@ -64,22 +78,26 @@ FLAG_FIELD = {
     "--LINKSAVEONENTERKEY": "SQLUpdateScript",
     "--LINKEDITMODE": "SQLUpdateScript",
     "--LINKREQUIRED": "SQLUpdateScript",
+    "--LINKDATAAUTOSAVE": "SQLUpdateScript",   # KEEWAYZUP10#5 行内编辑三件套之一
     "--LINKADDNEWROWS": "SQLNew",
     "--LINKNOGROUP": "SQLScript",
+    "--LINKNOFILTER": "SQLScript",             # ERAQATSK10X#713
+    "--LINKAUTOREPLACEEMPTYCOLUMNS": "SQLScript",  # KEEWAYZUP1010X#701 批量导入
+    "--LINKDETAILLIST": "SQLScript",           # KEEWAYZUP10#10 子表挂载
     "--LINKDATAMINELAYOUT": "SQLScript",
     "--LINKLOADDATAIMMEDIATE": "SQLScript",
     "--LINKDATAMINEOVERVIEW": "SQLScript",
-    "--LINKREFRESH": "SQLClear",
+    "--LINKREFRESH": None,   # 语料实证：SQLClear（#21 提交）与 SQLUpdateScript（#10 编辑保存）均出现
     "--LINKSCRIPTGET": None,
     "--LINKSCRIPTRUN": None,
 }
 # 源码有解析、样例未实证：格式必须先去读源码确认
 FLAG_UNEVIDENCED = {
-    "--LINKAUTHORIZE", "--LINKDATAAUTOSAVE", "--LINKADDNEWROWTOP",
+    "--LINKAUTHORIZE", "--LINKADDNEWROWTOP",
     "--LINKGANTTVIEW", "--LINKCALENDARVIEW", "--LINKLOGICALDAY",
     "--LINKPIVOTGRID", "--LINKNOEXPORT", "--LINKWAITTASKDONE",
     "--LINKCALLFUNCTION", "--LINKSHOWPROCESS", "--LINKSHOWEXCEPTION",
-    "--LINKUPDATESCRIPT", "--LINKDATATRANSPOSITION", "--LINKDETAILLIST",
+    "--LINKUPDATESCRIPT", "--LINKDATATRANSPOSITION",
     "--LINKBACKFUNC", "--LINKWINDOWMODE", "--LINKMYROWDATA",
 }
 
@@ -214,7 +232,7 @@ def check_structure(root, d):
             d.error("MISSING_FIELD", required, f"<{required}> 不能为空")
 
 
-def check_identity(root, d, expect_code, expect_num):
+def check_identity(root, d, expect_code, expect_num, env=None):
     code = text_of(root, "ModelCode")
     raw_num = text_of(root, "ModelNum")
     num = None
@@ -259,9 +277,10 @@ def check_identity(root, d, expect_code, expect_num):
     h5 = [t for t in ("H5List", "H5Detail", "H5Edit", "H5Chart", "H5NewRec",
                       "H5Para", "H5AttPara", "H5GridHeader", "H5GridDetail")
           if text_of(root, t) != ""]
-    if h5:
+    if h5 and env not in ("app", "fb"):
         d.warning("H5_NONEMPTY", ",".join(h5),
-                  "H5 字段属 TotalLINK APP 场景，本 Skill 不覆盖；留空或保持原值")
+                  "目标环境不含 APP/FB 时 H5 字段应留空；确认目标环境"
+                  "（--env app|fb 可启用对应检查）")
 
     return code, num
 
@@ -338,9 +357,13 @@ def check_placeholders(root, slots, last, is_main, d):
 
         leftover = BRACE_TOKEN_RE.sub("", text)
         if field in BRACE_FIELDS and ("{" in leftover or "}" in leftover):
-            d.warning("BRACE_UNESCAPED", field,
-                      "脚本含未转义的字面花括号；经 string.Format 时会抛异常并回退逐参替换，"
-                      "需要字面花括号时写 {{ }}")
+            # FB 500 的字段映照 JSON（语料 21 处一致写法）花括号是结构本身，不报
+            if field == "SQLScript" and _is_json_object(text):
+                pass
+            else:
+                d.warning("BRACE_UNESCAPED", field,
+                          "脚本含未转义的字面花括号；经 string.Format 时会抛异常并回退逐参替换，"
+                          "需要字面花括号时写 {{ }}")
 
         if field in ROW_SCRIPT_FIELDS:
             continue
@@ -352,6 +375,13 @@ def check_placeholders(root, slots, last, is_main, d):
             d.warning("PARAM_UNUSED", f"ParaLabel{slot['index']:02d}",
                       f"参数 {slot['index']} 已定义但所有脚本都没引用 "
                       f"{{{slot['index'] - 1}}}")
+
+
+def _is_json_object(text):
+    try:
+        return isinstance(json.loads(text), dict)
+    except (json.JSONDecodeError, ValueError):
+        return False
 
 
 def is_runtime_token(name):
@@ -605,9 +635,76 @@ def check_modelsetting(root, d):
     walk_keys(data, "", visit)
 
 
+# ---------------------------------------------------------------- 模型族一致性（--env）
+
+def check_family(root, env, d):
+    """目标环境为 APP / FB 时的模型族一致性检查。规则依据 references/endpoints.md。"""
+    if env == "app":
+        hdr = text_of(root, "H5GridHeader")
+        dtl = text_of(root, "H5GridDetail")
+        if bool(hdr) != bool(dtl):
+            d.error("FAMILY_GRID_PAIR", "H5GridHeader/H5GridDetail",
+                    "表格模式要求 H5GRIDHDR 与 H5GRIDDTL 成对出现（H5GRIDHDR 非空即表格模式，"
+                    "行模板为空则只剩表头与分页行）")
+        if not text_of(root, "H5Para"):
+            d.error("FAMILY_H5PARA_EMPTY", "H5Para",
+                    "APP 参数区必须有显式 H5PARA 模板；服务端兜底已删除，留空即无参数区")
+        if not text_of(root, "H5List") and not hdr:
+            d.error("FAMILY_LIST_TEMPLATE", "H5List/H5GridHeader",
+                    "APP 列表无内容模板：H5List（卡片列表）与 H5GridHeader（表格模式）必须二选一")
+        if text_of(root, "SQLUpdateScript") and not text_of(root, "H5Edit"):
+            d.warning("FAMILY_EDIT_TEMPLATE", "H5Edit",
+                      "有编辑脚本但 H5Edit 为空：新服务端不再兜底生成编辑表单，"
+                      "APP 编辑页将无内容")
+        if text_of(root, "SQLNew") and "--LINKADDNEWROWS" not in text_of(root, "SQLNew") \
+                and not text_of(root, "H5NewRec"):
+            d.warning("FAMILY_NEWREC_TEMPLATE", "H5NewRec",
+                      "有新增脚本（按钮式新增）但 H5NewRec 为空：新服务端不再兜底生成新增表单")
+
+    elif env == "fb":
+        raw_num = text_of(root, "ModelNum")
+        if raw_num != "500":
+            return  # 500 伴生模型的检查；主模型侧无可静态判定的族约束
+        if text_of(root, "ConnString").upper() == "LINKMENUITEM":
+            return  # 菜单/列表注册模型走 LINKMENUITEM 独立链路，不是 linkDMFormData 表单定义
+        setting = text_of(root, "H5Para")
+        if not setting:
+            d.error("FAMILY_H5PARA_EMPTY", "H5Para",
+                    "500 伴生模型的 H5Para 即表单设置(formSetting JSON)，为空则表单无定义")
+            return
+        if "{" in setting:
+            try:
+                setting_obj = json.loads(setting)
+            except json.JSONDecodeError as e:
+                d.error("FAMILY_FORMSETTING_JSON", "H5Para",
+                        f"formSetting 不是合法 JSON（{e.msg}）；formtemplate/"
+                        "formData/tableData/selectList 都从这里读取")
+            else:
+                if isinstance(setting_obj, dict):
+                    if not setting_obj.get("formtemplate"):
+                        d.warning("FAMILY_FORMTEMPLATE_MISSING", "H5Para",
+                                  "formSetting 缺 formtemplate（LINKFORMMOD 骨架编号，"
+                                  "语料 21 个 #500 全部填写）；缺它表单骨架无从加载")
+                    for key in ("formbtns", "selectData"):
+                        if setting_obj.get(key) not in (None, [], {}):
+                            d.info("FAMILY_FORMSETTING_FIELD", f"H5Para.{key}",
+                                   f"{key} 非空：语料 259 个 FB 模型恒空，按钮逻辑通常由 "
+                                   "#501+ 动作模型与骨架 btns 承担，确认是否有意使用")
+        if '"#FORMDATA#"' in setting:
+            pass  # 正确写法：带双引号的字面量
+        elif "#FORMDATA#" in setting:
+            d.error("FAMILY_FORMDATA_QUOTES", "H5Para",
+                    '#FORMDATA# 必须写成带双引号的字面量 "#FORMDATA#"——服务端按 '
+                    "完整 '\"#FORMDATA#\"' 替换（SysDataModel2.vb:58），缺引号则 formData 替换不上，"
+                    "静默返回空表单")
+        if not text_of(root, "SQLScript"):
+            d.error("FAMILY_FORMDATA_EMPTY", "SQLScript",
+                    "500 伴生模型的 SEARCHSELECT 承载 formData 定义，为空则表单无数据结构")
+
+
 # ---------------------------------------------------------------- 入口
 
-def validate_tree(root, expect_code=None, expect_num=None, columns=None):
+def validate_tree(root, expect_code=None, expect_num=None, columns=None, env=None):
     d = Diagnostics()
 
     if root.tag != ROOT_TAG:
@@ -616,7 +713,7 @@ def validate_tree(root, expect_code=None, expect_num=None, columns=None):
         return d, "", None
 
     check_structure(root, d)
-    code, num = check_identity(root, d, expect_code, expect_num)
+    code, num = check_identity(root, d, expect_code, expect_num, env)
     # 主模型 = 编号 10（samples/README：主模型之外每个 ModelNum 是附加模型）
     is_main = num == 10
     slots = param_slots(root)
@@ -627,10 +724,11 @@ def validate_tree(root, expect_code=None, expect_num=None, columns=None):
     check_cube(root, d, columns)
     check_usage(root, d)
     check_modelsetting(root, d)
+    check_family(root, env, d)
     return d, code, num
 
 
-def validate_file(path, expect_code=None, expect_num=None, columns=None):
+def validate_file(path, expect_code=None, expect_num=None, columns=None, env=None):
     try:
         with open(path, encoding="utf-8-sig") as f:
             raw = f.read()
@@ -644,7 +742,7 @@ def validate_file(path, expect_code=None, expect_num=None, columns=None):
         diag.error("XML_PARSE", "", f"XML 解析失败：{e}")
         return _result(path, "", None, diag)
 
-    diag, code, num = validate_tree(root, expect_code, expect_num, columns)
+    diag, code, num = validate_tree(root, expect_code, expect_num, columns, env)
     return _result(path, code, num, diag)
 
 

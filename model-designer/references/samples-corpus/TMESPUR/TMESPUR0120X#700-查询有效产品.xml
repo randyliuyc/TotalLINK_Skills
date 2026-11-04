@@ -1,0 +1,792 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0120X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>查询有效产品</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @TCLCOD VARCHAR(30) = '{0}';
+DECLARE @TSICOD1 VARCHAR(30) = '{1}';
+DECLARE @TSICOD2 VARCHAR(30) = '{2}';
+DECLARE @TSICOD3 VARCHAR(30) = '{3}';  
+DECLARE @ITMSIZE NVARCHAR(100) = N'%{4}%';  
+DECLARE @ITMSPEC NVARCHAR(100) = N'%{5}%';  
+DECLARE @ITM VARCHAR(30) = '%{6}%';  
+
+SELECT X.ITMKey
+       ,X.ITMDES
+       ,X.ITMNO
+       ,X.ITMNOORI
+       ,T1.OPTDES OPTDES1
+       ,T2.OPTDES OPTDES2
+       ,X.ITMNAM
+       ,X.ITMNAM1
+       ,X.ITMNAM2
+       ,X.ITMSIZE
+       ,X.ITMSPEC
+       ,X.REQDAT
+       ,X.ITMSHO
+       ,X.TCLCOD
+       ,X.TSICOD1
+       ,X.TSICOD2
+       ,X.TSICOD3
+       ,X.TSICOD4
+       ,X.TSICOD5
+       ,X.SITE
+       ,X.SEAKEY
+       ,X.ITMSTA
+       ,X.STU --库存单位
+       ,X.UOM --采购单位
+       ,X.SAU
+       ,X.UOMCOE --采购单位系数
+       ,X.SAUCOE
+       ,X.WEU
+       ,X.ITMWEI
+       ,X.PCU
+       ,X.PCUCOE
+       ,X.SIZEU
+       ,X.SIZELONG
+       ,X.SIZEWIDTH
+       ,X.SIZEHIGH
+       ,X.CBU
+       ,X.ITMCUB
+       ,X.STKQTY
+       ,X.PORQTY
+       ,X.ITMVERFLG
+FROM   (SELECT TOP 500 S.ITMNO  ITMKey
+                       ,S.ITMNO+S.ITMNAM          ITMDES
+                       ,S.ITMNO
+                       ,S.ITMNOORI
+                       ,S.ITMNAM --中文描述
+                       ,S.ITMNAM1 --越南描述 
+                       ,S.ITMNAM2 --英文描述
+                       ,S.ITMSIZE
+                       ,S.ITMSPEC
+                       ,'#LINKDATE(0,0,0,yyyy-MM-dd)#'           REQDAT
+                       ,S.ITMSHO
+                       ,S.TCLCOD
+                       ,S.TSICOD1
+                       ,S.TSICOD2
+                       ,S.TSICOD3
+                       ,S.TSICOD4
+                       ,S.TSICOD5
+                       ,ITMSITE.SITE
+                       ,S.SEAKEY
+                       ,S.ITMSTA
+                       ,S.STU --库存单位
+                       ,S.PUU                                    UOM --采购单位
+                       ,S.SAU
+                       ,S.PUUCOE                                 UOMCOE --采购单位系数
+                       ,S.SAUCOE
+                       ,S.WEU
+                       ,S.ITMWEI
+                       ,S.PCU
+                       ,S.PCUCOE
+                       ,S.SIZEU
+                       ,S.SIZELONG
+                       ,S.SIZEWIDTH
+                       ,S.SIZEHIGH
+                       ,S.CBU
+                       ,S.ITMCUB
+                       ,STK.STKQTY
+                       ,POR.PORQTY
+                       ,S.ITMVERFLG
+        FROM   ITM S
+               LEFT JOIN ITMSITE
+                      ON S.ITMNO = ITMSITE.ITMNO --地点
+               LEFT JOIN (SELECT ITMNO
+                                 ,Sum(K.QTY) STKQTY
+                          FROM   STK  K
+                          INNER JOIN ENTWH WH
+                         ON WH.WH = K.WH
+                         AND WH.WHGRP = 'STO'
+              -- 2026年10月19日，XXK，限制仅存储仓库
+    
+                          GROUP  BY ITMNO) STK
+                      ON STK.ITMNO = S.ITMNO
+               LEFT JOIN (
+                         -- 采购在途
+                         SELECT L.ITMNO
+                                ,Sum(L.QTY - L.PRCQTY + L.PRTQTY) PORQTY
+                          FROM   PORDLIN L
+                                 INNER JOIN PORDER H
+                                         ON H.DOCNUM = L.DOCNUM
+                          WHERE  H.DOCSTA = 2
+                                 AND L.DOCSTA = 2
+                          GROUP  BY L.ITMNO) POR
+                      ON POR.ITMNO = S.ITMNO
+        WHERE  S.ITMSTA = '1' --激活的
+               AND ( S.TCLCOD = @TCLCOD
+                      OR @TCLCOD = '' ) --产品种类
+               AND ( S.TSICOD1 = @TSICOD1
+                      OR @TSICOD1 = '' )
+               AND ( S.TSICOD2 = @TSICOD2
+                      OR @TSICOD2 = '' )
+               AND ( S.TSICOD3 = @TSICOD3
+                      OR @TSICOD3 = '' )
+               AND S.ITMSIZE LIKE @ITMSIZE
+               AND S.ITMSPEC LIKE @ITMSPEC
+               AND S.ITMNO + S.ITMNAM + S.ITMNAM1 + S.ITMNAM2
+                   + S.ITMSPEC + S.ITMSIZE LIKE @ITM
+        ORDER  BY S.ITMNO ASC) X
+       LEFT JOIN LINKOPT T1
+              ON T1.OPTTYP = 'TSICOD1'
+                 AND T1.OPTID = X.TSICOD1
+                 AND T1.OPTTYP = 'TSICOD1'
+       LEFT JOIN LINKOPT T2
+              ON T2.OPTTYP = 'TSICOD2'
+                 AND T2.OPTID = X.TSICOD2
+ORDER  BY X.ITMNO ASC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>产品种类</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品统计组1</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品统计组2</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品统计组3</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>产品统计组4</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>品名</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>规格</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>型号/件数</ParaLabel08>
+  <ParaType08>STR</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09>产品信息</ParaLabel09>
+  <ParaType09>STR</ParaType09>
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#54</ImageFile>
+  <ListPrint />
+  <MD5HASH>4d35f0a088e55cfdac30623d7eec0f87</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>CBU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMCUB</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMKey</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMNAM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMNAM1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMNAM2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMSHO</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMSIZE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMSPEC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMSTA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ITMWEI</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA08</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA09</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Truy vấn sản phẩm hợp lệ</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu sản phẩm hợp lệ</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>OPTDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>OPTDES1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>OPTDES2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>OPTDES3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>PCU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>PCUCOE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>PORQTY</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>REQDAT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SAU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SAUCOE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SEAKEY</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SIZEHIGH</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SIZELONG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SIZEU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>SIZEWIDTH</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>STKQTY</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>TCLCOD</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>TSICOD1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>TSICOD2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>TSICOD3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>TSICOD4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>TSICOD5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0120X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>WEU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

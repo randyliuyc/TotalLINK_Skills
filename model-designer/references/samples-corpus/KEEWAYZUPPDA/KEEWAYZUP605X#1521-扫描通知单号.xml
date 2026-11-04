@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP605X</ModelCode>
+  <ModelNum>1521</ModelNum>
+  <ModelDesc>扫描通知单号</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT H.X3HNUM_0   通知单号
+      ,BPC.BPCNAM_0 客户信息
+      ,H.STOFCY_0   地点
+      ,CASE 
+          WHEN H.X3HSTA_0 = 1 THEN N'lang:{zh:通知单未确认,en:Notification not confirmed,de:Benachrichtigung nicht bestätigt}'
+          ELSE ''
+        END         数据检查
+FROM   XCN03SODH H
+       LEFT JOIN BPCUSTOMER BPC
+              ON H.BPCORD_0 = BPC.BPCNUM_0
+       LEFT JOIN (SELECT SUM(QTY_0)       QTY_0
+                        ,SUM(X3DSDDQTY_0) X3DSDDQTY_0
+                        ,X3HNUM_0
+                  FROM   XCN03SODD
+                  GROUP  BY X3HNUM_0)D
+              ON H.X3HNUM_0 = D.X3HNUM_0
+WHERE  ISNULL(H.X3HNUM_0, '') = '{0}'
+
+UNION ALL
+
+SELECT ''   通知单号
+      ,''   客户信息
+      ,'ZUPK'   地点
+      ,N'lang:{zh:无法查到通知单记录,en:Notification record not found,de:Benachrichtigungsdatensatz nicht gefunden}' 数据检查
+WHERE  NOT EXISTS (
+           SELECT 1 FROM XCN03SODH WHERE X3HNUM_0 = '{0}'
+       )</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_ajax=function(id, arr, res) {
+	var parajson = {
+		loginID: arr[1],
+		par: {
+			dmCode: arr[2],
+			dmNum: arr[3], 
+//根据标签编号获取标签内容的模型
+			
+Para: arr[4] 
+//传入的参数值，标签号码
+		}
+	};
+	mui.ajax(arr[0], {
+		data: parajson,
+		dataType: 'json',
+ //服务器返回json格式数据
+		
+type: 'post', //HTTP请求类型
+		async: false,
+		timeout: 30000, 
+//超时时间设置为10秒；
+		success: function(re) {
+			try {
+				var result = (re.data.Table[0].TAGCONTENT);
+				deal_json(JSON.parse(result)); 
+//解析json
+				
+if(JSON.parse(result)['打印批次']==""){
+alert("打印批次不存在");
+}
+			} catch(e) {
+				plus.nativeUI.toast("解析失败");
+				document.getElementById(id).value = res;
+			} finally {
+				plus.nativeUI.closeWaiting();
+			}
+		},
+		error: function(xhr, type, errorThrown) {
+			
+//异常处理；
+			
+plus.nativeUI.closeWaiting();
+			plus.nativeUI.toast(type);
+		}
+	});
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#98</ImageFile>
+  <ListPrint />
+  <MD5HASH>c86a6a7617e75f29bdcb36b27b054487</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>1521</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Notification Number</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>1521</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Notification Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

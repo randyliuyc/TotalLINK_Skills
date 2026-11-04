@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQAROU10X710X501X</ModelCode>
+  <ModelNum>1000</ModelNum>
+  <ModelDesc>判断是否是一个类型的</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@DATAQA:
+DECLARE @P1 VARCHAR(30) = '{0}';
+DECLARE @P2 VARCHAR(30) = '{1}';
+DECLARE @T1  VARCHAR(30) ;
+DECLARE @T2  VARCHAR(30) ;
+DECLARE @N1  INT ;
+DECLARE @N2  INT ;
+SELECT @T1=ROUTYP  FROM [QAROU] WHERE ROUCOD=@P1
+SELECT @T2=MAX(ROUTYP),@N1=COUNT(*)  FROM [QAROU] WHERE ROUCOD=@P2
+SELECT  @N2=COUNT(*) FROM  [QAROULIN] WHERE  ROUCOD=@P1
+
+
+SELECT CASE  WHEN @T1&lt;&gt;@T2 THEN 'LINKPREVENT:Copy ROUTING Code does not belong to this type:'+@T1
+             WHEN @P2=''  THEN 'LINKPREVENT:Copy ROUTING Code cannot be empty'
+			 WHEN @N1=0  AND @P2&lt;&gt;'' THEN 'LINKPREVENT:Copy ROUTING Code does not exist or spelled incorrectly'
+			 WHEN @N2&lt;&gt;0 AND @P2&lt;&gt;'' AND @T1=@T2 THEN 'LINKCONFIRM:Copy ROUTING Code will overwrite the existing data'
+			 ELSE ''
+END
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#60</ImageFile>
+  <ListPrint />
+  <MD5HASH>31fc4b2f1506f71beee2cf06d3c46a28</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

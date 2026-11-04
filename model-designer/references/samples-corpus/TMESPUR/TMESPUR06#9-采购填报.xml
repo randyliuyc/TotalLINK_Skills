@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR06</ModelCode>
+  <ModelNum>9</ModelNum>
+  <ModelDesc>采购填报</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.ID                                                                                            LINKROWID
+       ,S.DOCNUM
+       ,DOCGRP.OPTDES                                                                                  DOCGRP
+       ,DOCSTA.OPTDES                                                                                  DOCSTA
+       ,WFLSTA.OPTDES                                                                                  WFLSTA
+       ,CONVERT(VARCHAR(16), S.DOCDAT, 23)                                                             DOCDAT
+       ,S.DOCDES
+       ,S.PRJNUM
+       ,SI.SITENAM                                                                                     SITE
+       ,S.FAC
+       ,F.FACNAM
+       ,DE.DEPTNAM                                                                                     DEPT
+       ,GR.GRPNAM                                                                                      GRP
+       ,RE.RESNAM                                                                                      RESNO
+       ,S.REMARK
+       ,S1.NAME + '(' + S.CREUSR + ')'                                                                 CREUSR
+       ,S2.NAME + '(' + S.UPDUSR + ')'                                                                 UPDUSR
+       ,CONVERT(VARCHAR(16), S.CRETIM, 21)                                                             CRETIM
+       ,Iif(CONVERT(VARCHAR(16), S.UPDTIM, 21) = '1900-01-01', '', CONVERT(VARCHAR(16), S.UPDTIM, 21)) UPDTIM
+FROM   PREQAH S
+       INNER JOIN ENTSITE SI
+               ON SI.SITE = S.SITE
+       LEFT JOIN ENTFAC F
+              ON F.FAC = S.FAC
+       LEFT JOIN ENTDEPT DE
+              ON DE.DEPT = S.DEPT
+       LEFT JOIN ENTGRP GR
+              ON GR.GRP = S.GRP
+       LEFT JOIN ENTRES RE
+              ON RE.RESNO = S.RESNO
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = S.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'PRE'
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = S.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN LINK.DBO.SysUser S1
+              ON S.CREUSR = S1.LoginUser
+       LEFT JOIN LINK.DBO.SysUser S2
+              ON S.UPDUSR = S2.LoginUser
+WHERE  S.DOCNUM + Isnull(S.DOCDES, '')
+       + Isnull(S.PRJNUM, '') + Isnull(S.DEPT, '')
+       + Isnull(S.RESNO, '') LIKE '%{0}%'
+       AND S.DOCDAT BETWEEN '{1}' AND '{2}'
+       AND S.DOCSTA LIKE '%{3}%'
+       AND ( S.DEPT IN(SELECT DEPT
+                       FROM   ENTDEPT
+                       WHERE  SITE = 'SV'
+                              AND ( DEPT = '#LINKUSER(#LOGIN_USER#).DEPT3#'
+                                     OR DEPT IN (SELECT DEPT
+                                                 FROM   USERDEPT
+                                                 WHERE  LoginUser = N'#LOGIN_USER#') ))
+              OR ( '#LINKUSER(#LOGIN_USER#).DEPT3#' = ''
+                   AND NOT EXISTS (SELECT 1
+                                   FROM   USERDEPT
+                                   WHERE  LoginUser = N'#LOGIN_USER#') ) )
+ORDER  BY S.ID DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>搜索内容</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>开始日期</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>结束日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03>#LINK_TODAY#</ParaDefVal03>
+  <ParaLabel04>单据状态</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#78</ImageFile>
+  <ListPrint />
+  <MD5HASH>e9d06bc8885a7b79e70ca43053b23424</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase filling</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Báo cáo mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>1</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>采购填报</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Đăng ký mua sắm</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

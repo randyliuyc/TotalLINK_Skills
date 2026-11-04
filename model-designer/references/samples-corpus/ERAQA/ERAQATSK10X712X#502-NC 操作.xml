@@ -1,0 +1,270 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X712X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>Non comformity action</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>OPENUM</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>NCTYP</ParaLabel03>
+  <ParaType03>DROPDOWN</ParaType03>
+  <ParaSearchCode03>ERAQANCTYP#10</ParaSearchCode03>
+  <ParaDefVal03>?</ParaDefVal03>
+  <ParaLabel04>REMARK</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04>?</ParaDefVal04>
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+DECLARE @OPENUM VARCHAR(30) = '{1}'
+DECLARE @NCTYP VARCHAR(30) = '{2}'
+DECLARE @REMARK NVARCHAR(100) = N'{3}'
+DECLARE @VALLIN INT = 0#LINKROWIDVALLIN#
+DECLARE @TRXLIN INT = 0#TRXLIN#
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+
+UPDATE QAINSPVAL SET NCTYP=@NCTYP
+                   , NCUSR=@USER
+                   , NCTIM=GETDATE()
+                   , REMARK=REMARK + ' '+ @REMARK
+WHERE DOCNUM = @DOCNUM
+    AND OPENUM = @OPENUM
+    AND VALLIN = @VALLIN
+    AND TRXLIN = @TRXLIN;
+
+IF @NCTYP IN('Redo','Retake')
+BEGIN
+-- 生成重检顺序号
+DECLARE @NTRXLIN INT
+
+SELECT @NTRXLIN = MAX(TRXLIN) + 1
+FROM QAINSPVAL
+WHERE DOCNUM = @DOCNUM
+    AND OPENUM = @OPENUM
+    AND VALLIN = @VALLIN
+
+INSERT INTO QAINSPVAL (
+      [DOCNUM]
+    , [OPENUM]
+    , [VALLIN]
+    , [TRXLIN]
+    , [SPOOL]
+    , [COIL]
+    , [SAMP]
+    , [N1]
+    , [N2]
+    , [N3]
+    , [N4]
+    , [N5]
+    , [N6]
+    , [N7]
+    , [N8]
+    , [CREUSR]
+    , [CRETIM]
+    )
+SELECT [DOCNUM]
+    , [OPENUM]
+    , [VALLIN]
+    , @NTRXLIN TRXLIN
+    , [SPOOL]
+    , [COIL]
+    , [SAMP]
+    , [N1]
+    , [N2]
+    , [N3]
+    , [N4]
+    , [N5]
+    , [N6]
+    , [N7]
+    , [N8]
+    , @USER [CREUSR]
+    , getdate() [CRETIM]
+FROM QAINSPVAL V
+WHERE V.DOCNUM = @DOCNUM
+    AND V.OPENUM = @OPENUM
+    AND V.VALLIN = @VALLIN
+    AND V.TRXLIN = @TRXLIN;
+END;
+
+EXECUTE [SP_INSPVAL_LCHECK] 
+   @DOCNUM
+  ,@OPENUM
+  ,@VALLIN
+  ,@TRXLIN;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#82</ImageFile>
+  <ListPrint />
+  <MD5HASH>081acf6f1001d2a7b0f1b0f211887b7a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>NC Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>NC 类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Remark</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>备注</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Non comformity action</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X712X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>NC 操作</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

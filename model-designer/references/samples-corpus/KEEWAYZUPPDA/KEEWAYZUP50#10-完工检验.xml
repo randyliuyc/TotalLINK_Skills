@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP50</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>完工检验</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDATAMINEOVERVIEW
+--LINKAPPMENUHIDE
+DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#';
+DECLARE @LANX3 VARCHAR(30) = (
+    SELECT #LC.X3ERP#GETLANX3(@LAN)
+    );
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @MFGNUM VARCHAR(30)=N'%{1}%';
+DECLARE @ZPLANNUM NVARCHAR(100)=N'%{2}%';
+DECLARE @DYMB NVARCHAR(20)=N'{3}';
+DECLARE @DYFS NVARCHAR(20)=N'{4}';
+
+SELECT TOP 500 MFI.MFGNUM_0                                                           工单编号
+              ,MFI.ITMREF_0                                                           产品编码
+              --,ITM.ITMDES1_0                                                          产品名称
+			  ,ISNULL(B.ITMDES, ITM.ITMDES1_0) 产品名称
+              ,ITM.ITMDES2_0                                                          产品描述
+              ,R.ZPLANNUM_0                                                           生产计划号
+              ,CAST(MFI.EXTQTY_0 AS REAL)                                             计划数量
+              ,CAST(MFI.CPLQTY_0 AS REAL)                                             已入数量
+              ,CAST(ISNULL(XWI.UOMCPLQTY_0, 0) AS REAL)                               未提交数量
+              ,CAST(MFI.EXTQTY_0 - MFI.CPLQTY_0 - ISNULL(XWI.UOMCPLQTY_0, 0) AS REAL) 可入库数量
+              ,ITM.STU_0                                                              单位
+              ,CASE
+                  WHEN ITF.DEFLOC_4 = '*' THEN ''
+                  ELSE ITF.DEFLOC_4
+                END                                                                   默认库位
+              ,CASE
+                  WHEN ITF.QUAFLG_0 = 1 THEN 'A'
+                  ELSE 'Q'
+                END                                                                   AS 存货状态
+              ,MFI.MFGFCY_0                                                           生产地点
+              ,CASE
+                  WHEN ISNULL(XWI.UOMCPLQTY_0, 0) &gt; 0 THEN N'E02'
+                  WHEN MFI.EXTQTY_0 - MFI.CPLQTY_0 &gt; 0
+                       AND MFI.CPLQTY_0 &gt; 0 THEN N'A02'
+                  ELSE 'C01'
+                END                                                                   AS LINKAPPRROW
+             ,'' LINKROWIDCJM
+             ,'' LINKROWIDDCM
+             ,'' LINKROWIDDJM
+             ,@DYMB LINKROWIDDYMB
+             ,@DYFS LINKROWIDDYFS
+FROM   MFGITM MFI
+       INNER JOIN MFGHEAD H
+               ON H.MFGNUM_0 = MFI.MFGNUM_0
+       INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = MFI.ITMREF_0
+       LEFT JOIN (
+             SELECT 
+                   B.IDENT1_0 AS ITMREF
+                 , STRING_AGG(B.TEXTE_0, '') 
+                     WITHIN GROUP (ORDER BY B.ZONE_0) AS ITMDES
+             FROM ATEXTRA B
+             WHERE B.CODFIC_0 = 'ITMMASTER'
+               AND B.LANGUE_0 = @LANX3
+             GROUP BY 
+                   B.IDENT1_0
+         ) B
+               ON B.ITMREF = ITM.ITMREF_0
+       LEFT JOIN ITMFACILIT ITF
+              ON ITF.STOFCY_0 = MFI.MFGFCY_0
+                 AND ITF.ITMREF_0 = MFI.ITMREF_0
+       LEFT JOIN (SELECT MFGNUM_0
+                        ,ITMREF_0
+                        ,SUM(UOMCPLQTY_0) UOMCPLQTY_0
+                  FROM   XWSMKI
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY MFGNUM_0
+                            ,ITMREF_0) XWI
+              ON XWI.MFGNUM_0 = MFI.MFGNUM_0
+                 AND XWI.ITMREF_0 = MFI.ITMREF_0
+       LEFT JOIN SORDER R
+              ON R.SOHNUM_0 = MFI.VCRNUMORI_0
+WHERE  ( MFI.EXTQTY_0 - MFI.CPLQTY_0 ) &gt; 0
+       AND H.MFGSTA_0 = 1
+       AND MFI.MFGFCY_0 = @FCY
+       AND MFI.MFGNUM_0 LIKE @MFGNUM
+       AND ISNULL(R.ZPLANNUM_0,'') LIKE @ZPLANNUM
+ORDER  BY MFI.MFGNUM_0 DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>X3SITE#1</ParaSearchCode01>
+  <ParaDefVal01>ZUPK</ParaDefVal01>
+  <ParaLabel02>工单编号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>生产计划号</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>打印模板</ParaLabel04>
+  <ParaType04>DROPDOWN</ParaType04>
+  <ParaSearchCode04>KEEWAYZUP5010X710X#20</ParaSearchCode04>
+  <ParaDefVal04 />
+  <ParaLabel05>打印份数</ParaLabel05>
+  <ParaType05>DEC</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#44</ImageFile>
+  <ListPrint />
+  <MD5HASH>3c1ba8d0466aa55c726389395300453e</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP50</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Completion Inspection</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP50</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Production Qualify</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

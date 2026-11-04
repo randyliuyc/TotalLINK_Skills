@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR02</ModelCode>
+  <ModelNum>120</ModelNum>
+  <ModelDesc>询价明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT TOP 500
+       L.ID                                   LINKROWID
+       ,ITM.ITMNO + ' ' + L.DOCNUM            ITMNODTA
+       ,L.DOCNUM --询价单号
+       ,L.DOCLIN                              DOCLIN --询价行号
+	   ,USR.Name
+       ,L.ITMNO --产品编码
+       ,ITM.ITMNAM
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,L.ITMVER --产品版本
+       ,L.BPSNO --供应商编码
+       ,BPSUP.BPSNAM --供应商描述
+       ,L.IVATTYP --产品税率类型
+       ,L.BVATTYP --商业伙伴税率类型
+       ,L.FAC --工厂   
+       ,ENTFAC.FACNAM                         FACDES
+       ,CASE
+          WHEN L.PINQUSVAL = 0 THEN 'false'
+          WHEN L.PINQUSVAL = 1 THEN 'true'
+        END                                   PINQUSVAL --确认询价
+       ,CONVERT(VARCHAR(10), L.REQDAT, 23)    REQDAT --要求日期
+       ,L.STU --库存单位
+       ,L.UOM --采购单位
+       ,L.UOMCOE --采购单位系数
+       ,L.QTY --采购单位数量
+       ,L.QTYSTU --库存单位数量
+       ,L.CUR --币种
+       ,L.NETPRI --未税单价
+       ,L.GROPRI --含税单价
+       ,VAT.TAXRT                             TAXRT --税率
+       ,TAXRT.OPTDES                          TAXRTDES
+       ,L.REMARK --备注
+       ,L.SRCTYP --来源类型
+       ,L.SRCDOC --来源单据
+       ,L.SRCLIN --来源行号
+       --,L.DOCSTA	--单据状态
+       ,DOCSTA.OPTDES                         DOCSTA
+       ,DOCSTA.OPTDES                         DOCSTADES
+       ,L.CREUSR --创建用户
+       ,L.UPDUSR --修改用户
+       ,CONVERT(VARCHAR(16), L.[CRETIM], 21)  CRETIM
+       ,CONVERT(VARCHAR(16), L.[UPDTIM], 21)  UPDTIM
+       ,L.CLOREA                              LCLOREA --关闭原因
+       ,Iif(L.DOCSTA = '1', '', '1')          LDEBFLG
+       ,Iif(L.DOCSTA IN( '1', '2' ), '', '1') LCLBFLG
+FROM   PINQUS L
+       LEFT JOIN PINQUH H
+              ON L.DOCNUM = H.DOCNUM
+       LEFT JOIN ITM
+              ON ITM.ITMNO = L.ITMNO
+       LEFT JOIN LINKOPT DOCSTA
+              ON L.DOCSTA = DOCSTA.OPTID
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN BPSUP
+              ON BPSUP.BPSNO = L.BPSNO
+       LEFT JOIN LINKOPT TAXRT
+              ON TAXRT.OPTID = L.TAXRT
+                 AND TAXRT.OPTTYP = 'TAXRT'
+       LEFT JOIN ENTFAC
+              ON ENTFAC.FAC = L.FAC
+       LEFT JOIN VAT
+              ON VAT.IVATTYP = L.IVATTYP
+                 AND VAT.BVATTYP = L.BVATTYP
+       LEFT JOIN LINK.DBO.SysUser USR
+              ON H.RESNO = USR.LoginUser
+WHERE  ( H.RESNO = N'#LOGIN_USER#' --用户自己
+          OR '#LINKUSER(#LOGIN_USER#).DOCGRP#' = ''
+          OR Charindex(USR.UDF001, '#LINKUSER(#LOGIN_USER#).DOCGRP#') &gt; 0 )
+       AND H.SITE=N'{0}'
+       AND L.DOCNUM LIKE N'%{1}%'
+       AND L.ITMNO + L.ITMVER + ITM.ITMNAM + ITM.ITMNAM1 LIKE N'%{2}%'
+       AND CONVERT(VARCHAR(10), L.[CRETIM], 21) BETWEEN '{3}' AND '{4}'
+       AND L.BPSNO LIKE N'%{5}%'
+       AND ( H.RESNO = '{6}'
+              OR '{6}' = '' )</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>询价单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品信息</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>开始日期</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04>#LINKDATE(0,-1,0,yyyy-MM-dd)#</ParaDefVal04>
+  <ParaLabel05>结束日期</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05>#LINK_TODAY#</ParaDefVal05>
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#92</ImageFile>
+  <ListPrint />
+  <MD5HASH>dec2a629fe96065b1f9a1152f377fe0c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu chi tiết yêu cầu</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

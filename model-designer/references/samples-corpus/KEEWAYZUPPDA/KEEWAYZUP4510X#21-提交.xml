@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP4510X</ModelCode>
+  <ModelNum>21</ModelNum>
+  <ModelDesc>提交</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#';
+DECLARE @LANX3 VARCHAR(30) = (
+    SELECT #LC.X3ERP#GETLANX3(@LAN)
+    );
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @MFGNUM VARCHAR(30)='{1}';
+DECLARE @ITMREF NVARCHAR(100)=N'%{2}%';
+DECLARE @ITMDES NVARCHAR(100)=N'%{3}%';
+
+UPDATE XWS
+SET    XWS.SUBDATIM_0 = Getdate()
+       ,XWS.STAT_0 = 2
+       ,XWS.BATCHID_0 = '#LINKID_ACTION#'
+FROM   XWSMKM XWS
+       INNER JOIN ITMMASTER ITM
+               ON XWS.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       INNER JOIN MFGITM MFI
+               ON MFI.MFGNUM_0 = XWS.MFGNUM_0
+                  AND MFI.MFGLIN_0 = XWS.MFGLIN_0
+       LEFT JOIN SORDER R
+              ON R.SOHNUM_0 = MFI.VCRNUMORI_0
+WHERE  XWS.USERID_0 = '#LOGIN_USER#'
+       AND XWS.RPFLG_0 &lt;&gt; 3
+       AND XWS.STAT_0 = 1
+       AND XWS.MFGFCY_0 = @FCY
+       AND XWS.MFGNUM_0 LIKE @MFGNUM
+       AND ITM.ITMREF_0 LIKE @ITMREF
+       AND Upper(ISNULL(L1.ITMDES, ITM.ITMDES1_0)
+                 + ISNULL(L2.ITMDES, ITM.ITMDES2_0)) LIKE Upper(@ITMDES)</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~X3WEB~RUN~XWSTTLINKU~
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;PARAM&gt;
+ &lt;FLD NAM="XWS_MACHINEID"&gt;#LOGIN_ID#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_USERID"&gt;#LOGIN_USER#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_TRSTYP"&gt;12&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_PK"&gt;&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_BATCHID"&gt;#LINKID_ACTION#&lt;/FLD&gt;
+&lt;/PARAM&gt;
+~{"codeLang":"#LINKFUNC.GETLANX3#"}</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#96</ImageFile>
+  <ListPrint />
+  <MD5HASH>721c3efef8334c388a69c6211abbb024</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP4510X</DMCODE>
+      <DMNUM>21</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>einreichen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP4510X</DMCODE>
+      <DMNUM>21</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Submit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

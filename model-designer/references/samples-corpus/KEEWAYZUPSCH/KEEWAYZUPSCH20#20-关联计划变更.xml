@@ -1,0 +1,317 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH20</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>关联计划变更</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDATAMINEOVERVIEW,,30,NOTAUTOREFRESH
+DECLARE @CUSORDREF VARCHAR(30) = '%{0}%';
+DECLARE @SOHNUM VARCHAR(30) = '%{1}%';
+
+WITH CTE_DEITM
+AS (
+  -- 海关监管产品对照编码，按ZJKC供应商产品编码对照
+  SELECT ITMREFBPS_0 ITMREF_0
+    , ITMREF_0 ITMREFBPC_0
+  FROM ITMBPS
+  WHERE BPSNUM_0 = 'ZJKC'
+  )
+  , SOHData
+AS (
+  SELECT Q.SOHNUM_0
+    , Q.SOPLIN_0
+    , Q.SOQSEQ_0
+    -- 根据规则自动对应 ZUP 编码
+    , ISNULL(I.ITMREFBPC_0, Q.ITMREF_0) ITMREF_0
+    , Q.QTY_0 AS QTYSTU_0
+    , S.BPCINV_0 AS BPRNUM_0
+    , S.ORDDAT_0 AS ORDDAT_0
+    , Q.EXTDLVDAT_0 AS EXTDAT_0
+  FROM SORDERQ Q
+  INNER JOIN SORDER S
+    ON Q.SOHNUM_0 = S.SOHNUM_0
+  INNER JOIN SORDERP P
+    ON Q.SOHNUM_0 = P.SOHNUM_0
+      AND Q.SOPLIN_0 = P.SOPLIN_0
+  LEFT JOIN CTE_DEITM I
+    ON Q.ITMREF_0 = I.ITMREF_0
+      -- 仅 SKT 的订单需要转换编码
+      AND S.SOHTYP_0 = 'SKT'
+  WHERE S.SALFCY_0 = 'ZJKC'
+    AND S.BPCORD_0 = 'DE01'
+    --   AND S.APPFLG_0 IN ( 3, 4, 5 )  --正式库需要去掉0
+    AND P.LINTYP_0 &lt;&gt; 6
+    AND UPPER(S.CUSORDREF_0) LIKE UPPER(@CUSORDREF)
+    AND UPPER(S.SOHNUM_0) LIKE UPPER(@SOHNUM)
+  )
+  , POHData
+AS (
+  SELECT Q.XREFSOH_0 SOHNUM_0
+    , Q.XREFSLIN_0 SOPLIN_0
+    , Q.XREFSSEQ_0 SOQSEQ_0
+    , Q.ITMREF_0 AS ITMREF_0
+    , Q.QTYSTU_0 AS QTYSTU_0
+    , Q.BPSNUM_0 AS BPRNUM_0
+    , Q.EXTRCPDAT_0 AS EXTDAT_0
+  FROM PORDERQ Q
+  LEFT JOIN SORDER S
+    ON Q.XREFSOH_0 = S.SOHNUM_0
+  WHERE Q.POHFCY_0 = 'ZUPK'
+    AND Q.BPSNUM_0 IN ('JXTD', 'BPS00002')
+    AND ISNULL(UPPER(S.CUSORDREF_0), '') LIKE UPPER(@CUSORDREF)
+    AND UPPER(Q.XREFSOH_0) LIKE UPPER(@SOHNUM)
+  )
+-- 找出有问题的记录
+SELECT ISNULL(S.SOHNUM_0, P.SOHNUM_0) 销售订单
+  , ISNULL(S.BPRNUM_0, P.BPRNUM_0) 发票客户
+  , MAX(S.ORDDAT_0) 订单日期
+FROM SOHData S
+FULL JOIN POHData P
+  ON S.SOHNUM_0 = P.SOHNUM_0
+    AND S.SOPLIN_0 = P.SOPLIN_0
+    AND S.SOQSEQ_0 = P.SOQSEQ_0
+    AND S.ITMREF_0 = P.ITMREF_0
+WHERE (
+    -- 情况1: 双方存在但字段不同
+    S.ITMREF_0 &lt;&gt; P.ITMREF_0
+    OR ISNULL(S.QTYSTU_0, 0) &lt;&gt; ISNULL(P.QTYSTU_0, 0)
+    OR ISNULL(S.EXTDAT_0, '1900-01-01') &lt;&gt; ISNULL(P.EXTDAT_0, '1900-01-01')
+    )
+  --一方存在
+  AND ISNULL(S.SOHNUM_0, P.SOHNUM_0) &lt;&gt; ''
+GROUP BY ISNULL(S.SOHNUM_0, P.SOHNUM_0)
+  , ISNULL(S.BPRNUM_0, P.BPRNUM_0)
+-- , S.ORDDAT_0
+ORDER BY ISNULL(S.SOHNUM_0, P.SOHNUM_0);</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>订单参考</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>销售订单</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#68</ImageFile>
+  <ListPrint />
+  <MD5HASH>846b5fdc84db60ba8befc4428fd61147</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Auftragsreferenz</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Order Reference</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>订单参考</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Verkaufsauftrag</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Sales Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>销售订单</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Interner Änderungsplan</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Internal Change Plan</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>订单日期</COLNAME>
+      <CAPTION>Order Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>发票客户</COLNAME>
+      <CAPTION>Rechnungskunde</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>发票客户</COLNAME>
+      <CAPTION>Invoice Customer</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>发票客户</COLNAME>
+      <CAPTION>发票客户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>销售订单</COLNAME>
+      <CAPTION>Verkaufsauftrag</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>销售订单</COLNAME>
+      <CAPTION>Sales Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH20</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>销售订单</COLNAME>
+      <CAPTION>销售订单</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

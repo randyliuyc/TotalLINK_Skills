@@ -1,0 +1,469 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR01</ModelCode>
+  <ModelNum>120</ModelNum>
+  <ModelDesc>申请明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SITE NVARCHAR(30) = N'{0}';
+DECLARE @DOCNUM NVARCHAR(30) = N'%{1}%';
+DECLARE @ITMDES NVARCHAR(300) = N'%{2}%';
+DECLARE @DATSTR DATE = '{3}';
+DECLARE @DATEND DATE = '{4}';
+DECLARE @DEPT NVARCHAR(30) = '{5}';
+
+WITH BaseData AS (
+    -- 先获取核心数据，减少连接次数
+    SELECT TOP 500
+        S.ID AS LINKROWID,
+        S.DOCNUM,
+        S.DOCLIN,
+        S.ITMNO,
+        S.ITMVER,
+        S.REQDAT,
+        S.UOM,
+        S.UOMCOE,
+        S.QTY,
+        S.STU,
+        S.QTYSTU,
+        S.REMARK AS LREMARK,
+        S.SRCTYP,
+        S.SRCDOC,
+        S.SRCLIN,
+        S.CLOREA AS LCLOREA,
+        S.PINNUM,
+        S.PFBTIM,
+        S.CREUSR,
+        S.UPDUSR,
+        S.CRETIM,
+        S.UPDTIM,
+        ITM.ITMNOORI,
+        ITM.ITMNAM,
+        ITM.ITMNAM1,
+        ITM.ITMNAM2,
+        ITM.TSICOD1,
+        ITM.TSICOD2,
+        ITM.TSICOD3,
+        ITM.TSICOD4,
+        ITM.TSICOD5,
+        ITM.ITMSIZE,
+        ITM.ITMSPEC,
+        H.DOCGRP,
+        H.DOCDES,
+        H.PRJNUM,
+        H.SITE,
+        H.DEPT,
+        H.GRP,
+        H.RESNO,
+        H.REMARK,
+        H.DOCDAT,
+        S.DOCTYP,
+        S.DOCSTA
+    FROM PREQUL S
+    INNER JOIN ITM ON ITM.ITMNO = S.ITMNO
+    INNER JOIN PREQUH H ON S.DOCNUM = H.DOCNUM
+    WHERE H.SITE = @SITE
+        AND (@DOCNUM = '%' OR S.DOCNUM LIKE @DOCNUM)
+        AND (@ITMDES = '%' OR (S.ITMNO + S.ITMVER + ITM.ITMNAM + ITM.ITMNAM1) LIKE @ITMDES)
+        AND H.DOCDAT BETWEEN @DATSTR AND  @DATEND
+        AND (@DEPT = '' OR H.DEPT = @DEPT)
+    ORDER BY S.DOCNUM DESC, S.DOCLIN
+),
+OrderInfo AS (
+    -- 订单信息单独处理
+    SELECT 
+        COALESCE(D1.SRCDOC, D2.SRCDOC) AS SRCDOC,
+        COALESCE(D1.SRCLIN, D2.SRCLIN) AS SRCLIN,
+        COALESCE(D1.DOCNUM, D2.DOCNUM) AS PORDOCNUM,
+        COALESCE(D1.DOCLIN, D2.DOCLIN) AS PORLIN,
+        CASE 
+            WHEN D1.DOCNUM IS NOT NULL THEN '询价订单'
+            WHEN D2.DOCNUM IS NOT NULL THEN '直接订单'
+            ELSE '无订单'
+        END AS ORDERTYPE,
+        PR.CREUSR AS PORCREUSR,
+        PR.WFLTIM AS PORWFLTIM,
+        PR.DOCNUM AS ORDERDOCNUM,
+		S.DOCNUM,
+	    S.DOCLIN
+    FROM PREQUL S
+    LEFT JOIN PINQUL PL ON PL.DOCNUM = S.PINNUM AND PL.ITMNO = S.ITMNO
+    LEFT JOIN PORDLIN D1 ON PL.DOCNUM = D1.SRCDOC 
+        AND PL.DOCLIN = D1.SRCLIN 
+        AND D1.SRCTYP = 'PIN'
+        AND NOT (D1.DOCSTA = '4' AND D1.CLOREA &lt;&gt; '')
+       AND (
+D1.DOCSTA &lt;&gt; '4'
+    OR ISNULL(D1.CLOREA, '') = ''
+)
+    LEFT JOIN PORDLIN D2 ON S.DOCNUM = D2.SRCDOC 
+        AND S.DOCLIN = D2.SRCLIN 
+        AND D2.SRCTYP = 'PRQ'
+    LEFT JOIN PORDER PR ON COALESCE(D1.DOCNUM, D2.DOCNUM) = PR.DOCNUM
+    WHERE S.DOCSTA = 2
+     --AND S.PCKTIM IS NULL 
+),
+ShippingInfo AS (
+    -- 物流信息单独处理
+    SELECT 
+        SRCDOC,
+        SRCLIN,
+        MIN(DOCNUM) AS PBHNUM
+    FROM PBOLD
+    WHERE SRCTYP = 'POR'
+    GROUP BY SRCDOC, SRCLIN
+),
+ReceiveInfo AS (
+    -- 收货信息单独处理
+    SELECT 
+        SRCDOC,
+        SRCLIN,
+        MIN(DOCNUM) AS PRCDOC,
+        MIN(SUBTIM) AS PRCDAT
+    FROM PRECLIN
+    WHERE SRCTYP = 'POR'
+    GROUP BY SRCDOC, SRCLIN
+)
+
+SELECT 
+    BD.LINKROWID,
+    BD.DOCNUM,
+    BD.DOCLIN,
+    BD.ITMNO,
+    BD.ITMNOORI,
+    BD.ITMNAM,
+    BD.ITMNAM1,
+    BD.ITMNAM2,
+    BD.ITMVER,
+    BD.TSICOD1,
+    BD.TSICOD2,
+    BD.TSICOD3,
+    BD.TSICOD4,
+    BD.TSICOD5,
+    BD.ITMSIZE,
+    BD.ITMSPEC,
+    CONVERT(VARCHAR, BD.REQDAT, 23) AS REQDAT,
+    BD.UOM,
+    CAST(BD.UOMCOE AS REAL) AS UOMCOE,
+    CAST(BD.QTY AS REAL) AS QTY,
+    BD.STU,
+    CAST(BD.QTYSTU AS REAL) AS QTYSTU,
+    BD.LREMARK,
+    BD.SRCTYP,
+    BD.SRCDOC,
+    BD.SRCLIN,
+    DOCSTA.OPTDES AS DOCSTA,
+    BD.LCLOREA,
+    BD.DOCGRP,
+    DOCGRP.OPTDES AS DOCGRPDES,
+    BD.DOCDES,
+    BD.PRJNUM,
+    BD.SITE,
+    SI.SITENAM AS SITEDES,
+    BD.DEPT,
+    D.DEPTNAM AS DEPTDES,
+    BD.GRP,
+    G.GRPNAM AS GRPDES,
+    BD.RESNO,
+    R.RESNAM AS RESNODES,
+    BD.REMARK,
+    CONVERT(VARCHAR(16), BD.PFBTIM, 21) AS PFBTIM,
+    CONVERT(VARCHAR(16), OI.PORWFLTIM, 21) AS WFLTIM,
+    IIF(DATEDIFF(DAY, BD.PFBTIM, ISNULL(OI.PORWFLTIM, GETDATE())) &gt; 15, 'D04', '') AS LINKAPPRROW,
+    BD.CREUSR,
+    BD.UPDUSR,
+    CONVERT(VARCHAR(16), BD.CRETIM, 21) AS CRETIM,
+    CONVERT(VARCHAR(16), BD.UPDTIM, 21) AS UPDTIM,
+    -- PINNUM逻辑优化
+    CASE 
+        WHEN (BD.PINNUM IS NULL OR BD.PINNUM = '') AND OI.ORDERDOCNUM IS NULL THEN '未询价'
+        WHEN BD.PINNUM IS NULL AND OI.ORDERDOCNUM IS NOT NULL THEN '直接生成订单'
+        ELSE BD.PINNUM
+    END AS PINNUM,
+    CONVERT(VARCHAR(10), PH.DOCDAT, 21) AS PINDAT,
+    -- PORNUM逻辑优化
+    CASE 
+        WHEN OI.ORDERDOCNUM IS NULL THEN '未采购'
+        ELSE OI.ORDERDOCNUM
+    END AS PORNUM,
+    LINK.DBO.GetUserNameByCode(OI.PORCREUSR) AS PORCREUSR,
+    CONVERT(VARCHAR(16), OI.PORWFLTIM, 23) AS PORDAT,
+    DATEDIFF(DAY, ISNULL(BD.PFBTIM, GETDATE()), ISNULL(OI.PORWFLTIM, GETDATE())) AS PURDAT,
+    -- 物流信息
+    PBH.DOCNUM AS PBHNUM,
+    CONVERT(VARCHAR(10), PBH.DOCDAT, 21) AS PBHDAT,
+    CONVERT(VARCHAR(10), PBH.ETD, 21) AS ETD,
+    CONVERT(VARCHAR(10), PBH.ETA, 21) AS ETA,
+    CONVERT(VARCHAR(10), PBH.BLD, 21) AS BLD,
+    -- 收货信息
+    RI.PRCDOC,
+    CONVERT(VARCHAR(10), RI.PRCDAT, 21) AS PRCDAT,
+    -- 超期标记
+    CASE 
+        WHEN DATEDIFF(DAY, ISNULL(BD.PFBTIM, GETDATE()), ISNULL(OI.PORWFLTIM, GETDATE())) &gt; 15 THEN 'G04'
+        ELSE ''
+    END AS LINKAPPRPURDAT
+FROM BaseData BD
+LEFT JOIN LINKOPT DOCSTA ON DOCSTA.OPTID =BD.DOCSTA AND DOCSTA.OPTTYP = 'DOCSTA'
+LEFT JOIN ENTSITE SI ON BD.SITE = SI.SITE
+LEFT JOIN LINKOPT DOCGRP ON BD.DOCGRP = DOCGRP.OPTID 
+    AND DOCGRP.OPTTYP = 'DOCGRP' 
+    AND DOCGRP.LINKOPTID = 'PRE'
+LEFT JOIN ENTDEPT D ON BD.DEPT = D.DEPT
+LEFT JOIN ENTGRP G ON BD.GRP = G.GRP
+LEFT JOIN ENTRES R ON BD.RESNO = R.RESNO
+LEFT JOIN PINQUH PH ON PH.DOCNUM = BD.PINNUM
+LEFT JOIN OrderInfo OI ON OI.DOCNUM = BD.DOCNUM AND OI.DOCLIN= BD.DOCLIN
+LEFT JOIN ShippingInfo S ON S.SRCDOC = OI.PORDOCNUM AND S.SRCLIN = OI.PORLIN
+LEFT JOIN PBOLH PBH ON PBH.DOCNUM = S.PBHNUM
+LEFT JOIN ReceiveInfo RI ON RI.SRCDOC = OI.PORDOCNUM AND RI.SRCLIN = OI.PORLIN
+ORDER BY BD.DOCNUM DESC, BD.DOCLIN;</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE
+INTO
+[PREQUH] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,N'@PREGRP@' PREGRP
+,N'@DOCSTA@' DOCSTA
+,N'@DOCDAT@' DOCDAT
+,N'@DOCDES@' DOCDES
+,N'@PRJNUM@' PRJNUM
+,N'@SITE@' SITE
+,N'@DEPT@' DEPT
+,N'@GRP@' GRP
+,N'@RESNO@' RESNO
+,N'@REMARK@' REMARK
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM])
+	WHEN MATCHED THEN
+UPDATE
+SET 
+ DOCNUM = S.DOCNUM
+,PREGRP = S.PREGRP
+,DOCSTA = S.DOCSTA
+,DOCDAT = S.DOCDAT
+,DOCDES = S.DOCDES
+,PRJNUM = S.PRJNUM
+,SITE = S.SITE
+,DEPT = S.DEPT
+,GRP = S.GRP
+,RESNO = S.RESNO
+,REMARK = S.REMARK
+,UPDUSR='#LOGIN_USER#'
+,UPDTIM=GETDATE()
+WHEN NOT MATCHED THEN
+INSERT
+(DOCNUM
+,PREGRP
+,DOCSTA
+,WFLSTA
+,DOCDAT
+,DOCDES
+,PRJNUM
+,SITE
+,DEPT
+,GRP
+,RESNO
+,REMARK
+,CREUSR
+,CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.PREGRP
+,S.DOCSTA
+,'SAVED'
+,S.DOCDAT
+,S.DOCDES
+,S.PRJNUM
+,S.SITE
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.REMARK
+,S.CREUSR
+,S.CRETIM
+);
+MERGE
+INTO
+	[PREQUL] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,0@DOCLIN@ DOCLIN
+,N'@ITMNO@' ITMNO
+,N'@ITMVER@'ITMVER
+,N'@REQDAT@' REQDAT
+,N'@STU@' STU
+,N'@PUU@' PUU
+,0@PUUCOE@ PUUCOE
+,0@QTYPUU@ QTYPUU
+,N'@LREMARK@' LREMARK
+,N'@SRCTYP@' SRCTYP
+,N'@SRCDOC@' SRCDOC
+,0@SRCLIN@ SRCLIN
+,N'1' LDOCSTA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,REQDAT = S.REQDAT
+,STU = S.STU
+,PUU = S.PUU
+,PUUCOE = S.PUUCOE
+,QTYPUU = S.QTYPUU
+,REMARK = S.LREMARK
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,DOCSTA = S.LDOCSTA
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+DOCNUM
+,DOCLIN
+,ITMNO
+,ITMVER
+,REQDAT
+,STU
+,PUU
+,PUUCOE
+,QTYPUU
+,QTYSTU
+,REMARK
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+, CREUSR
+, CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCLIN
+,S.ITMNO
+,S.ITMVER
+,S.REQDAT
+,S.STU
+,S.PUU
+,S.PUUCOE
+,S.QTYPUU
+,S.QTYPUU*S.PUUCOE
+,S.LREMARK
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.LDOCSTA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>申请单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品信息</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>开始日期</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04>#LINKDATE(0,-1,0,yyyy-MM-dd)#</ParaDefVal04>
+  <ParaLabel05>结束日期</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05>#LINK_TODAY#</ParaDefVal05>
+  <ParaLabel06>车间</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#21</ImageFile>
+  <ListPrint />
+  <MD5HASH>c97a6a4a095c12e115ea7dd39be0e2f9</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Application details query</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu chi tiết ứng dụng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu chi tiết</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

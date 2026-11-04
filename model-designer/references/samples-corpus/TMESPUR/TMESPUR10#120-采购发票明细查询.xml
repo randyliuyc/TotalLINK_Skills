@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR10</ModelCode>
+  <ModelNum>120</ModelNum>
+  <ModelDesc>采购发票明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT 
+H.DOCNUM	--发票单号
+,H.DOCTYP	--单据类型
+,H.DOCSTA	--单据状态
+,DOCSTA.OPTDES   DOCSTADES       
+,H.DOCGRP	--单据分组
+,DOCGRP.OPTDES   DOCGRPDES
+,CONVERT(VARCHAR(16), H.DOCDAT, 21) DOCDAT   --单据日期
+,H.SITE	    --地点
+,SI.[SITENAM]                            SITEDES
+,H.DEPT	    --申请部门
+,D.DEPTNAM                               DEPTDES
+,H.GRP	    --申请班组
+,G.GRPNAM                                GRPDES
+,H.RESNO	--申请人
+,R.RESNAM                                RESNODES
+,H.BPSNO	--商业伙伴（客户、供应商）
+,BPSUP.BPSNAM
+,H.DOCDES	--单据描述
+,H.REMARK	--备注
+,H.PRJNUM	--项目编号
+,H.SRCTYP	--来源类型
+,H.SRCDOC	--来源单据
+,H.SRCLIN	--来源行号
+,H.CLOREA	--关闭原因
+,H.PRNCNT	--打印次数
+,L.DOCLIN
+,L.ITMNO	--产品编码
+,ITM.ITMNAM
+,ITM.ITMNAM1
+,ITM.ITMNAM2
+,ITM.ITMSPEC
+,ITM.ITMSIZE
+,L.ITMVER	--产品版本
+,L.UOM	    --单据单位
+,L.UOMCOE	--换算系数
+,L.QTY	    --单据单位数量
+,L.STU	    --库存单位
+,L.QTYSTU	--数量
+,L.NETPRI	--单价
+,L.REMARK	--备注
+,L.PRJNUM	--项目编号
+,L.SRCTYP	--来源类型
+,L.SRCDOC	--来源单据
+,L.SRCLIN	--来源行号
+,L.DOCSTA	--单据状态
+,L.CLOREA	--关闭原因
+,L.CREUSR	--创建用户
+,L.UPDUSR	--修改用户
+,CONVERT(VARCHAR(16), L.[CRETIM], 21) CRETIM
+,CONVERT(VARCHAR(16), L.[UPDTIM], 21) UPDTIM
+FROM   PINVOICE H
+LEFT JOIN PINVLIN L ON H.DOCNUM=L.DOCNUM       
+LEFT JOIN LINKOPT DOCSTA ON DOCSTA.OPTID = H.DOCSTA AND DOCSTA.OPTTYP = 'DOCSTA'
+LEFT JOIN [LINKOPT] DOCGRP ON H.DOCGRP = DOCGRP.OPTID AND DOCGRP.OPTTYP = 'DOCGRP' AND DOCGRP.LINKOPTID = 'PIV'
+LEFT JOIN [ENTSITE] SI  ON H.[SITE] = SI.SITE
+LEFT JOIN [ENTDEPT] D ON H.[DEPT] = D.DEPT
+LEFT JOIN [ENTGRP] G ON H.[GRP] = G.GRP
+LEFT JOIN [ENTRES] R ON H.[RESNO] = R.RESNO
+LEFT JOIN BPSUP ON BPSUP.BPSNO=H.BPSNO
+LEFT JOIN ITM ON ITM.ITMNO=L.ITMNO
+WHERE H.SITE='{0}' 
+   AND H.BPSNO+BPSUP.BPSNAM LIKE '%{1}%'
+   AND L.ITMNO+ITM.ITMNAM+ITM.ITMNAM1+ITM.ITMNAM2 LIKE '%{2}%'
+   AND H.DOCDAT BETWEEN '{3}' AND '{4}'
+   AND H.DOCNUM LIKE '%{5}%'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>供应商</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>开始时间</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>结束时间</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>单据编号</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#84</ImageFile>
+  <ListPrint />
+  <MD5HASH>4828627333414a72c1efbf57885049fc</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR10</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Truy vấn chi tiết hóa đơn mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR10</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết hóa đơn mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

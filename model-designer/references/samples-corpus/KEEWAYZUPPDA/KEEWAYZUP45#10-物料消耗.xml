@@ -1,0 +1,481 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP45</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>物料消耗</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMYROWDATA
+--LINKDETAILLIST(KEEWAYZUP4510X,700,{0},{1})
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @MFGNUM VARCHAR(30)='{1}';
+DECLARE @ITMREF NVARCHAR(100)=N'%{2}%';
+DECLARE @ITMDES NVARCHAR(100)=N'%{3}%';
+
+SELECT MAT.MFGFCY_0                                                    AS 地点
+       ,MAT.MFGNUM_0                                                   AS 工单号
+       ,MAT.MFGLIN_0                                                   AS 行号
+       ,MAT.BOMSEQ_0                                                   AS 物料顺序
+       ,MAT.ITMREF_0                                                   AS 物料编码
+       -- ,ITM.ITMDES1_0 + ITM.ITMDES2_0 + ITM.ITMDES3_0                  AS 物料名称
+       ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)                               AS 物料描述1
+       ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)                               AS 物料描述2
+       ,MAT.STU_0                                                      AS 单位
+       ,Cast(MAT.RETQTY_0 AS REAL)                                     AS 需求数量
+       ,Cast(MAT.USEQTY_0 AS REAL)                                     AS 已消耗数量
+       ,Cast(Isnull(XWS.QTY, 0) AS REAL)                               AS 未提交数
+       ,Cast(MAT.RETQTY_0 - MAT.USEQTY_0 - Isnull(XWS.QTY, 0) AS REAL) AS 剩余数量
+       ,MAT.LOC_0                                                      AS 库位
+       ,CASE
+          WHEN Isnull(XWS.QTY, 0) &gt; 0 THEN 'E02'
+          WHEN MAT.RETQTY_0 - MAT.USEQTY_0 &gt; 0
+               AND MAT.USEQTY_0 &gt; 0 THEN 'A02'
+          WHEN MAT.RETQTY_0 - MAT.USEQTY_0 &lt;= 0 THEN 'H02'
+          ELSE 'B01'
+        END                                                            AS ROW_BACKCOLOR2
+       ,CASE
+          WHEN Isnull(XWS.QTY, 0) = 0
+               AND MAT.USEQTY_0 = 0 THEN N'lang:{zh:未消耗,en:None,de:Keine}'
+          WHEN MAT.RETQTY_0 - MAT.USEQTY_0 &gt; 0
+               AND MAT.USEQTY_0 &gt; 0 THEN N'lang:{zh:部分消耗,en:Part,de:Teil}'
+          WHEN MAT.RETQTY_0 - MAT.USEQTY_0 &lt;= 0 THEN N'lang:{zh:全部消耗,en:All,de:Alle}'
+        END                                                            AS 消耗状态
+       ,MAT.MFGNUM_0
+        + Cast(MAT.MFGLIN_0 AS VARCHAR)
+        + Cast(MAT.BOMSEQ_0 AS VARCHAR)                                id
+			 ,CASE
+          WHEN ITM.LOTMGTCOD_0 &gt; 1 THEN N'lang:{zh:批次号管理,en:Batch Management,de:Chargenverwaltung}'
+          ELSE ''
+        END                              LOTFLG
+	   ,CASE
+          WHEN SERMGTCOD_0 &gt;1 THEN N'lang:{zh:序列号管理,en:Serial Number Management,de:Seriennummernverwaltung}'
+          ELSE ''
+        END                              SERFLG
+FROM   MFGMAT MAT
+       INNER JOIN ITMMASTER ITM
+               ON MAT.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       LEFT JOIN (SELECT MFGNUM_0
+                         ,MFGLIN_0
+                         ,BOMSEQ_0
+                         ,Sum(USEQTY_0) QTY
+                  FROM   XWSMKM
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY MFGNUM_0
+                            ,MFGLIN_0
+                            ,BOMSEQ_0)XWS
+              ON XWS.MFGNUM_0 = MAT.MFGNUM_0
+                 AND XWS.MFGLIN_0 = MAT.MFGLIN_0
+                 AND XWS.BOMSEQ_0 = MAT.BOMSEQ_0
+WHERE  MAT.MATSTA_0 IN ( 1, 2 )
+       AND MAT.MFGFCY_0 = @FCY
+       AND MAT.MFGNUM_0 = @MFGNUM
+       AND ITM.ITMREF_0 LIKE @ITMREF
+       AND Cast(MAT.RETQTY_0 AS REAL) &gt; 0
+       AND Upper(ISNULL(L1.ITMDES, ITM.ITMDES1_0)
+                 + ISNULL(L2.ITMDES, ITM.ITMDES2_0)) LIKE Upper(@ITMDES)
+ORDER  BY XWS.QTY DESC</SQLScript>
+  <SQLUpdateScript>INSERT INTO  XWSMKM
+    ( [MACHINEID_0]
+      ,[USERID_0]
+      ,[CUSERID_0]
+      ,[VCRTYP_0]
+      ,[PK_0]
+      ,[BATCHID_0]
+      ,[PKORI_0]
+      ,[CREDATIM_0]
+      ,[STAT_0]
+      ,[SUBDATIM_0]
+      ,[RPFLG_0]
+      ,[RPNUM_0]
+      ,[RPLIN_0]
+      ,[RPNOTE_0]
+      ,[RPDATE_0]
+      ,[RPDATIM_0]
+      ,[MFGNUM_0]
+      ,[MFGFCY_0]
+      ,[MFGLIN_0]
+      ,[BOMSEQ_0]
+      ,[ITMREF_0]
+      ,[BOMNUM_0]
+      ,[BOMALT_0]
+      ,[USEQTY_0]
+      ,[MFGTRKNUM_0]
+      ,[LOTPREF_0]
+      ,[LOT_0]
+      ,[SLO_0]
+      ,[LOC_0]
+      ,[PCU_0]
+      ,[QTYPCU_0]
+      ,[PALNUM_0]
+      ,[CTRNUM_0]
+      ,[SERNUM_0]
+      ,[CREDATTIM_0]
+      ,[UPDDATTIM_0]
+      ,[AUUID_0]
+      ,[CREUSR_0]
+      ,[UPDUSR_0]
+      ,[WRH_0]
+      ,[XTXT_0]
+      ,[XTXT_1]
+      ,[XTXT_2]
+      ,[XDAT_0]
+      ,[XDAT_1]
+      ,[XDAT_2]
+      ,[XDCB_0]
+      ,[XDCB_1]
+      ,[XDCB_2])
+      
+  SELECT
+       '#LOGIN_ID#'--&lt;MACHINEID_0, nvarchar(50),&gt;
+           ,'#LOGIN_USER#'--&lt;USERID_0, nvarchar(20),&gt;
+           ,''--&lt;CUSERID_0, nvarchar(20),&gt;
+           ,12--&lt;VCRTYP_0, smallint,&gt;
+           ,NEWID()--&lt;PK_0, nvarchar(50),&gt;
+           ,''--&lt;BATCHID_0, nvarchar(50),&gt;
+           ,''--&lt;PKORI_0, nvarchar(50),&gt;
+           ,GETDATE()--&lt;CREDATIM_0, datetime,&gt;
+           ,1--&lt;STAT_0, tinyint,&gt;
+           ,'1900-01-01'--&lt;SUBDATIM_0, datetime,&gt;
+           ,1--&lt;RPFLG_0, smallint,&gt;
+           ,' '--&lt;RPNUM_0, nvarchar(30),&gt;
+           ,0--&lt;RPLIN_0, int,&gt;
+           ,' '--&lt;RPNOTE_0, nvarchar(250),&gt;
+           ,'1900-01-01'--&lt;RPDATE_0, datetime,&gt;
+           ,'1900-01-01'--&lt;RPDATIM_0, nvarchar(50),&gt;
+           ,'#工单号#' --&lt;MFGNUM_0, nvarchar(20),&gt;
+           ,S.STOFCY_0--&lt;MFGFCY_0, nvarchar(5),&gt;
+           ,0#行号# --&lt;MFGLIN_0, int,&gt;
+           ,0#物料顺序# --&lt;BOMSEQ_0, smallint,&gt;
+           ,S.ITMREF_0--&lt;ITMREF_0, nvarchar(30),&gt;
+           ,''--&lt;BOMNUM_0, nvarchar(30),&gt;
+           ,''--&lt;BOMALT_0, smallint,&gt;
+           ,0#消耗数量#--&lt;USEQTY_0, numeric(28,13),&gt;
+           ,''--&lt;MFGTRKNUM_0, nvarchar(20),&gt;
+           ,''--&lt;LOTPREF_0, nvarchar(15),&gt;
+           ,S.LOT_0--&lt;LOT_0, nvarchar(15),&gt;
+           ,S.SLO_0--&lt;SLO_0, nvarchar(5),&gt;
+           ,S.LOC_0--&lt;LOC_0, nvarchar(10),&gt;
+           ,S.PCU_0--&lt;PCU_0, nvarchar(3),&gt;
+           ,0#消耗数量#--&lt;QTYPCU_0, numeric(28,13),&gt;
+           ,S.PALNUM_0--&lt;PALNUM_0, nvarchar(10),&gt;
+           ,S.CTRNUM_0--&lt;CTRNUM_0, nvarchar(10),&gt;
+	       ,S.SERNUM_0
+           ,GETDATE()--&lt;CREDATTIM_0, datetime,&gt;
+           ,''--&lt;UPDDATTIM_0, datetime,&gt;
+           ,NEWID()--&lt;AUUID_0, binary(16),&gt;
+           ,LEFT('#LOGIN_USER#',5)--&lt;CREUSR_0, nvarchar(5),&gt;
+           ,LEFT('#LOGIN_USER#',5)--&lt;UPDUSR_0, nvarchar(5),&gt;
+           ,''--&lt;WRH_0, nvarchar(5),&gt;
+           ,''--&lt;XTXT_0, nvarchar(100),&gt;
+           ,''--&lt;XTXT_1, nvarchar(100),&gt;
+           ,''--&lt;XTXT_2, nvarchar(100),&gt;
+           ,''--&lt;XDAT_0, datetime,&gt;
+           ,''--&lt;XDAT_1, datetime,&gt;
+           ,''--&lt;XDAT_2, datetime,&gt;
+           ,0#STOCOU#--&lt;XDCB_0, numeric(22,7),&gt;
+           ,0--&lt;XDCB_1, numeric(22,7),&gt;
+           ,0--&lt;XDCB_2, numeric(22,7),&gt;
+FROM   STOCK S
+WHERE S.STOCOU_0=0#STOCOU#   --AND S.STOCOU_0 NOT IN (SELECT XDCB_0 FROM XWSMKM WHERE RPFLG_0&lt;&gt;3 AND STOCOU_0=0#STOCOU#)</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>X3SITE#1</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>工单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>物料编码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>物料名称</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSMKM
+WHERE MFGNUM_0='#工单号#' 
+  AND MFGLIN_0=0#行号#
+  AND BOMSEQ_0=0#物料顺序#
+  AND RPFLG_0&lt;&gt;3</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-table-view-cell mui-collapse linksearch'&gt;
+    &lt;p class='linkcheck' data="#产品编码#" hidden&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/p&gt;
+    &lt;p class='linkcheck' data="#产品名称#" hidden&gt;lang:{zh:产品名称,en:Product Name,de:Bezeichnung}&lt;/p&gt;
+
+    &lt;div class='mui-card-header #ROW_BACKCOLOR2#'&gt;
+        &lt;h4 style="white-space:pre-wrap"&gt;#物料编码#-#消耗状态#&lt;/h4&gt;
+        &lt;button class="mui-btn mui-btn-blue" style="padding:0 20px;height:35px" type="button" id="linkedit"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:扫码,en:Scan,de:Scannen}&lt;/b&gt;
+        &lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="mui-card-body mui-table-view-cell mui-collapse #LINKROWIDHIDL#"&gt;
+        &lt;a class='mui-navigate-right' href='#'&gt;
+            &lt;div class="mui-media-body"&gt;
+                &lt;h4&gt;lang:{zh:工单号,en:Work Order,de:Arbeitsauftrag}:#工单号#【#物料顺序#】&lt;/h4&gt;
+                &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}:#物料描述1#&lt;/h4&gt;
+                &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}:#物料描述2#&lt;/h4&gt;
+                &lt;h4&gt;lang:{zh:需求数量,en:Required Qty,de:Bedarf}:#需求数量#[#单位#]&lt;/h4&gt;
+                &lt;h4&gt;lang:{zh:已消耗数量,en:Consumed Qty,de:Verbrauchte Menge}:#已消耗数量#[#单位#]&lt;/h4&gt;
+                &lt;h4 style="white-space:pre-wrap ;color: #FF4757; margin: 8px 0;"&gt;lang:{zh:剩余数量,en:Remaining Qty,de:Restmenge}:#剩余数量#[#单位#] #LOTFLG#-#SERFLG#&lt;/h4&gt;
+            &lt;/div&gt;
+        &lt;/a&gt;
+        &lt;ul class='mui-collapse-content'&gt;
+            &lt;div style="overflow: auto; padding:0;"&gt;
+                &lt;div class="link-table-default"&gt;
+                    &lt;div class="link-table-fixed"&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作,en:Action,de:Aktion}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:数量,en:Qty,de:Menge}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作人员,en:Operator,de:Mitarbeiter}&lt;/div&gt;
+                        &lt;div style="min-width:150px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Operation Time,de:Zeitpunkt}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:序列号,en:Serial No.,de:Seriennr.}&lt;/div&gt;
+                        &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:追踪单号,en:Tracking No.,de:Verfolgungsnr.}&lt;/div&gt;
+                    &lt;/div&gt;#LINKDETAILLIST#
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+
+    &lt;div class="mui-card-footer"&gt;
+        &lt;h4&gt;lang:{zh:未提交,en:Pending,de:Offen}:#未提交数#[#单位#]&lt;/h4&gt;
+        &lt;button type="button" id="linkremove" style="padding:0 20px;height:35px" class="mui-btn mui-btn-danger"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:删除,en:Delete,de:Löschen}&lt;/b&gt;
+        &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit>&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="地点" paratype="STR" paradm="" value="#地点#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row" &gt;
+    &lt;div style="float:left;width:80%" class="mui-input-column"&gt;
+        &lt;label&gt;lang:{zh:消耗数量,en:Consumed Qty,de:Verbrauchte Menge}&lt;/label&gt;
+        &lt;input type="number" required class="" placeholder="lang:{zh:消耗数量,en:Consumed Qty,de:Verbrauchte Menge}" id="消耗数量" value=""&gt;
+    &lt;/div&gt;
+    &lt;div style="float:right;width:20%"&gt;
+        &lt;button type="button" style="width:120px;height:25px" class="mui-btn mui-btn-blue linkdatasearch one" id="选择库存" props not-reset
+            paradm="" code="KEEWAYZUP4510X" num="701" text-value="选择-选择" para="{地点,库位,物料编码,需领数量}"
+            automatch='{"消耗数量":"消耗数量","数据检查":"数据检查","序列号":"序列号","生产计划号":"生产计划号","STOCOU":"STOCOU"}' reload value=""&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:选择库存,en:Select Stock,de:Bestand wählen}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:需领数量,en:Required Qty,de:Benötigte Menge}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="lang:{zh:需领数量,en:Required Qty,de:Benötigte Menge}"
+        readonly="readonly" id="需领数量" paratype="DEC" paradm="" value="#剩余数量#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:工单号,en:Work Order,de:Arbeitsauftrag}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="lang:{zh:工单号,en:Work Order,de:Arbeitsauftrag}" readonly="readonly"
+        id="工单号" paratype="STR" paradm="" value="#工单号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+    &lt;label&gt;lang:{zh:行号,en:Line No.,de:Positionsnr.}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="" id="行号" paratype="DEC" paradm="" value="#行号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+    &lt;label&gt;lang:{zh:物料顺序,en:Material Seq.,de:Materialfolge}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="lang:{zh:物料顺序,en:Material Seq.,de:Materialfolge}" id="物料顺序"
+        paratype="DEC" paradm="" value="#物料顺序#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:生产计划号,en:Plan No.,de:Plannummer}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="生产计划号" paratype="STR" paradm="" value="{4}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:物料编码,en:Material Code,de:Materialcode}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="lang:{zh:物料编码,en:Material Code,de:Materialcode}" readonly="readonly"
+        id="物料编码" paratype="STR" paradm="" value="#物料编码#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:物料描述1,en:Material Name1,de:Materialname1}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="lang:{zh:物料描述1,en:Material Name1,de:Materialname1}" readonly="readonly"
+        id="物料描述1" paratype="STR" paradm="" value="#物料描述1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:物料描述2,en:Material Name1,de:Materialname2}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="lang:{zh:物料描述2,en:Material Name1,de:Materialname1}" readonly="readonly"
+        id="物料描述1" paratype="STR" paradm="" value="#物料描述2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+    &lt;input type="text" required not-reset class="" placeholder=""  readonly="readonly" id="库位" paratype="STR" paradm="" not-reset
+        value="#库位#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:批次,en:Batch,de:Charge}&lt;/label&gt;
+    &lt;input type="text" not-reset class="" placeholder="" readonly="readonly" id="批次" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:序列号,en:Serial No.,de:Seriennr.}&lt;/label&gt;
+    &lt;input type="text" #REQFLG# class="" placeholder="" readonly="readonly" id="序列号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:数据检查,en:Data Check,de:Datenprüfung}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+    &lt;label&gt;lang:{zh:STOCOU,en:STOCOU,de:STOCOU}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="" id="STOCOU" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;</H5Edit>
+  <H5Chart />
+  <H5MaxLines>100</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button" required class="link-pick-btn mui-input-clear" placeholder="lang:{zh:地点,en:Site,de:Standort}" readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:工单号,en:Work Order,de:Arbeitsauftrag}&lt;/label&gt;
+&lt;input type="text" required class="mui-input-clear" placeholder="lang:{zh:请扫码,en:Scan,de:Scannen}" 
+id="工单号" paratype="STR" paradm="" value="{1}" onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:物料编码,en:Material Code,de:Materialcode}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:物料编码搜索,en:Material Code Search,de:Materialcode suchen}" 
+id="物料编码" paratype="STR" paradm="" value="{2}" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:物料名称,en:Material Name,de:Materialname}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:物料名称搜索,en:Material Name Search,de:Materialname suchen}" 
+id="物料名称" paratype="STR" paradm="" value="{3}" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;  
+&lt;label&gt;lang:{zh:数据检查,en:Data Check,de:Datenprüfung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+
+scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+//扫描状态正常直接查询，不正常跳框提示
+scanAfterAction = function (id) {
+    if ($("#数据检查").val() !== "") {
+        alert($("#数据检查").val());
+        return;
+    }
+    var dmPara = reParaList(); // 获取界面上的参数
+    showModelData(dmPara); // 触发查询
+};
+editWebs=function(){
+	var max=$("#需领数量").val()*1
+	var val=$("#消耗数量").val()*1
+	if(val==max){
+             //两者相等直接返回
+		showModelData(null);
+	}else{
+           //重新计算需领数量
+          $("#需领数量").val(max-val);
+      //    $("#库位").val("");
+          $("#消耗数量").val("");
+          $("#序列号").val("");
+          $("#选择库存").val("");
+           //需要手动刷新详情界面
+           var con = plus.webview.getWebviewById('contentlist');
+	   mui.fire(con,'contentlist_local',{});
+	}
+}
+
+beforeFunction=function(sta,id){
+var a=$("#数据检查").val();
+if((a!="OK")&amp;&amp;(sta=="new"||sta=="autoSave")){
+alert(a);
+return true;
+}
+else
+{return false;}};
+
+
+//删除后自动刷新
+afterFunction=function(id){ 
+    if(id=="linkquick12")
+    reloadModelData()
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#90</ImageFile>
+  <ListPrint />
+  <MD5HASH>6eee68c7e0870a4af8dbb0c4ebabb835</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP45</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Materialverbrauch</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP45</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Material Tracking</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

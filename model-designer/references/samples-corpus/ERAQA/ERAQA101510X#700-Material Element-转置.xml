@@ -1,0 +1,357 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA101510X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>Material Element-转置</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKNOGROUP
+--LINKNOFILTER
+SELECT [C]
+      ,[Si]
+      ,[Mn]
+      ,[P]
+      ,[S]
+      ,[Cr]
+      ,[Ni]
+      ,[Mo]
+      ,[W]
+      ,[Co]
+      ,[V]
+      ,[Ti]
+      ,[Cu]
+      ,[Pb]
+      ,[Sn]
+      ,[Al]
+      ,[Nb]
+      ,[N]
+      ,[O]
+      ,[B]
+      ,[Bi]
+      ,[Sb]
+      ,[H]
+FROM   (SELECT DOCNUM
+              ,ELECOD
+              ,CAST(ELEVAL AS DECIMAL(18,3)) ELEVAL
+        FROM   QAMATELE
+        WHERE  DOCNUM = '{0}') AS SourceTable
+       PIVOT ( MAX(ELEVAL)
+             FOR ELECOD IN ( [C],
+                             [Si],
+                             [Mn],
+                             [P],
+                             [S],
+                             [Cr],
+                             [Ni],
+                             [Mo],
+                             [W],
+                             [Co],
+                             [V],
+                             [Ti],
+                             [Cu],
+                             [Pb],
+                             [Sn],
+                             [Al],
+                             [Nb],
+                             [N],
+                             [O],
+                             [B],
+                             [Bi],
+                             [Sb],
+                             [H] ) ) AS PivotTable</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKSAVEONENTERKEY
+DECLARE @DOCNUM VARCHAR(30)='{0}';
+UPDATE QAMATELE
+SET    ELEVAL = 0#C#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'C'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Si#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Si'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Mn#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Mn'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#P#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'P'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#S#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'S'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Cr#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Cr'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Ni#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Ni'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Mo#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Mo'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#W#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'W'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Co#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Co'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#V#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'V'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Ti#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Ti'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Cu#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Cu'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Pb#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Pb'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Sn#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Sn'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Al#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Al'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Nb#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Nb'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#N#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'N'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#O#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'O'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#B#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'B'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Bi#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Bi'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#Sb#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'Sb'
+
+UPDATE QAMATELE
+SET    ELEVAL = 0#H#
+WHERE  DOCNUM = @DOCNUM
+       AND ELECOD = 'H'</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#80</ImageFile>
+  <ListPrint />
+  <MD5HASH>91423a9cfce7bf2fb7440c17691e18dc</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+           "C",
+           "Si",
+           "Mn",
+           "P",
+           "S",
+           "Cr",
+           "Ni",
+           "Mo",
+           "W",
+           "Co",
+           "V",
+           "Ti",
+           "Cu",
+           "Pb",
+           "Sn",
+           "Al",
+           "Nb",
+           "N",
+           "O",
+           "B",
+           "Bi",
+           "Sb",
+           "H"
+      ]
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ELECOD</COLNAME>
+      <CAPTION>Element</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ELEVAL</COLNAME>
+      <CAPTION>Value</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Material Element-转置</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA101510X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

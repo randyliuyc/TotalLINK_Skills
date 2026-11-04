@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR01</ModelCode>
+  <ModelNum>60</ModelNum>
+  <ModelDesc>可选择的填报行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SITE VARCHAR(16) = '{0}';   --地点
+DECLARE @DEPT VARCHAR(16) = '{1}';   --车间
+DECLARE @TCLCOD VARCHAR(16) = '{2}';   --产品种类
+DECLARE @TSICOD1 VARCHAR(16) = '{3}';  --产品统计组1
+DECLARE @TSICOD2 VARCHAR(16) = '{4}';  --产品统计组2
+DECLARE @TSICOD3 VARCHAR(16) = '{5}';  --产品统计组3
+DECLARE @TSICOD4 VARCHAR(16) = '{6}';  --产品统计组4
+DECLARE @ITM VARCHAR(16) = '%{7}%';   --产品信息
+DECLARE @DOCNUM VARCHAR(16) = '{8}';   --请求单号
+
+SELECT S.DOCNUM + Cast(S.DOCLIN AS VARCHAR) LINKROWID
+       ,H.DEPT
+       ,H.DOCDES
+       ,S.ITMNO --产品编码
+       ,T1.OPTDES                           OPTDES1
+       ,T2.OPTDES                           OPTDES2
+       ,ITM.ITMNAM --产品描述
+       ,REPLACE(ITM.ITMNAM1, '''', ' ')  ITMNAM1
+       ,REPLACE(ITM.ITMNAM2, '''', ' ')  ITMNAM2
+       ,S.ITMVER --产品版本
+      ,REPLACE(ITM.ITMSPEC, '''', ' ')  ITMSPEC
+      ,REPLACE(ITM.ITMSIZE, '''', ' ')  ITMSIZE
+       ,CONVERT(VARCHAR, S.REQDAT, 23)      REQDAT --要求日期
+       ,S.UOM --采购单位
+       ,S.UOMCOE --采购单位系数
+       ,Cast(S.PRQQTY AS REAL)              PRQQTY --采购单位数量
+       ,Cast(S.QTY AS REAL)                 QTY --采购单位数量
+       ,S.REMARK                            LREMARK--备注
+       ,S.DOCTYP                            SRCTYP
+       ,S.DOCNUM                            SRCDOC
+       ,S.DOCLIN                            SRCLIN
+       ,@DOCNUM                             DOCNUM
+       ,S.CREUSR
+       ,CONVERT(VARCHAR(16),S.CRETIM,21) CRETIM
+FROM   PREQAL S
+       LEFT JOIN PREQAH H
+              ON S.DOCNUM = H.DOCNUM
+       LEFT JOIN ITM
+              ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN LINKOPT T1
+              ON ITM.TSICOD1 = T1.OPTID
+                 AND T1.OPTTYP = 'TSICOD1'
+       LEFT JOIN LINKOPT T2
+              ON ITM.TSICOD2 = T2.OPTID
+                 AND T2.OPTTYP = 'TSICOD2'
+WHERE  S.DOCSTA = 2
+       AND Isnull(PRQNUM, '') = ''
+       AND H.SITE = @SITE
+       AND ( H.DEPT = @DEPT
+              OR @DEPT = '' )
+       AND ( ITM.TCLCOD = @TCLCOD
+              OR @TCLCOD = '' ) --产品种类
+       AND ( ITM.TSICOD1 = @TSICOD1
+              OR @TSICOD1 = '' )
+       AND ( ITM.TSICOD2 = @TSICOD2
+              OR @TSICOD2 = '' )
+       AND ( ITM.TSICOD3 = @TSICOD3
+              OR @TSICOD3 = '' )
+       AND ( ITM.TSICOD4 = @TSICOD4
+              OR @TSICOD4 = '' )
+       AND S.ITMNO + ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMNAM2
+           + Isnull(S.ITMVER, '') + ITM.ITMSPEC
+           + ITM.ITMSIZE LIKE @ITM --部分产品没有品名，需要ISNULL处理
+ORDER  BY S.ITMNO
+          ,S.ITMVER
+          ,H.DEPT</SQLScript>
+  <SQLUpdateScript>--LINKJSONDATASUBMIT
+--UPDATE PREQAL SET PRQNUM='#DOCNUM#',PRQQTY=0#PRQQTY#,PRQQTYSTU=0#PRQQTY#*0#UOMCOE#
+--WHERE DOCNUM='#SRCDOC#'AND DOCLIN=0#SRCLIN# AND '#GXFLG#'='1';
+
+DECLARE @json NVARCHAR(MAX);
+SET @json = N'#LINKJSON{$.formData}#';
+DECLARE @TABLE_1 NVARCHAR(MAX);
+SET @TABLE_1 = N'#LINKJSON{$.TABLE_1}#';
+ 
+MERGE INTO PREQAL D 
+USING ( 
+    SELECT 
+        GXFLG,PRQNUM,DOCNUM,DOCLIN,PRQQTY,UOMCOE
+    FROM OPENJSON(@TABLE_1) WITH ( 
+        GXFLG varchar(1) '$.GXFLG',  -- 新增 GXFLG 字段
+        PRQNUM varchar(30) '$.DOCNUM',
+        DOCNUM varchar(30) '$.SRCDOC',
+        DOCLIN int '$.SRCLIN',
+		PRQQTY decimal(18, 6) '$.PRQQTY',
+		UOMCOE decimal(18, 6) '$.UOMCOE'
+    ) 
+    WHERE GXFLG = '1'  -- 筛选 GXFLG 为 "1" 的记录
+) S 
+ON D.DOCNUM = S.DOCNUM AND D.DOCLIN = S.DOCLIN
+WHEN MATCHED THEN 
+    UPDATE SET 
+        PRQNUM = S.PRQNUM,
+	PRQQTY = S.PRQQTY,
+	PRQQTYSTU = S.PRQQTY * S.UOMCOE;</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>车间</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品种类</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品统计组1</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>产品统计组2</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>产品统计组3</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>产品统计组4</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08>产品信息</ParaLabel08>
+  <ParaType08>STR</ParaType08>
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09>请求单号</ParaLabel09>
+  <ParaType09>STR</ParaType09>
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#27</ImageFile>
+  <ListPrint />
+  <MD5HASH>4e3abe511bb2642bded8d3799963d29c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>60</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Dòng báo cáo tùy chọn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

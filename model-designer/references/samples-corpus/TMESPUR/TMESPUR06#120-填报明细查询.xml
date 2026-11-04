@@ -1,0 +1,510 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR06</ModelCode>
+  <ModelNum>120</ModelNum>
+  <ModelDesc>填报明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SITE VARCHAR(30) = '{0}';
+DECLARE @DOCNUM VARCHAR(30) = '%{1}%';
+DECLARE @ITMDES NVARCHAR(300) = '%{2}%';
+DECLARE @DATSTR DATE = '{3}';
+DECLARE @DATEND DATE = '{4}';
+DECLARE @DEPT VARCHAR(30) = '{5}';
+DECLARE @ITMNO VARCHAR(30) = '%{6}%';
+
+-- 使用 CTE 提高可读性
+WITH ORDER_LINES AS (
+    -- 合并询价和直接订单的逻辑
+    SELECT 
+    COALESCE(PL.DOCNUM, PRQL.DOCNUM) AS SRC_DOCNUM,
+    COALESCE(PL.DOCLIN, PRQL.DOCLIN) AS SRC_DOCLIN,
+    COALESCE(PL.ITMNO, PRQL.ITMNO) AS ITMNO,
+    PRQL.PINNUM,
+    PH.DOCDAT AS PINDAT,
+    D1.DOCNUM AS POR_NUM_FROM_PIN,
+    D1.DOCLIN AS POR_LIN_FROM_PIN,
+    D2.DOCNUM AS POR_NUM_FROM_PRQ,
+    D2.DOCLIN AS POR_LIN_FROM_PRQ,
+    PRQL.DOCNUM,
+    PRQL.DOCLIN
+FROM PREQUL PRQL
+LEFT JOIN PINQUL PL ON PL.DOCNUM = PRQL.PINNUM AND PL.ITMNO = PRQL.ITMNO
+LEFT JOIN PINQUH PH ON PH.DOCNUM =PL.DOCNUM
+LEFT JOIN PORDLIN D1 ON PL.DOCNUM = D1.SRCDOC 
+    AND PL.DOCLIN = D1.SRCLIN 
+    AND D1.SRCTYP = 'PIN'
+LEFT JOIN PORDLIN D2 ON PRQL.DOCNUM = D2.SRCDOC 
+    AND PRQL.DOCLIN = D2.SRCLIN 
+    AND D2.SRCTYP = 'PRQ' 
+WHERE EXISTS (
+    SELECT 1 
+    FROM PREQAL S 
+    WHERE S.PRQNUM = PRQL.DOCNUM 
+    AND (@ITMNO = '%' 
+     OR S.ITMNO LIKE @ITMNO)
+    )
+),
+POR_DETAILS AS (
+    -- 订单相关信息的聚合
+    SELECT 
+        PD.POR_NUM,
+        PD.POR_LIN,
+        MIN(PBH.DOCNUM) AS PBHNUM,
+        MIN(PBH.DOCDAT) AS PBHDAT,
+        MIN(PBH.ETD) AS ETD,
+        MIN(PBH.ETA) AS ETA,
+        MIN(PBH.BLD) AS BLD,
+        MIN(PRC.DOCNUM) AS PRCDOC,
+        MIN(PRC.SUBTIM) AS PRCDAT
+    FROM (
+        SELECT POR_NUM_FROM_PIN AS POR_NUM, POR_LIN_FROM_PIN AS POR_LIN
+        FROM ORDER_LINES
+        WHERE POR_NUM_FROM_PIN IS NOT NULL
+        UNION ALL
+        SELECT POR_NUM_FROM_PRQ AS POR_NUM, POR_LIN_FROM_PRQ AS POR_LIN
+        FROM ORDER_LINES
+        WHERE POR_NUM_FROM_PRQ IS NOT NULL
+    ) PD
+    LEFT JOIN PBOLD PBL ON PBL.SRCDOC = PD.POR_NUM 
+        AND PBL.SRCLIN = PD.POR_LIN 
+        AND PBL.SRCTYP = 'POR'
+    LEFT JOIN PBOLH PBH ON PBH.DOCNUM = PBL.DOCNUM
+    LEFT JOIN PRECLIN PRC ON PRC.SRCDOC = PD.POR_NUM 
+        AND PRC.SRCLIN = PD.POR_LIN 
+        AND PRC.SRCTYP = 'POR'
+    GROUP BY PD.POR_NUM, PD.POR_LIN
+),
+MAIN_QUERY AS (
+    SELECT TOP 500
+        S.ID AS LINKROWID,
+        S.DOCNUM,
+        S.DOCLIN,
+        S.ITMNO,
+        ITM.ITMNAM,
+        ITM.ITMNAM1,
+        ITM.ITMNAM2,
+        S.ITMVER,
+        ITM.TSICOD1,
+        ITM.TSICOD2,
+        ITM.TSICOD3,
+        ITM.TSICOD4,
+        ITM.TSICOD5,
+        ITM.ITMSIZE,
+        ITM.ITMSPEC,
+        CONVERT(VARCHAR, S.REQDAT, 23) AS REQDAT,
+        S.UOM,
+        S.UOMCOE,
+        CAST(S.QTY AS REAL) AS QTY,
+        S.STU,
+        CAST(S.QTYSTU AS REAL) AS QTYSTU,
+        CAST(S.PRQQTY AS REAL) AS PRQQTY,
+        CAST(S.PRQQTYSTU AS REAL) AS PRQQTYSTU,
+        S.REMARK AS LREMARK,
+        S.SRCTYP,
+        S.SRCDOC,
+        S.SRCLIN,
+        DOCSTA.OPTDES AS DOCSTA,
+        S.CLOREA AS LCLOREA,
+        H.DOCGRP,
+        DOCGRP.OPTDES AS DOCGRPDES,
+        CONVERT(VARCHAR(10), H.DOCDAT, 21) AS DOCDAT,
+        H.DOCDES,
+        H.PRJNUM,
+        H.SITE,
+        H.DEPT,
+        D.DEPTNAM AS DEPTDES,
+        H.GRP,
+        G.GRPNAM AS GRPDES,
+        H.RESNO,
+        R.RESNAM AS RESNODES,
+        H.REMARK,
+        CASE 
+            WHEN S.PRQNUM IS NULL OR S.PRQNUM = '' THEN '未申请'
+            ELSE S.PRQNUM
+        END AS PRQNUM,
+        CONVERT(VARCHAR(10), PRQH.DOCDAT, 21) AS PRQDAT,
+        CASE 
+            WHEN OL.PINNUM IS NULL AND PD.PBHNUM IS NULL THEN '未询价'
+            WHEN OL.PINNUM IS NULL AND PD.PBHNUM IS NOT NULL THEN '直接生成订单'
+            ELSE OL.PINNUM
+        END AS PINNUM,
+        CONVERT(VARCHAR(10), OL.PINDAT, 21) AS PINDAT,
+        CASE 
+            WHEN OL.POR_NUM_FROM_PIN IS NULL AND OL.POR_NUM_FROM_PRQ IS NULL THEN '未采购'
+            WHEN OL.POR_NUM_FROM_PIN IS NOT NULL AND OL.POR_NUM_FROM_PRQ IS NULL THEN OL.POR_NUM_FROM_PIN
+            ELSE OL.POR_NUM_FROM_PRQ
+        END AS PORNUM,
+        CASE 
+            WHEN OL.POR_NUM_FROM_PIN IS NOT NULL AND OL.POR_NUM_FROM_PRQ IS NULL 
+                THEN CONVERT(VARCHAR(10), POR1.DOCDAT, 21)
+            ELSE CONVERT(VARCHAR(10), POR2.DOCDAT, 21)
+        END AS PORDAT,
+        PD.PBHNUM,
+        CONVERT(VARCHAR(10), PD.PBHDAT, 21) AS PBHDAT,
+        CONVERT(VARCHAR(10), PD.ETD, 21) AS ETD,
+        CONVERT(VARCHAR(10), PD.ETA, 21) AS ETA,
+        CONVERT(VARCHAR(10), PD.BLD, 21) AS BLD,
+        PD.PRCDOC,
+        CONVERT(VARCHAR(10), PD.PRCDAT, 21) AS PRCDAT,
+        S.CREUSR,
+        S.UPDUSR,
+        CONVERT(VARCHAR(16), S.CRETIM, 21) AS CRETIM,
+        CONVERT(VARCHAR(16), S.UPDTIM, 21) AS UPDTIM
+    FROM PREQAL S
+    INNER JOIN PREQAH H ON S.DOCNUM = H.DOCNUM
+    INNER JOIN ITM ON ITM.ITMNO = S.ITMNO
+    LEFT JOIN PREQUH PRQH ON PRQH.DOCNUM = S.PRQNUM
+    LEFT JOIN ORDER_LINES OL ON OL.DOCNUM=S.PRQNUM AND OL.ITMNO=S.ITMNO
+    LEFT JOIN PORDER POR1 ON POR1.DOCNUM = OL.POR_NUM_FROM_PIN
+    LEFT JOIN PORDER POR2 ON POR2.DOCNUM = OL.POR_NUM_FROM_PRQ
+    LEFT JOIN POR_DETAILS PD 
+	ON PD.POR_NUM = COALESCE(OL.POR_NUM_FROM_PIN, OL.POR_NUM_FROM_PRQ)
+	AND PD.POR_LIN=COALESCE(OL.POR_LIN_FROM_PIN, OL.POR_LIN_FROM_PRQ)
+    LEFT JOIN ENTDEPT D ON H.DEPT = D.DEPT
+    LEFT JOIN ENTGRP G ON H.GRP = G.GRP
+    LEFT JOIN ENTRES R ON H.RESNO = R.RESNO
+    LEFT JOIN LINKOPT DOCSTA ON DOCSTA.OPTID = S.DOCSTA 
+        AND DOCSTA.OPTTYP = 'DOCSTA'
+    LEFT JOIN LINKOPT DOCGRP ON H.DOCGRP = DOCGRP.OPTID 
+        AND DOCGRP.OPTTYP = 'DOCGRP' 
+        AND DOCGRP.LINKOPTID = 'PRA'
+    WHERE H.SITE = @SITE
+       AND (@DOCNUM = '%' 
+            OR S.DOCNUM LIKE @DOCNUM)
+       AND (@ITMNO = '%' 
+            OR S.ITMNO LIKE @ITMNO)
+       AND (@ITMDES = '%' 
+            OR (S.ITMVER + ITM.ITMNAM + ITM.ITMNAM1) LIKE @ITMDES)
+        AND H.DOCDAT BETWEEN @DATSTR AND @DATEND
+        AND (H.DEPT = @DEPT 
+            OR @DEPT = '')
+)
+SELECT * 
+FROM MAIN_QUERY
+ORDER BY DOCNUM DESC,DOCLIN</SQLScript>
+  <SQLUpdateScript>--LINKJSONDATASUBMIT   
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @CRETIM  DATETIME =GETDATE();  
+DECLARE @DOCNUM  VARCHAR(100) =N'#LINKDOCNUM({5},PRA)#'; 
+
+DECLARE @json NVARCHAR(MAX);
+SET @json = N'#LINKJSON{$.formData}#';
+DECLARE @TABLE_1 NVARCHAR(MAX);
+SET @TABLE_1 = N'#LINKJSON{$.TABLE_1}#';
+
+MERGE INTO PREQAH D 
+USING ( 	
+        SELECT TOP 1 @DOCNUM as DOCNUM, DOCGRP,@CRETIM  DOCDAT,SITE,FAC,DEPT,GRP,RESNO,PRJNUM
+	FROM OPENJSON(@JSON) WITH ( 
+ DOCGRP varchar(30) '$.DOCGRP'			--请求类型
+,SITE varchar(30) '$.SITE'				--地点
+,FAC varchar(30) '$.FAC'				--工厂
+,DEPT varchar(30) '$.DEPT'				--申请部门
+,GRP varchar(30) '$.GRP'				--申请班组
+,RESNO varchar(30) '$.RESNO'			--申请人
+,PRJNUM varchar(30) '$.PRJNUM'			--项目编号
+	
+	)
+) S 								  
+ON D.DOCNUM = S.DOCNUM
+WHEN MATCHED THEN UPDATE SET UPDUSR = @USER , UPDTIM = GETDATE()
+WHEN NOT MATCHED THEN 
+INSERT ( 
+	 DOCNUM
+	,DOCGRP
+	,DOCDAT
+	,DOCSTA
+	,SITE
+	,FAC 
+	,DEPT 
+	,GRP 
+	,RESNO 
+	,PRJNUM
+	,WFLSTA
+    ,CREUSR
+    ,CRETIM
+	) 
+VALUES ( 
+     DOCNUM
+	,DOCGRP
+	,DOCDAT
+	,'1' 
+	,SITE
+	,FAC 
+	,DEPT 
+	,GRP 
+	,RESNO 
+	,PRJNUM
+	,'1'  
+        ,@USER
+        ,@CRETIM
+	);  
+MERGE INTO PREQAL D 
+USING ( 
+SELECT @DOCNUM AS DOCNUM, ROW_NUMBER() OVER (ORDER BY (SELECT NULL))*10 AS DOCLIN,A.ITMNO,A.ITMVER
+	,A.REQDAT,A.UOM,M.PUUCOE UOMCOE,A.QTY,M.PUUCOE*A.QTY  QTYSTU,M.STU,A.REMARK,A.DOCSTA,A.CLOREA
+	FROM OPENJSON(@TABLE_1) WITH ( 
+ ITMNO varchar(30) '$.ITMNO'		   --产品编码
+,ITMVER nvarchar(30) '$.ITMVER'		   --产品版本
+,REQDAT date '$.REQDAT'				   --要求日期
+,UOM nvarchar(6) '$.UOM'			   --单据单位
+,QTY decimal(18,6) '$.QTY'			   --采购单位数量
+,REMARK nvarchar(250) '$.REMARK'	   --行备注
+,DOCSTA varchar(1) '$.DOCSTA'		   --单据状态
+,CLOREA nvarchar(60) '$.CLOREA'		   --关闭原因 
+	)  A 
+	LEFT JOIN ITM M
+	ON A.ITMNO =M.ITMNO
+	) S 								  
+ON D.DOCNUM = S.DOCNUM  AND D.DOCLIN=S.DOCLIN
+WHEN MATCHED THEN UPDATE SET UPDUSR = @USER , UPDTIM = GETDATE()
+WHEN NOT MATCHED THEN 
+INSERT ( 
+       DOCNUM
+      ,DOCLIN
+      ,ITMNO 
+      ,ITMVER
+      ,REQDAT
+      ,UOM 
+      ,UOMCOE
+      ,QTY 
+      ,STU 
+      ,QTYSTU
+      ,REMARK
+      ,DOCSTA
+      ,CLOREA
+      ,CREUSR
+      ,CRETIM
+      ) 
+VALUES ( 
+     DOCNUM
+    ,DOCLIN
+    ,ITMNO 
+    ,ITMVER
+    ,REQDAT
+    ,UOM 
+    ,UOMCOE
+    ,QTY 
+    ,STU 
+    ,QTYSTU
+    ,REMARK
+    ,'1'
+    ,CLOREA
+    ,@USER
+    ,@CRETIM
+	);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>单据号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品信息</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>开始时间</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>结束时间</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>车间/部门</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>产品编码</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+--LINKJSONDATASUBMIT 
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @CRETIM  DATETIME =GETDATE(); 
+
+DECLARE @json NVARCHAR(MAX);
+SET @json = N'#LINKJSON{$.formData}#';
+DECLARE @TABLE_1 NVARCHAR(100);
+SET @TABLE_1 = N'#LINKJSON{$.TABLE_1}#';
+
+MERGE INTO PREQAH D 
+USING ( 
+	SELECT * 
+	FROM OPENJSON(@json) WITH ( 
+ DOCNUM varchar(30) '$.DOCNUM'          --请求填报单号
+,DOCGRP varchar(30) '$.DOCGRP'			--请求类型
+,DOCDAT date '$.DOCDAT'					--单据日期
+,DOCSTA varchar(1) '$.DOCSTA'			--单据状态
+,SITE varchar(30) '$.SITE'				--地点
+,FAC varchar(30) '$.FAC'				--工厂
+,DEPT varchar(30) '$.DEPT'				--申请部门
+,GRP varchar(30) '$.GRP'				--申请班组
+,RESNO varchar(30) '$.RESNO'			--申请人
+,PRJNUM varchar(30) '$.PRJNUM'			--项目编号
+,WFLSTA varchar(10) '$.WFLSTA'			--工作流状态
+,CLOREA nvarchar(60) '$.CLOREA'			--关闭原因
+,PRNCNT tinyint '$.PRNCNT'				--打印次数
+	)) S 								  
+ON D.DOCNUM = S.DOCNUM
+WHEN MATCHED THEN UPDATE SET UPDUSR = @USER , UPDTIM = GETDATE()
+WHEN NOT MATCHED THEN 
+INSERT ( 
+	 DOCNUM
+	,DOCGRP
+	,DOCDAT
+	,DOCSTA
+	,SITE
+	,FAC 
+	,DEPT 
+	,GRP 
+	,RESNO 
+	,PRJNUM
+	,WFLSTA
+	,CLOREA
+	,PRNCNT
+    ,CREUSR
+    ,CRETIM
+	) 
+VALUES ( 
+     DOCNUM
+	,DOCGRP
+	,DOCDAT
+	,DOCSTA
+	,SITE
+	,FAC 
+	,DEPT 
+	,GRP 
+	,RESNO 
+	,PRJNUM
+	,WFLSTA
+	,CLOREA
+	,PRNCNT
+    ,@USER
+    ,@CRETIM
+	);
+MERGE INTO PREQAL D 
+USING ( 
+	SELECT * 
+	FROM OPENJSON(@TABLE_1) WITH ( 
+,DOCNUM varchar(30) '$.DOCNUM'		   --请求填报单号
+,DOCLIN int '$.DOCLIN'				   --行号
+,ITMNO varchar(30) '$.ITMNO'		   --产品编码
+,ITMVER nvarchar(30) '$.ITMVER'		   --产品版本
+,REQDAT date '$.REQDAT'				   --要求日期
+,UOM nvarchar(6) '$.UOM'			   --单据单位
+,UOMCOE decimal(18,6) '$.UOMCOE'	   --换算系数
+,QTY decimal(18,6) '$.QTY'			   --采购单位数量
+,STU nvarchar(6) '$.STU'			   --库存单位
+,QTYSTU decimal(18,6) '$.QTYSTU'	   --库存单位数量
+,REMARK nvarchar(250) '$.REMARK'	   --行备注
+,DOCSTA varchar(1) '$.DOCSTA'		   --单据状态
+,CLOREA nvarchar(60) '$.CLOREA'		   --关闭原因 
+	)) S 								  
+ON D.DOCNUM = S.DOCNUM
+WHEN MATCHED THEN UPDATE SET UPDUSR = @USER , UPDTIM = GETDATE()
+WHEN NOT MATCHED THEN 
+INSERT ( 
+       DOCNUM
+      ,DOCLIN
+      ,ITMNO 
+      ,ITMVER
+      ,REQDAT
+      ,UOM 
+      ,UOMCOE
+      ,QTY 
+      ,STU 
+      ,QTYSTU
+      ,REMARK
+      ,DOCSTA
+      ,CLOREA
+      ,CREUSR
+      ,CRETIM
+      ) 
+VALUES ( 
+     DOCNUM
+    ,DOCLIN
+    ,ITMNO 
+    ,ITMVER
+    ,REQDAT
+    ,UOM 
+    ,UOMCOE
+    ,QTY 
+    ,STU 
+    ,QTYSTU
+    ,REMARK
+    ,DOCSTA
+    ,CLOREA
+    ,@USER
+    ,@CRETIM
+	);</SQLNew>
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#75</ImageFile>
+  <ListPrint />
+  <MD5HASH>6b032b14857b48c5baab91643ab45b71</MD5HASH>
+  <ModelSetting>{"DataScript": 
+  {"UpdateScript": 
+    {"EditCols":["DOCNUM"]} 
+  } 
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Điền vào yêu cầu chi tiết</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Điền thông tin chi tiết</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

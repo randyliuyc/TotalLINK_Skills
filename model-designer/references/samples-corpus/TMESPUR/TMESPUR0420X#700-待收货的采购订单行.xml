@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0420X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>待收货的采购订单行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT H.DOCNUM + '-' + CAST(S.DOCLIN AS CHAR) DOCKEY
+      ,H.DOCNUM                                SRCDOC
+      ,H.DOCGRP                                POHGRP
+      ,H.DOCSTA
+      ,CONVERT(VARCHAR(16), H.DOCDAT, 23)      DOCDAT
+      ,H.DOCDES
+      ,H.PRJNUM
+      ,H.SITE
+      ,H.BPSNO
+      ,BPS.BPSNAM
+      ,H.CUR
+      ,S.REMARK                                LREMARK
+      ,S.DOCLIN                                SRCLIN
+      ,S.DOCTYP                                SRCTYP
+      ,S.ITMNO
+      ,ITM.ITMNAM
+      ,S.ITMVER
+      ,CONVERT(VARCHAR(16), S.REQDAT, 23)      REQDAT
+      ,S.STU
+      ,S.UOM
+      ,S.UOMCOE
+      ,( S.QTY - S.PRCQTY )                    QTY
+      ,( S.QTYSTU - S.PRCQTYSTU )              QTYSTU
+      ,S.QTY                                   ORDQTY
+      ,S.QTYSTU                                ORDQTYSTU
+      ,S.NETPRI
+      ,S.PRCQTY
+      ,S.PRCQTYSTU
+FROM   PORDER H
+       INNER JOIN PORDLIN S
+               ON H.DOCNUM = S.DOCNUM
+       INNER JOIN BPSUP BPS
+               ON H.BPSNO = BPS.BPSNO
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+WHERE  S.DOCSTA = 2
+       AND S.QTY - S.PRCQTY &gt; 0
+       AND H.SITE LIKE '%{0}%'
+       AND H.BPSNO LIKE '%{1}%'
+       AND S.ITMNO + ITM.ITMNAM +ISNULL(S.ITMVER,'')+ H.PRJNUM LIKE '%{2}%'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#16</ImageFile>
+  <ListPrint />
+  <MD5HASH>2f729b7ac20f0857d893ed31f1f49a9c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0420X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Dòng đơn đặt hàng sẽ được nhận</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0420X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Dòng lệnh mua để nhận hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

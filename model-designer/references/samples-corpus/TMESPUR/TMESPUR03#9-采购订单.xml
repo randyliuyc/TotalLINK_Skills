@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR03</ModelCode>
+  <ModelNum>9</ModelNum>
+  <ModelDesc>采购订单</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.ID                                LINKROWID
+       ,S.DOCNUM
+       ,DOCGRP.OPTDES                      DOCGRP
+       ,DOCSTA.OPTDES                      DOCSTA
+       ,WFLSTA.OPTDES                      WFLSTA
+       ,CONVERT(VARCHAR(16), S.DOCDAT, 23) DOCDAT
+       ,S.DOCDES
+       ,S.PRJNUM
+       ,SI.SITENAM                         SITE
+       ,S.BPSNO
+       ,BPS.BPSNAM
+       ,S.CUR
+       ,S.CURRAT --汇率
+       ,S.RESNO --采购员
+       ,S.CONTNOI --百隆合同号
+       ,S.CONTNOE --合同号
+       ,S.LCNO --信用证号
+       ,S.REMARK
+       ,S1.NAME + '(' + S.CREUSR + ')'     CREUSR
+       ,S2.NAME + '(' + S.UPDUSR + ')'     UPDUSR
+       ,CONVERT(VARCHAR(16), S.CRETIM, 21) CRETIM
+       ,CONVERT(VARCHAR(16), S.UPDTIM, 21) UPDTIM
+FROM   PORDER S
+       LEFT JOIN BPSUP BPS
+              ON S.BPSNO = BPS.BPSNO
+       LEFT JOIN ENTSITE SI
+              ON SI.SITE = S.SITE
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = S.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'POR'
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = S.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN LINK.DBO.SYSUSER USR
+              ON S.CREUSR = USR.LOGINUSER
+       LEFT JOIN LINK.DBO.SysUser S1
+              ON S.CREUSR = S1.LoginUser
+       LEFT JOIN LINK.DBO.SysUser S2
+              ON S.UPDUSR = S2.LoginUser
+WHERE  ( S.CREUSR = N'#LOGIN_USER#' --用户自己
+          OR '#LINKUSER(#LOGIN_USER#).DOCGRP#' = ''
+          OR Charindex(USR.UDF001, '#LINKUSER(#LOGIN_USER#).DOCGRP#') &gt; 0 ) --用户组权限
+       AND S.DOCNUM + S.DOCDES + S.PRJNUM + S.BPSNO + S.REMARK
+           + S.BVATTYP + S.CONTNOI + S.CONTNOE + S.CONTDES
+           + S.LCNO + S.BPSNO + Isnull(BPS.BPSNAM, '') LIKE '%{0}%'
+       AND ( ( S.DOCDAT BETWEEN '{1}' AND '{2}' )
+              OR ( '{1}' = ''
+                   AND '{2}' = '' ) )
+       AND S.DOCSTA LIKE '%{3}%'
+       AND (S.CREUSR='{4}' OR '{4}'='')
+ORDER  BY S.ID DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>搜索内容</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>开始日期</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>结束日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>审批状态</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>采购员</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#43</ImageFile>
+  <ListPrint />
+  <MD5HASH>4193b938cb52d0cd099226b1129ee74c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>đơn đặt hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Đơn đặt hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

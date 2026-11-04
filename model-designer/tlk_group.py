@@ -3,6 +3,8 @@
 
 由 `scripts/tlk.py` 按插件契约发现并注册，成为 `tlk model <子命令>`：
 
+  dict     表字典查询（配置驱动：编号/连接/参数模板存 ~/.totallink/config.json，
+           缺省 SYSTEMCODE/30；模型不存在或列结构未知时降级提示，不猜）
   export   导出模型 XML 到文件（linkDMExport）
   import   导入模型 XML 落库（linkDMImport，服务端重算 MD5HASH）
   run      设计态运行（linkDMRun，不计配额、不校验 AccessFlag）
@@ -16,7 +18,19 @@ import os
 import sys
 
 GROUP = "model"
-HELP = "数据模型设计：导出 / 导入 / 运行 / 静态校验"
+HELP = "数据模型设计：字典 / 导出 / 导入 / 运行 / 静态校验"
+
+# 表字典缺省配置：模型编号与参数模板都可在项目配置 dict 键下覆盖
+DICT_DEFAULTS = {
+    "dmCode": "SYSTEMCODE",
+    "dmNum": 30,
+    "conn": "LINKDB",
+    "db": "LINKDB",
+    "args": ["{conn}", "{db}", "{table}"],
+}
+# 归一化列词汇表：schema 命中 COLNAME 才做归一化，否则原样输出并标注「列映射未知」
+_DICT_KNOWN_COLS = ("COLNAME", "COLDESC", "COLTYPE", "COLLEN", "SCALE",
+                    "PK", "IDENT", "ALLOWNULL", "SEQ")
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 # 本组自带 scripts/（validate_model.py）；tlk_core 由入口注入的 scripts/ 提供
@@ -49,6 +63,143 @@ def _merge_data(head, resp):
         out["data"] = data
     out["_project"] = resp.get("_project")
     return out
+
+
+# ---------------------------------------------------------------- dict
+
+def _dict_cfg(project_key, proj_cfg):
+    """读项目配置里的 dict 节，叠加缺省值。"""
+    cfg = (proj_cfg or {}).get("dict") or {}
+    out = dict(DICT_DEFAULTS)
+    out.update({k: v for k, v in cfg.items() if v is not None})
+    return out
+
+
+def _save_dict_cfg(project_key, values):
+    """把 dict 配置写进 ~/.totallink/config.json 对应项目节。"""
+    all_cfg = tlk_core.load_all_config()
+    if not all_cfg or project_key not in all_cfg.get("projects", {}):
+        return {"error": "CONFIG",
+                "message": f"项目 '{project_key}' 不存在，先运行 env add"}
+    all_cfg["projects"][project_key]["dict"] = values
+    tlk_core.save_config(all_cfg)
+    return None
+
+
+def _dict_normalize(table):
+    """
+    尽力而为归一化：schema 命中已知词汇表（含 COLNAME）→ 输出紧凑列清单；
+    否则原样输出 schema/captions/样例行并标注列映射未知（由调用方向用户确认）。
+    """
+    schema = table.get("schema") or []
+    rows = table.get("data") or []
+    recs = [dict(zip(schema, r)) for r in rows]
+
+    if "COLNAME" not in schema:
+        return None, recs
+
+    cols = []
+    for r in recs:
+        def _v(k):
+            v = r.get(k)
+            return "" if v is None else str(v).strip()
+        typ = _v("COLTYPE")
+        if typ and _v("COLLEN"):
+            typ = f"{typ}({_v('COLLEN')}"
+            if _v("SCALE") not in ("", "0"):
+                typ += f",{_v('SCALE')}"
+            typ += ")"
+        cols.append({
+            "name": _v("COLNAME"),
+            "type": typ,
+            "desc": _v("COLDESC"),
+            "pk": _v("PK") not in ("", "0"),
+            "null": _v("ALLOWNULL") == "1",
+            "ident": _v("IDENT") not in ("", "0"),
+            "seq": int(_v("SEQ") or 0),
+        })
+    return cols, recs
+
+
+def cmd_dict(args):
+    project_key, proj_cfg = tlk_core.get_project_config(args.project)
+    if not proj_cfg:
+        _emit({"error": "CONFIG",
+               "message": "没有可用项目配置，先运行 env add / env use"})
+
+    cfg = _dict_cfg(project_key, proj_cfg)
+    # CLI 临时覆盖
+    if args.code:
+        cfg["dmCode"] = args.code
+    if args.num is not None:
+        cfg["dmNum"] = args.num
+    if args.conn:
+        cfg["conn"] = args.conn
+    if args.db:
+        cfg["db"] = args.db
+    if args.args:
+        try:
+            tpl = json.loads(args.args)
+        except json.JSONDecodeError as e:
+            _emit({"error": "PARAM", "message": f"--args 不是合法 JSON：{e}"})
+        if not (isinstance(tpl, list) and tpl and all(isinstance(x, str) for x in tpl)):
+            _emit({"error": "PARAM",
+                   "message": "--args 必须是字符串数组模板，如 '[\"{conn}\",\"{db}\",\"{table}\"]'"})
+        cfg["args"] = tpl
+
+    if args.save:
+        err = _save_dict_cfg(project_key or (args.project or ""), {
+            "dmCode": cfg["dmCode"], "dmNum": cfg["dmNum"],
+            "conn": cfg.get("conn", ""), "db": cfg.get("db", ""),
+            "args": cfg["args"],
+        })
+        if err:
+            _emit(err)
+
+    # 按参数模板生成 Para（占位符缺失时取空串，保证位置对齐）
+    params = [t.format(table=args.table, conn=cfg.get("conn", ""),
+                       db=cfg.get("db", "")) for t in cfg["args"]]
+
+    resp = tlk_core.call(cfg["dmCode"], cfg["dmNum"], params=params,
+                         script_type=0, project=args.project,
+                         timeout=args.timeout)
+    if "error" in resp:
+        resp["hint"] = ("表字典模型不可用。处理路径：① python3 scripts/tlk.py tools search "
+                        "\"表结构\" 查找字典能力；② 由用户提供 dmCode/dmNum 后用 "
+                        "--code/--num 临时指定，或加 --save 写入项目配置；③ 请用户开放该功能。")
+        _emit(resp)
+
+    data = resp.get("data") or {}
+    table = data.get("Table") if isinstance(data, dict) else None
+    if not isinstance(table, dict) or not table.get("schema"):
+        _emit({"error": "BIZ",
+               "message": "返回中没有 Table.schema，无法识别为表字典结果",
+               "raw_data_type": type(data).__name__})
+
+    cols, recs = _dict_normalize(table)
+    out = {
+        "status": "ok",
+        "table": args.table,
+        "dict_model": f"{cfg['dmCode']}/{cfg['dmNum']}",
+        "_project": resp.get("_project"),
+    }
+    if cols is not None:
+        out["columns"] = cols            # 归一化清单：问卷/任务书直接用
+        out["columnNames"] = [c["name"] for c in cols]
+        out["normalized"] = True
+    else:
+        out["normalized"] = False
+        out["note"] = ("列映射未知（schema 与已知词汇表不匹配），以下为原始结构，"
+                       "请向用户确认各列含义后再使用，不要猜。")
+        out["schema"] = table.get("schema")
+        out["captions"] = table.get("captions")
+        out["sampleRows"] = recs[: max(0, args.sample)]
+    if resp.get("_warning"):
+        out["_warning"] = resp["_warning"]
+    if args.save:
+        out["saved"] = {"project": project_key, "dict": {
+            k: cfg[k] for k in ("dmCode", "dmNum", "conn", "db", "args")}}
+    _emit(out)
 
 
 # ---------------------------------------------------------------- export
@@ -133,7 +284,8 @@ def cmd_run(args):
 
 def cmd_validate(args):
     columns = validate_model.parse_columns(args.columns)
-    _emit(validate_model.validate_file(args.file, args.code, args.num, columns))
+    _emit(validate_model.validate_file(args.file, args.code, args.num,
+                                       columns, env=args.env))
 
 
 # ---------------------------------------------------------------- 注册
@@ -147,6 +299,23 @@ def _add_common(p, timeout=True):
 
 
 def register(subparsers):
+    p = subparsers.add_parser(
+        "dict", help="表字典查询（配置驱动，缺省 SYSTEMCODE/30）")
+    p.add_argument("table", metavar="TABLE", help="表名，如 BPCUS")
+    p.add_argument("--code", help="字典模型 dmCode（缺省用项目配置，再缺省 SYSTEMCODE）")
+    p.add_argument("--num", type=int, help="字典模型 dmNum（缺省用项目配置，再缺省 30）")
+    p.add_argument("--conn", help="链接代码（缺省用项目配置，再缺省 LINKDB）")
+    p.add_argument("--db", help="数据库名（缺省用项目配置，再缺省 LINKDB）")
+    p.add_argument("--args", metavar="JSON",
+                   help="参数模板（字符串数组，占位符 {table}/{conn}/{db}），"
+                        "如 '[\"{conn}\",\"{db}\",\"{table}\"]'")
+    p.add_argument("--sample", type=int, default=3, metavar="N",
+                   help="列映射未知时输出原始样例行数（默认 3）")
+    p.add_argument("--save", action="store_true",
+                   help="把本次生效的字典配置写入项目配置（~/.totallink/config.json）")
+    _add_common(p)
+    p.set_defaults(handler=cmd_dict)
+
     p = subparsers.add_parser("export", help="导出模型 XML 到文件（linkDMExport）")
     p.add_argument("code", metavar="dmCode")
     p.add_argument("num", metavar="dmNum", type=int)
@@ -189,4 +358,7 @@ def register(subparsers):
     p.add_argument("--columns", metavar="COL1,COL2",
                    help="实际返回列（取自 tlk model run 的 columns），"
                         "用于 CubeSetting 覆盖检查")
+    p.add_argument("--env", choices=("fb", "app"), default=None,
+                   help="目标环境标签：fb=FB 表单模型（500 检查）；"
+                        "app=APP 模型（H5 族成对性/非空检查）")
     p.set_defaults(handler=cmd_validate)

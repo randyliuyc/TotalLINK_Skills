@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR08</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>棉包入库列表</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.ID    LINKROWID
+      ,IIF(S.SUBSTA=2,'入库失败','已保存') LINSTA
+      ,S.[BATCHID]
+      ,S.[TAGNO]
+      ,S.[CTR]
+      ,D.ITMNO
+      ,D.ITMVER
+      ,D.DOCNUM
+      ,D.DOCLIN
+      ,D.SRCDOC
+      ,D.SRCLIN
+      ,D.ORIDOC
+      ,D.ORILIN
+      ,S.[LOT]
+      ,S.[SUBLOT]
+      ,S.[MIC]
+      ,S.[LEN]
+      ,S.[UNIF]
+      ,S.[STR]
+      ,S.[RD]
+      ,S.[PLUSB]
+      ,S.[RECWT]
+      ,S.[NETREWT]
+      ,S.[SHIPWT]
+      ,S.[NETSHWT]
+      ,S.[TAREWT]
+      ,S.[CONTRACT]
+      ,S.[INVOICE]
+      ,S.FILENAM
+      ,S.[REMARK]
+      ,''GXFLG
+      ,CASE WHEN ISNULL(D.LOT,'')='' THEN '批次找不到对应的提单' 
+           WHEN D.DOCSTA&lt;&gt;2 THEN '该批次不可入库'  
+           ELSE '' END SJJC
+      ,S.[CREUSR]
+      ,S.[UPDUSR]
+      ,CONVERT(VARCHAR(16), S.CRETIM, 21)                                                             CRETIM
+      ,IIF(CONVERT(VARCHAR(16), S.UPDTIM, 21) = '1900-01-01', '', CONVERT(VARCHAR(16), S.UPDTIM, 21)) UPDTIM
+  FROM [STKLOTLST]   S WITH(NOLOCK)
+  LEFT JOIN [PBOLD]   D WITH(NOLOCK)
+  ON  S.LOT=D.LOT 
+  WHERE S.[CREUSR]='#LOGIN_USER#' AND S.SUBSTA&lt;&gt;3 AND S.DOCTYP='PRC' AND S.DOCGRP='IMP'</SQLScript>
+  <SQLUpdateScript>--LINKJSONDATASUBMIT 
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'; 
+DECLARE @CRETIM DATETIME = GETDATE();
+DECLARE @BATCHID VARCHAR(50) ='NEW-PRCIMP-#LOGIN_USER#';
+
+DECLARE @json NVARCHAR(MAX);
+SET @json = N'#LINKJSON{$.TABLE_1}#';
+
+DECLARE @FILENAM NVARCHAR(100);
+SET @FILENAM = N'#LINKJSON{$.formData.FILENAM}#';
+
+MERGE INTO [STKLOTLST] K
+USING (
+SELECT *
+FROM OPENJSON(@json) WITH (
+ LOT varchar(30) '$.LOT'
+,SUBLOT varchar(30) '$.SUBLOT'
+,TAGNO varchar(30) '$.TAGNO'
+,MIC decimal(18,6) '$.MIC'
+,LEN decimal(18,6) '$.LEN'
+,UNIF decimal(18,6) '$.UNIF'
+,STR decimal(18,6) '$.STR'
+,RD decimal(18,6) '$.RD'
+,PLUSB decimal(18,6) '$.PLUSB'
+,RECWT decimal(18,6) '$.RECWT'
+,NETREWT decimal(18,6) '$.NETREWT'
+,SHIPWT decimal(18,6) '$.SHIPWT'
+,NETSHWT decimal(18,6) '$.NETSHWT'
+,TAREWT decimal(18,6) '$.TAREWT'
+,CONTRACT varchar(50) '$.CONTRACT'
+,INVOICE varchar(50) '$.INVOICE'
+)) S
+ ON S.TAGNO = K.TAGNO
+WHEN NOT MATCHED THEN
+INSERT (LOT, SUBLOT, TAGTYP, TAGNO, MIC, LEN, UNIF, STR, RD, PLUSB, RECWT, 
+	NETREWT, SHIPWT,NETSHWT,TAREWT, CONTRACT, INVOICE, 
+	FILENAM, CREUSR, BATCHID, DOCSTA, SUBSTA, DOCTYP, DOCGRP)
+VALUES (LTRIM(RTRIM(S.LOT)), LTRIM(RTRIM(S.SUBLOT)), 'CTR', LTRIM(RTRIM(S.TAGNO)), S.MIC, S.LEN, S.UNIF, S.STR, S.RD, S.PLUSB, S.RECWT, 
+	S.NETREWT, S.SHIPWT,S.NETSHWT,S.TAREWT, S.CONTRACT, S.INVOICE, 
+	@FILENAM, @USER, @BATCHID, '1', 1, 'PRC', 'IMP');
+-- 插入的记录标记为DOCSTA=1
+
+UPDATE STKLOTLST
+SET    SITE = H.SITE
+      ,ITMNO = D.ITMNO
+      ,ITMVER = D.ITMVER
+      ,SRCTYP = D.SRCTYP
+      ,SRCDOC = D.SRCDOC
+      ,SRCLIN = D.SRCLIN
+      ,ORITYP = H.DOCTYP
+      ,ORIDOC = D.DOCNUM
+      ,ORILIN = D.DOCLIN
+      ,BPRNO = H.BPSNO
+      ,FAC = D.FAC
+      ,UOM = 'PKG'
+      ,UOMCOE = ROUND(D.CTRQTY,2) --均重
+      ,QTY = 1
+      ,QTYSTU = ROUND(D.CTRQTY,2) --均重
+      ,STU = ITM.STU
+FROM   STKLOTLST S WITH (NOLOCK)
+       INNER JOIN PBOLD D
+               ON S.LOT = D.LOT
+       INNER JOIN PBOLH H
+               ON D.DOCNUM = H.DOCNUM
+       INNER JOIN ITM
+               ON ITM.ITMNO = D.ITMNO
+WHERE  S.BATCHID = @BATCHID</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>1</ParaLabel01>
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM [STKLOTLST] WHERE ID=0#LINKROWID# AND '#GXFLG#'='1'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#04</ImageFile>
+  <ListPrint />
+  <MD5HASH>35fe09684009e06eaa77c63630ad17cb</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR08</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Danh sách lưu trữ kiện bông</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR08</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Danh sách gói bông vào kho</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

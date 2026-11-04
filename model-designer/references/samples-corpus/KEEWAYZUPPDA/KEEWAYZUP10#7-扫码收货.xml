@@ -1,0 +1,543 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP10</ModelCode>
+  <ModelNum>7</ModelNum>
+  <ModelDesc>扫码收货</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMYROWDATA
+DECLARE @STOFCY VARCHAR(30)='{0}';
+DECLARE @SDHDAT DATE='{2}';
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @LANX3 VARCHAR(30) ='#LINKFUNC.GETLANX3#';
+
+SELECT N''                                       产品编码
+       ,''                                       AS 产品描述1
+       ,''                                       AS 产品描述2
+       ,ISNULL((SELECT COUNT(DISTINCT PALNUM_0 + CTRNUM_0)
+                FROM   XWSPTHD
+                WHERE  RPFLG_0 &lt;&gt; 3
+                       AND PRHFCY_0 = @STOFCY
+                       AND USERID_0 = @USER), 0) 数量
+       ,''                                       单位
+       ,''                                       库位
+       ,''                                       批次
+       ,''                                       计划号
+       ,''                                       箱号
+       ,''                                       采购订单
+       ,0                                        采购行
+       ,''                                       托号
+       ,''                                       箱单号
+       ,''                                       LINKROWID
+       ,'G01'                                    LINKAPPRROW
+       ,'mui-hidden'                             LINKROWIDHIDL
+       ,''                                       LINKROWIDHIDH
+       ,'' LOTMGT
+	   ,'' LOTFLG
+	   ,'' SERFLG
+UNION ALL
+SELECT XWS.ITMREF_0                      产品编码
+       ,ISNULL(L1.ITMDES, ITM.ITMDES1_0) AS 产品描述1
+       ,ISNULL(L2.ITMDES, ITM.ITMDES2_0) AS 产品描述2
+       ,Cast(QTYSTU_0 AS REAL)           数量
+       ,XWS.STU_0                        单位
+       ,XWS.LOC_0                        库位
+       ,XWS.LOT_0                        批次
+       ,XWS.PALNUM_0                     计划号
+       ,XWS.CTRNUM_0                     箱号
+       ,XWS.POHNUM_0                     采购订单
+       ,XWS.POPLIN_0                     采购行
+       ,XWS.XTXT_2                       托号
+       ,XWS.CTRNUM_0                     箱单号
+       ,XWS.PK_0                         LINKROWID
+       ,CASE
+          WHEN XWS.POHNUM_0 = '' THEN 'D03'
+          WHEN XWS.LOC_0 = '' THEN 'D03'
+          ELSE ''
+        END                              LINKAPPRROW
+       ,''                               LINKROWIDHIDL
+       ,'mui-hidden'                     LINKROWIDHIDH
+       ,CASE WHEN ITF.YLOTCAN_0&lt;&gt;2 AND ITM.LOTMGTCOD_0&gt;1 THEN '*' ELSE '' END LOTMGT  
+	   ,CASE
+          WHEN ITM.LOTMGTCOD_0 &gt; 1 AND ITF.YLOTCAN_0&lt;&gt;2 THEN N'lang:{zh:批次号管理,en:Batch Management,de:Chargenverwaltung}'
+          ELSE ''
+        END                              LOTFLG
+	   ,CASE
+          WHEN SERMGTCOD_0 =3 THEN N'lang:{zh:序列号管理,en:Serial Number Management,de:Seriennummernverwaltung}'
+          ELSE ''
+        END                              SERFLG
+FROM   XWSPTHD XWS
+       INNER JOIN ITMMASTER ITM
+               ON XWS.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       LEFT JOIN ITMFACILIT ITF ON XWS.ITMREF_0=ITF.ITMREF_0 AND ITF.STOFCY_0=@STOFCY
+WHERE  XWS.PRHFCY_0 = @STOFCY
+       AND XWS.USERID_0 = @USER
+       AND XWS.RPFLG_0 &lt;&gt; 3
+ORDER  BY 采购订单
+          ,采购行 DESC
+          ,产品编码</SQLScript>
+  <SQLUpdateScript>SELECT * FROM YZXH WHERE STOFCY_0='ZJKC'
+UPDATE XWSPTHD SET LOC_0=N'#库位#' ,LOT_0=N'#批次#',UPDDATTIM_0=GETDATE()
+WHERE POHNUM_0='#采购订单#' AND POPLIN_0='#采购行#'AND STAT_0=1 AND  [RPFLG_0]&lt;&gt;3;</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>X3SITE#1</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>库位</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>过账日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>DECLARE @STOFCY VARCHAR(30)='{0}';
+DECLARE @RCPDAT DATE='{2}';
+DECLARE @BATCHID VARCHAR(50) = '#LINKID_ACTION#';
+INSERT INTO [XWSPTHD]
+           ([MACHINEID_0]
+           ,[USERID_0]
+           ,[CUSERID_0]
+           ,[VCRTYP_0]
+           ,[PK_0]
+           ,[BATCHID_0]
+           ,[PKORI_0]
+           ,[CREDATIM_0]
+           ,[STAT_0]
+           ,[SUBDATIM_0]
+           ,[RPFLG_0]
+           ,[RPNUM_0]
+           ,[RPLIN_0]
+           ,[RPNOTE_0]
+           ,[RPDATE_0]
+           ,[RPDATIM_0]
+           ,[PRTFLG_0]
+           ,[PRHFCY_0]
+           ,[RCPDAT_0]
+           ,[PTHNUM_0]
+           ,[BPSNUM_0]
+           ,[CUR_0]
+           ,[POHNUM_0]
+           ,[POPLIN_0]
+           ,[ITMREF_0]
+           ,[ITMDES_0]
+           ,[UOM_0]
+           ,[QTYUOM_0]
+           ,[STU_0]
+           ,[QTYSTU_0]
+           ,[UOMSTUCOE_0]
+           ,[GROPRI_0]
+           ,[PJT_0]
+           ,[X5HNUM_0]
+           ,[X5DLIN_0]
+           ,[STA_0]
+           ,[PCU_0]
+           ,[QTYPCU_0]
+           ,[QTYUNI_0]
+           ,[LOC_0]
+           ,[LOT_0]
+           ,[BPSLOT_0]
+           ,[PALNUM_0]
+           ,[CTRNUM_0]
+           ,[SERNUM_0]
+           ,[QTYWEU_0]
+           ,[CREDATTIM_0]
+           ,[UPDDATTIM_0]
+           ,[AUUID_0]
+           ,[CREUSR_0]
+           ,[UPDUSR_0]
+           ,[WRH_0]
+           ,[XTXT_0]
+           ,[XTXT_1]
+           ,[XTXT_2]
+           ,[XDCB_0]
+           ,[XDCB_1]
+           ,[XDCB_2]
+           ,[XDAT_0]
+           ,[XDAT_1]
+           ,[XDAT_2]
+           ,[SDHNUM_0]
+           ,[SDDLIN_0]
+           ,[YINVQTY_0]
+           ,[YBONQTY_0])
+     SELECT
+           --'#LOGIN_ID#'--&lt;MACHINEID_0, nvarchar(50),&gt;
+            @BATCHID
+           ,'#LOGIN_USER#'--&lt;USERID_0, nvarchar(20),&gt;
+           ,''--&lt;CUSERID_0, nvarchar(20),&gt;
+           ,6--&lt;VCRTYP_0, smallint,&gt;
+           ,NEWID()--&lt;PK_0, nvarchar(50),&gt;
+           ,''--&lt;BATCHID_0, nvarchar(50),&gt;
+           ,'SCP'--&lt;PKORI_0, nvarchar(50),&gt;
+           ,GETDATE()--&lt;CREDATIM_0, datetime,&gt;
+           ,1--&lt;STAT_0, tinyint,&gt;
+           ,''--&lt;SUBDATIM_0, datetime,&gt;
+           ,1--&lt;RPFLG_0, smallint,&gt;
+           ,''--&lt;RPNUM_0, nvarchar(30),&gt;
+           ,0--&lt;RPLIN_0, int,&gt;
+           ,''--&lt;RPNOTE_0, nvarchar(250),&gt;
+           ,''--&lt;RPDATE_0, datetime,&gt;
+           ,''--&lt;RPDATIM_0, nvarchar(50),&gt;
+           ,0--&lt;PRTFLG_0, int,&gt;
+           ,@STOFCY--&lt;PRHFCY_0, nvarchar(5),&gt;
+           ,@RCPDAT--&lt;RCPDAT_0, datetime,&gt;
+           ,''--&lt;PTHNUM_0, nvarchar(20),&gt;
+           ,ISNULL(R.BPSNUM_0,'')--&lt;BPSNUM_0, nvarchar(15),&gt;
+           ,ISNULL(R.CUR_0,'')--&lt;CUR_0, nvarchar(3),&gt;
+           ,ISNULL(Q.POHNUM_0,'')--&lt;POHNUM_0, nvarchar(20),&gt;
+           ,ISNULL(Q.POPLIN_0,0)--&lt;POPLIN_0, int,&gt;
+           ,ISNULL(Q.ITMREF_0,'')--&lt;ITMREF_0, nvarchar(30),&gt;
+           ,''--&lt;ITMDES_0, nvarchar(90),&gt;
+           ,ITM.STU_0--&lt;UOM_0, nvarchar(3),&gt;
+           ,D.QTY_0--&lt;QTYUOM_0, numeric(28,13),&gt;
+           ,ITM.STU_0--&lt;STU_0, nvarchar(3),&gt;
+           ,D.QTY_0--&lt;QTYSTU_0, numeric(28,13),&gt;
+           ,1--&lt;UOMSTUCOE_0, numeric(18,7),&gt;
+           ,0--&lt;GROPRI_0, numeric(24,7),&gt;
+           ,''--&lt;PJT_0, nvarchar(40),&gt;
+           ,D.SOHNUM_0--&lt;X5HNUM_0, nvarchar(50),&gt;
+           ,D.SOPLIN_0--&lt;X5DLIN_0, int,&gt;
+           ,'A'--&lt;STA_0, nvarchar(3),&gt;
+           ,ITM.STU_0--&lt;PCU_0, nvarchar(3),&gt;
+           ,D.QTY_0--&lt;QTYPCU_0, numeric(28,13),&gt;
+           ,0--&lt;QTYUNI_0, numeric(28,13),&gt;
+           ,'#库位#'--&lt;LOC_0, nvarchar(10),&gt;
+           ,''--&lt;LOT_0, nvarchar(15),&gt;
+           ,''--&lt;BPSLOT_0, nvarchar(15),&gt;
+           ,D.ZXLOT_0--&lt;PALNUM_0, nvarchar(20),&gt;
+           ,D.ZXNUM_0--&lt;CTRNUM_0, nvarchar(20),&gt;
+           ,''--&lt;SERNUM_0, nvarchar(20),&gt;
+           ,0--&lt;QTYWEU_0, numeric(28,13),&gt;
+           ,GETDATE()--&lt;CREDATTIM_0, datetime,&gt;
+           ,''--&lt;UPDDATTIM_0, datetime,&gt;
+           ,NEWID()--&lt;AUUID_0, binary(16),&gt;
+           ,'TTLNK'--&lt;CREUSR_0, nvarchar(5),&gt;
+           ,''--&lt;UPDUSR_0, nvarchar(5),&gt;
+           ,''--&lt;WRH_0, nvarchar(1),&gt;
+           ,''--&lt;XTXT_0, nvarchar(100),&gt;
+           ,''--&lt;XTXT_1, nvarchar(100),&gt;
+           ,H.YPALNUM_0--&lt;XTXT_2, nvarchar(100),&gt;
+           ,0--&lt;XDCB_0, numeric(22,7),&gt;
+           ,0--&lt;XDCB_1, numeric(22,7),&gt;
+           ,0--&lt;XDCB_2, numeric(22,7),&gt;
+           ,''--&lt;XDAT_0, datetime,&gt;
+           ,''--&lt;XDAT_1, datetime,&gt;
+           ,''--&lt;XDAT_2, datetime,&gt;
+           ,''--&lt;SDHNUM_0, nvarchar(20),&gt;
+           ,0--&lt;SDDLIN_0, int,&gt;
+           ,0--&lt;YINVQTY_0, numeric(28,8),&gt;
+           ,0--&lt;YBONQTY_0, numeric(28,8),&gt;)
+FROM YZXD D
+INNER JOIN YZXH H
+ON D.ID_0=H.ID_0
+INNER JOIN ITMMASTER ITM
+ON ITM.ITMREF_0=D.ITMREF_0
+LEFT JOIN ITMFACILIT F
+  ON F.ITMREF_0 = D.ITMREF_0
+  AND F.STOFCY_0 = @STOFCY
+LEFT JOIN PORDERQ Q
+ON Q.XREFSOH_0=D.SOHNUM_0
+AND Q.XREFSLIN_0=D.SOPLIN_0
+LEFT JOIN PORDER R
+ON R.POHNUM_0=Q.POHNUM_0
+WHERE((D.ZXLOT_0='#计划号#' AND D.ZXNUM_0='#箱单号#')
+ OR (H.YPALNUM_0='#托号#' AND ''&lt;&gt;'#托号#'))
+
+UPDATE T
+SET T.LOT_0 = ISNULL(I.MRNPOSNO_0,'')
+--SELECT T.*
+FROM XWSPTHD T
+INNER JOIN STOJOU S ON S.VCRNUMORI_0 = T.X5HNUM_0 AND S.VCRLINORI_0 = T.X5DLIN_0 AND S.VCRTYP_0 = 4
+LEFT JOIN YZUPCUI I ON S.VCRNUM_0 = I.SDHNUM_0 AND S.VCRLIN_0 = I.SDDLIN_0
+WHERE T.MACHINEID_0 =@BATCHID AND T.RPFLG_0&lt;&gt;3</SQLNew>
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' style="color: black"&gt;
+	&lt;div class='mui-card-header #LINKROWIDHIDH#'&gt;
+		&lt;h4&gt;lang:{zh:箱数,en:Box Count,de:Kartonanzahl}:#数量#&lt;/h4&gt;
+		&lt;button class="mui-btn mui-btn-blue" style="padding:0 20px;height:35px" type="button" id="linknewrecord"&gt;
+			&lt;b style="font-size:16px"&gt;lang:{zh:扫码,en:Scan,de:Scannen}&lt;/b&gt;
+		&lt;/button&gt;
+	&lt;/div&gt;
+	&lt;div class='mui-card-header #LINKAPPRROW# #LINKROWIDHIDL#'&gt;
+		&lt;h4&gt;#产品编码#&lt;/h4&gt;
+		&lt;button class="mui-btn mui-btn-blue" style="padding:0 20px;height:35px" type="button" id="linkedit"&gt;
+			&lt;b style="font-size:16px"&gt;lang:{zh:修改,en:Edit,de:Bearbeiten}&lt;/b&gt;
+		&lt;/button&gt;
+	&lt;/div&gt;
+	&lt;div class="mui-card-body mui-table-view-cell mui-collapse #LINKROWIDHIDL#"&gt;
+		&lt;a class='' href=''&gt;
+			&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}:#产品描述1#&lt;/h4&gt;
+			&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}:#产品描述2#&lt;/h4&gt;
+			&lt;h4 style="white-space:pre-wrap ;color: #FF4757; margin: 8px 0;"&gt;lang:{zh:数量,en:Qty,de:Menge}:#数量#【#单位#】#LOTFLG#-#SERFLG#&lt;/h4&gt;
+			&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:箱码,en:Box Code,de:Kartoncode}:#计划号#-#箱号#-#托号#&lt;/h4&gt;
+			&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}:#库位#&lt;/h4&gt;
+			&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:批次,en:Lot,de:Losnummer}&lt;strong style="color:red;"&gt;#LOTMGT#&lt;/strong&gt;:&lt;strong style="color:red;"&gt;#批次#&lt;/strong&gt;&lt;/h4&gt;
+			&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:采购订单,en:Purchase Order,de:Bestellung}:#采购订单#-#采购行#&lt;/h4&gt;
+		&lt;/a&gt;
+	&lt;/div&gt;
+	&lt;div class='mui-card-footer #LINKROWIDHIDL#'&gt;
+		&lt;button type="button" class="mui-btn mui-btn-danger " style="padding:0 20px;height:35px" linkquick="8"
+			btnid="501" linkparafill="0" linkrefresh="1" linklocatino="0" linktitle="整箱删除"&gt;&lt;b
+				style="font-size:14px"&gt;lang:{zh:整箱删除,en:Delete Box,de:Karton löschen}&lt;/b&gt;&lt;/button&gt;
+		&lt;button type="button" class="mui-btn mui-btn-danger " style="padding:0 20px;height:35px"  linkquick="8"
+			btnid="502" linkparafill="0" linkrefresh="1" linklocatino="0" linktitle="整托删除"&gt;&lt;b
+				style="font-size:14px"&gt;lang:{zh:整托删除,en:Delete Pallet,de:Palette löschen}&lt;/b&gt;&lt;/button&gt;
+	&lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit>&lt;div class="mui-input-row"&gt;
+	&lt;label&gt;lang:{zh:批次,en:Lot,de:Losnummer}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" id="批次" paratype="STR" paradm="" value="#批次#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="" id="库位" paratype="STR" paradm="" value="#库位#"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"  
+not-para target-id="库位"  paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{0}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:收货数量,en:Received Quantity,de:Erhaltene Menge}&lt;/label&gt;
+	&lt;input type="number" class="" placeholder="" not-reset readonly="readonly" id="数量" paratype="DEC" paradm="" value="#数量#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:单位,en:Unit,de:Einheit}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="单位" paratype="STR" paradm="" value="#单位#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="产品编码" value="#产品编码#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="产品描述1" value="#产品描述1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="产品描述2" value="#产品描述2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+	&lt;label&gt;lang:{zh:采购订单,en:Purchase Order,de:Bestellung}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="采购订单" paratype="STR" paradm=""
+		value="#采购订单#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+	&lt;label&gt;lang:{zh:采购行,en:Purchase Line,de:Bestellposition}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="采购行" paratype="STR" paradm=""
+		value="#采购行#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:计划号,en:Plan Number,de:Plannummer}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="计划号" paratype="STR" paradm="" value="#计划号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:箱单号,en:Packing List Number,de:Packlistennummer}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="箱单号" paratype="STR" paradm="" value="#箱单号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+	&lt;label&gt;lang:{zh:托号,en:Pallet Number,de:Palettennummer}&lt;/label&gt;
+	&lt;input type="text" class="" placeholder="" not-reset readonly="readonly" id="托号" paratype="STR" paradm="" value="#托号#"&gt;
+&lt;/div&gt;</H5Edit>
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:已扫箱数,en:Scanned Boxes,de:Gescannte Kartons}&lt;/label&gt;
+&lt;input type="number"  not-reset class="mui-input-clear" placeholder="" 
+id="已扫箱数" paratype="DEC" paradm=""  value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="" id="库位" paratype="STR" paradm="" value="{1}"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"  
+not-para target-id="库位"  paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{0}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row  mui-hidden"&gt;
+&lt;label&gt;lang:{zh:已扫箱数1,en:Scanned Boxes 1,de:Gescannte Kartons 1}&lt;/label&gt;
+&lt;input type="number"  not-reset class="mui-input-clear" placeholder="" 
+id="已扫箱数1" paratype="DEC" paradm=""  value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:计划号,en:Plan Number,de:Plannummer}&lt;/label&gt;
+&lt;input type="text" class=""  placeholder="" readonly="readonly"
+id="计划号" required  paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:箱单号,en:Packing List Number,de:Packlistennummer}&lt;/label&gt;
+&lt;input type="text" class=""  placeholder="" readonly="readonly"
+id="箱单号"  paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:托号,en:Pallet Number,de:Palettennummer}&lt;/label&gt;
+&lt;input type="text" class=""  placeholder="" readonly="readonly"
+id="托号"  paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:箱数,en:Box Count,de:Kartonanzahl}&lt;/label&gt;
+&lt;input type="number"  not-reset class="mui-input-clear" placeholder="" readonly="readonly"
+id="箱数" paratype="DEC" paradm=""  value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:数据检查,en:Data Check,de:Datenprüfung}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5NewRec>
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Location,de:Standort}&lt;/label&gt;
+&lt;input type="button" required class="link-pick-btn mui-input-clear" placeholder="lang:{}"  readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear link-input-list" 
+placeholder="lang:{}" id="库位" paratype="STR" paradm="" value="{1}"&gt;
+&lt;button class="mui-icon mui-icon-list linkdatasearch one"  
+not-para target-id="库位"  paratype="STR"  code="KEEWAYZUP.LOC"  num="10" text-value="库位-库位" para="{地点}" &gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="date" required class="mui-input-clear" placeholder="lang:{}" 
+id="过账日期" paratype="DATEVAL" paradm="" value="#LINK_TODAY#"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+    document.getElementById(id).value=r;
+  }
+};
+
+//扫码返回刷新
+Save_Data = function() {
+   if($("#已扫箱数").length){
+    var index = plus.webview.getWebviewById("contentlist");
+    mui.fire(index, "contentlist_local", {
+        para: index.modelParams
+    });}
+}
+
+//隐藏保存按钮
+//$("#linkok").hide();
+
+//扫描后自动保存
+scanAfterAction = function(r) {
+  var dataCheck = $("#数据检查").val();
+  
+  // 数据检查
+  if (dataCheck &amp;&amp; dataCheck.trim() !== "") {
+    alert(dataCheck);
+    keep_focus("linkinput");
+    return;
+  } else {
+    // 数据检查通过，执行自动保存
+    recSave(globleServer, globleDmCode, globleDmNum, dataSumitScriptType, "","autoSave","autoSave");
+  }
+}
+
+afterFunction = function (sta, id) {
+    alert(id + "===" + sta);
+    if (id == "autoSave" &amp;&amp; sta == "autoSave")
+        setTimeout(function () {
+            keep_focus("linkinput");
+        }, 100);
+    if (sta == "linkquick12")
+        reloadModelData()
+};
+
+beforeFunction = function(sta, id) {
+   if(id=="linkok")return false;
+    var checkData = $("#数据检查").val();
+    
+    // 只有在特定状态下才检查数据
+    if (checkData !== "" &amp;&amp; (sta === "new" || sta === "autoSave")) {
+        alert(checkData);
+        return true;  // 拦截操作
+    }
+    
+    return false;  // 继续执行
+};
+
+
+afterFunction=function(sta,id){//执行后处理
+	if(id=="linkok"&amp;&amp;$("#已扫箱数").val()!=$("#已扫箱数1").val()){
+		playAudio("_www/libs/audio/error.wav");
+        }
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#99</ImageFile>
+  <ListPrint />
+  <MD5HASH>4f5b2a51336e493afe0a7cd10bee64e0</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10</DMCODE>
+      <DMNUM>7</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Receipt</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10</DMCODE>
+      <DMNUM>7</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Receipt</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X</ModelCode>
+  <ModelNum>723</ModelNum>
+  <ModelDesc>缺陷列表记录</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKNOGROUP
+--LINKNOFILTER
+
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+DECLARE @OPENUM INT = 0{1}
+DECLARE @VALLINID INT = 0{2}
+
+DECLARE @OPESTD VARCHAR(30)
+
+SELECT @OPESTD = OPESTD
+FROM   QAINSPL
+WHERE  DOCNUM = @DOCNUM
+       AND OPENUM = @OPENUM
+
+SELECT CAST(IIF(SA.SCACOD IS NULL, 0, 1) AS BIT) GXFLG
+      ,S.[SCACOD]
+      ,S.[SCADES1]
+      ,S.[SCADES2]
+      ,SA.REMARK 
+      ,SA.[ID]                                   LINKROWID
+FROM   [QAOPESTDSCA] S
+       LEFT JOIN QAINSPVAL VL
+              ON VL.ID = @VALLINID
+       LEFT JOIN QAINSPVALSCA SA
+              ON SA.VALLINID = VL.ID
+	     AND SA.SCACOD = S.SCACOD
+WHERE  S.OPESTD = @OPESTD 
+   AND @VALLINID &lt;&gt; 0
+ORDER  BY S.SCACOD</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKSAVEONENTERKEY
+
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+DECLARE @OPENUM INT = 0{1}
+DECLARE @VALLINID INT = 0{2}
+
+IF NOT EXISTS(SELECT VALLINID FROM QAINSPVALSCA WHERE VALLINID=@VALLINID AND SCACOD='#SCACOD#') AND '#GXFLG#'='True'
+BEGIN
+INSERT INTO [QAINSPVALSCA]
+           ([VALLINID]
+           ,[SCACOD]
+           ,[SCAFLT]
+           ,[REMARK]
+           ,[CREUSR]
+           ,[CRETIM])
+    SELECT
+	    @VALLINID--&lt;VALLINID, bigint,&gt;
+           ,'#SCACOD#'--&lt;SCACOD, varchar(30),&gt;
+           ,0--&lt;SCAFLT, bit,&gt;
+           ,'#REMARK#'--&lt;REMARK, nvarchar(100),&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+END;
+
+ELSE 
+
+BEGIN
+
+UPDATE QAINSPVALSCA SET REMARK='#REMARK#' WHERE ID=0#LINKROWID#;
+
+DELETE FROM QAINSPVALSCA WHERE ID=0#LINKROWID# AND '#GXFLG#'='False';
+
+END</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>OPENUM</ParaLabel02>
+  <ParaType02>DEC</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>VALLINID</ParaLabel03>
+  <ParaType03>DEC</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#84</ImageFile>
+  <ListPrint />
+  <MD5HASH>6c9fd7589a72d3ccbb7c4090e2142187</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+        "GXFLG"
+       ,"REMARK"
+      ]
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>GXFLG</COLNAME>
+      <CAPTION>Check</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>GXFLG</COLNAME>
+      <CAPTION>勾选</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Remark</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>备注</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>SCACOD</COLNAME>
+      <CAPTION>Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>SCACOD</COLNAME>
+      <CAPTION>缺陷编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>SCADES1</COLNAME>
+      <CAPTION>Chinese</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>SCADES1</COLNAME>
+      <CAPTION>中文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>SCADES2</COLNAME>
+      <CAPTION>English</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>723</DMNUM>
+      <COLNAME>SCADES2</COLNAME>
+      <CAPTION>英文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

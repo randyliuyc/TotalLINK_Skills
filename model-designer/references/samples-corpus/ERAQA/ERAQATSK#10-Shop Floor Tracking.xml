@@ -1,0 +1,334 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Production Tracking Development</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @ITMNO VARCHAR(30)='%{0}%';
+DECLARE @CUSCOD VARCHAR(30)='%{1}%';
+DECLARE @ROUDES VARCHAR(30)='%{2}%';
+
+SELECT TOP 5000 
+       MH.MFGNUM_0    MFGNUM
+      ,H.DOCNUM
+      ,MH.ROUALT_0    ROUALT
+      ,MO.OPENUM_0    ROUOPE
+      ,MO.ROODES_0    ROUDES
+      ,MH.ROUNUM_0    ITMNO
+      ,MI.BPCNUM_0    CUSCOD
+      ,MI.INTSPE_0    INTSPEC
+      ,MI.VCRNUMORI_0 ORIVCR
+      ,U.ROUCOD       ROUCODCK
+      ,'SFC'          ROUTYP
+FROM   #LC.X3DATA#MFGOPE MO
+       INNER JOIN #LC.X3DATA#MFGHEAD MH
+               ON MH.MFGNUM_0 = MO.MFGNUM_0
+       INNER JOIN #LC.X3DATA#MFGITM MI
+               ON MI.MFGNUM_0 = MO.MFGNUM_0
+                  AND MI.ITMTYP_0 = 1
+       LEFT JOIN QAINSPH H
+              ON H.MFGNUM #LC.X3COLLATE# = MH.MFGNUM_0
+                 AND H.ROUOPE #LC.X3COLLATE#= MO.OPENUM_0
+       LEFT JOIN QAROU U
+              ON U.ROUCOD #LC.X3COLLATE# = CONCAT_WS('-', MH.ROUNUM_0, MH.ROUALT_0, MO.OPENUM_0)
+WHERE  MO.STDOPENUM_0 BETWEEN 690 AND 699
+       AND MH.ROUNUM_0 LIKE @ITMNO
+       AND MI.BPCNUM_0 LIKE @CUSCOD
+       AND MO.ROODES_0 LIKE @ROUDES
+ORDER  BY MH.MFGNUM_0 DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>ITMNO</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>CUSCOD</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>ROUDES</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKAUTOREPLACEEMPTYCOLUMNS
+--LINKUPLOAD_PATHASSIGN:
+--LINKUPLOAD_FILETYPE:
+--LINKUPLOAD_KEEPFILENAME:1
+UPDATE QAINSPH SET PROFILE='/Files/Upload/#LINKUPLOADFILEPATH#' WHERE DOCNUM='#DOCNUM#'</SQLNew>
+  <SQLRemove>DELETE FROM QAINSPH WHERE DOCNUM = '#DOCNUM#'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#87</ImageFile>
+  <ListPrint />
+  <MD5HASH>d52aaddffb07bc64c5313900276580d1</MD5HASH>
+  <ModelSetting>{
+    "DoubleClickDataMine": [
+        {
+            "DOCNUM": 10
+        }
+    ]
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CUSCOD</COLNAME>
+      <CAPTION>Customer</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CUSCOD</COLNAME>
+      <CAPTION>客户编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Document No.</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>检验单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Item No.</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Inspection Development</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Shop Floor Tracking</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>Work Order No.</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>工单编号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RESULT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUALT</COLNAME>
+      <CAPTION>Rounting Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUALT</COLNAME>
+      <CAPTION>工艺序号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUDES</COLNAME>
+      <CAPTION>Operation Desc.</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUDES</COLNAME>
+      <CAPTION>生产工序描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUOPE</COLNAME>
+      <CAPTION>Operateion Code.</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUOPE</COLNAME>
+      <CAPTION>生产工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUTYP</COLNAME>
+      <CAPTION>Inspection Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUTYP</COLNAME>
+      <CAPTION>任务类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

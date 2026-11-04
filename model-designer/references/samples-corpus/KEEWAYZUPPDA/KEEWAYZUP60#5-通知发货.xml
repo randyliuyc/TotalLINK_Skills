@@ -1,0 +1,1312 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP60</ModelCode>
+  <ModelNum>5</ModelNum>
+  <ModelDesc>通知发货</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKMYROWDATA
+--LINKDATAMINEOVERVIEW,,50,AUTOREFRESH
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @X3HNUM VARCHAR(30)='{1}';
+
+SELECT H.X3HNUM_0                                                      AS 通知单号
+       ,D.X3DLIN_0                                                     AS 行号
+       ,D.SOHNUM_0                                                     AS 销售订单号
+       ,D.SOPLIN_0                                                     AS 销售订单行
+       ,SOH.CUSORDREF_0                                                AS 客户订单号
+       ,H.X3HDAT_0                                                     AS 日期
+       ,BPC.BPCNAM_0                                                   AS 客户
+       ,D.ITMREF_0                                                     AS 产品编码
+       ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)                               AS 产品描述1
+       ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)                               AS 产品描述2
+       ,ITM.ITMDES2_0                                                  产品描述
+       ,CAST(D.QTY_0 AS REAL)                                          数量
+       ,D.SAU_0                                                        单位
+       ,CAST(ISNULL(SH.QTYPCU_0, 0) AS REAL)                           已备数量
+       ,CAST(D.X3DSDDQTY_0 AS REAL)                                    已发数量
+       ,CAST(D.QTY_0 - ISNULL(SH.QTYPCU_0, 0) - D.X3DSDDQTY_0 AS REAL) 剩余数量
+       ,CASE
+          WHEN ISNULL(SH.QTYPCU_0, 0) &gt; 0 THEN 'E02'
+          WHEN D.QTY_0 - D.X3DSDDQTY_0 &gt; 0
+               AND ISNULL(D.X3DSDDQTY_0, 0) &lt;&gt; 0THEN 'A02'
+          WHEN D.QTY_0 - D.X3DSDDQTY_0 = 0 THEN N'H02'
+          ELSE 'C01'
+        END                                                            AS LINKAPPRROW
+       ,H.SALFCY_0                                                     AS 地点
+       ,H.STOFCY_0                                                     AS 装运地点
+       ,'{4}'                                                          过账日期
+       ,'{3}'                                                          打印机编码
+			 ,CASE
+          WHEN ITM.LOTMGTCOD_0 &gt; 1 THEN N'lang:{zh:批次号管理,en:Batch Management,de:Chargenverwaltung}'
+          ELSE ''
+        END                              LOTFLG
+	   ,CASE
+          WHEN SERMGTCOD_0 &gt;1 THEN N'required'
+          ELSE ''
+        END                              SERFLG
+       ,SH.RPNUM_0  发货单号
+       ,CASE WHEN SH.RPNUM_0=''OR SH.RPNUM_0 IS NULL THEN 'mui-hidden'
+       ELSE '' END WLFLG
+	   ,D.LOC_0 库位
+FROM   XCN03SODD D
+       INNER JOIN XCN03SODH H
+               ON H.X3HNUM_0 = D.X3HNUM_0
+       INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = D.ITMREF_0
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+       LEFT JOIN BPCUSTOMER BPC
+              ON H.BPCORD_0 = BPC.BPCNUM_0
+       LEFT JOIN (SELECT SDH.X3HNUM_0
+                         ,SDH.ITMREF_0
+                         ,SUM(CASE WHEN SDH.RPFLG_0 &lt;&gt; 3 THEN SDH.QTYPCU_0 ELSE 0 END) AS QTYPCU_0
+                         ,X3DLIN_0,RPNUM_0
+                  FROM   XWSSDH SDH
+                  WHERE  X3HNUM_0 LIKE @X3HNUM
+                         --AND RPFLG_0 &lt;&gt; 3
+                  GROUP  BY SDH.X3HNUM_0
+                            ,SDH.X3DLIN_0
+                            ,SDH.ITMREF_0,RPNUM_0)SH
+              ON D.X3HNUM_0 = SH.X3HNUM_0
+                 AND D.X3DLIN_0 = SH.X3DLIN_0
+       LEFT JOIN SORDER SOH
+              ON D.SOHNUM_0 = SOH.SOHNUM_0
+WHERE  H.SALFCY_0 = @FCY
+       AND UPPER(H.X3HNUM_0) = UPPER(@X3HNUM)
+       AND H.X3HSTA_0 = 2
+ORDER  BY H.X3HNUM_0
+          ,D.X3DLIN_0</SQLScript>
+  <SQLUpdateScript>INSERT INTO XWSSDH
+  (MACHINEID_0,
+   USERID_0,
+   CUSERID_0,
+   VCRTYP_0,
+   PK_0,
+   BATCHID_0,
+   PKORI_0,
+   CREDATIM_0,
+   STAT_0,
+   SUBDATIM_0,
+   RPFLG_0,
+   RPNUM_0,
+   RPLIN_0,
+   RPNOTE_0,
+   RPDATE_0,
+   RPDATIM_0,
+   SALFCY_0,
+   STOFCY_0,
+   SDHNUM_0,
+   BPCORD_0,
+   BPAADD_0,
+   CUR_0,
+   SHIDAT_0,
+   DLVDAT_0,
+   CFMFLG_0,
+   ZPAK_0,
+   PJT_0,
+   SOHNUM_0,
+   SOPLIN_0,
+   X3HNUM_0,
+   X3DLIN_0,
+   ITMREF_0,
+   PCK_0,
+   ITMDES_0,
+   SAU_0,
+   QTY_0,
+   STA_0,
+   PCU_0,
+   QTYPCU_0,
+   LOC_0,
+   LOT_0,
+   SERNUM_0,
+   PALNUM_0,
+   CTRNUM_0
+   ,STOCOU_0
+   ,CREDATTIM_0,UPDDATTIM_0,AUUID_0,CREUSR_0,UPDUSR_0,  
+             [YINVQTY_0],
+             [YBONQTY_0],
+             [XDCB_0],
+             [XDCB_1],
+             [XDCB_2],
+             [XTXT_0],
+             [XTXT_1],
+             [XTXT_2],
+             [XDAT_0],
+             [XDAT_1],
+             [XDAT_2])
+SELECT '#LOGIN_ID#' MACHINEID_0
+      ,'#LOGIN_USER#' USERID_0
+	  ,'#LOGIN_USER#' CUSERID_0
+      ,110 VCRTYP_0
+      ,NEWID() PK_0
+      ,' ' BATCHID_0
+      ,K.ZSTOFLD3_0 PKORI_0
+      ,GETDATE() CREDATIM_0
+      ,1 STAT_0
+      ,'1900-01-01' SUBDATIM_0
+      ,1 RPFLG_0
+      ,' ' RPNUM_0
+      ,0 RPLIN_0
+      ,' ' RPNOTE_0
+      ,'1900-01-01' RPDATE_0
+      ,' ' RPDATIM_0
+      ,SOH.SALFCY_0
+      ,SOH.STOFCY_0
+      ,' ' SDHNUM_0
+      ,SOH.BPCORD_0
+      ,SOH.BPAADD_0 BPAADD_0
+      ,SOH.CUR_0 CUR_0
+      ,'#过账日期#' SHIDAT_0
+      ,'#过账日期#' DLVDAT_0
+      ,1 CFMFLG_0
+      ,'' ZPAK_0
+      ,' ' PJT_0
+      ,SOQ.SOHNUM_0
+      ,SOQ.SOPLIN_0
+      ,'#通知单号#'
+      ,0#行号#
+      ,SOQ.ITMREF_0 ITMREF_0
+	  ,'' PCK_0
+      ,I.ITMDES1_0
+      ,I.STU_0 SAU_0
+      ,0#发货数量#  QTY_0
+      ,K.STA_0 STA_0
+      ,I.STU_0 PCU_0
+      ,0#发货数量#  QTYPCU_0
+      ,K.LOC_0 LOC_0
+      ,K.LOT_0 LOT_0
+      ,'#序列号#' SERNUM_0 --K.SERNUM_0 SERNUM_0
+      ,K.PALNUM_0 PALNUM
+      ,K.CTRNUM_0 CTRNUM
+	  ,K.STOCOU_0 STOCOU_0
+      ,GETDATE(),GETDATE(),NEWID(),' ',' '
+      ,0                         [YINVQTY_0]
+      ,0                         [YBONQTY_0]
+      ,0                         [XDCB_0]
+      ,0                         [XDCB_1]
+      ,0                         [XDCB_2]
+      ,K.STOFLD1_0                        [XTXT_0]
+      ,K.STOFLD2_0                      [XTXT_1]
+      ,K.ZSTOFLD3_0                        [XTXT_2]
+      ,''                        [XDAT_0]
+      ,''                        [XDAT_1]
+      ,''                        [XDAT_2]
+FROM  STOCK K 
+    INNER JOIN SORDERQ SOQ
+	ON SOQ.ITMREF_0=K.ITMREF_0 AND SOQ.SOHNUM_0='#销售订单号#' and SOQ.SOPLIN_0=0#销售订单行#
+       Left JOIN SORDER SOH
+               ON SOQ.SOHNUM_0 = SOH.SOHNUM_0
+       Left JOIN ITMMASTER I
+               ON I.ITMREF_0 =K.ITMREF_0
+WHERE K.STOCOU_0=0#STOCOU#
+ AND 0#发货数量#&lt;&gt;0
+-- AND K.SERNUM_0 NOT IN (SELECT SERNUM_0 FROM XWSSDH WHERE SERNUM_0&lt;&gt;''GROUP BY SERNUM_0 );</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>DROPDOWN</ParaType01>
+  <ParaSearchCode01>X3SITE#1</ParaSearchCode01>
+  <ParaDefVal01 />
+  <ParaLabel02>通知单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>打印机</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>打印机编码</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>过账日期</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>是否打印</ParaLabel06>
+  <ParaType06>DROPDOWN</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSSDH WHERE X3HNUM_0='#通知单号#' AND X3DLIN_0='#行号#' AND RPFLG_0&lt;&gt;3 AND USERID_0='#LOGIN_USER#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card linksearch' style="color: black;"&gt;
+    &lt;p class='linkcheck' data="#产品编码#" hidden&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/p&gt;
+    &lt;p class='linkcheck' data="#产品名称#" hidden&gt;lang:{zh:产品名称,en:Product Name,de:Bezeichnung}&lt;/p&gt;
+    
+    &lt;div class='mui-card-header #LINKAPPRROW#'&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;#产品编码#&lt;/h4&gt;
+        &lt;button class="mui-btn mui-btn-blue" style="width:100px;height:35px" type="button" id="linkedit"&gt;
+            &lt;b style="font-size:16px"&gt; lang:{zh:扫码,en:Scan,de:Scannen}&lt;/b&gt;&lt;/button&gt;
+&lt;button class="mui-btn mui-btn-warning #WLFLG#" type="button" linkquick="8" style="min-width:10px;height:35px"  btnid="504" linkrefresh="1" linkparafill="1"  para="#发货单号#" linktitle=UPDATE  linklocation="1" linkimage="0"&gt;
+&lt;span class="mui-icon mui-icon-compose"&gt;&lt;/span&gt;&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="mui-media-body mui-table-view-cell mui-collapse link-append" code="KEEWAYZUP605X" num="700" para="#装运地点#,#通知单号#,#行号#,#打印机编码#" &gt;
+        &lt;a class='mui-navigate-right' href=''&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:通知单-行,en:Notice-Line,de:Meldung-Position}:#通知单号#-#行号#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:订单号-行,en:Order-Line,de:Bestellungs-Position}:#销售订单号#-#销售订单行#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}:#产品描述1#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}:#产品描述2#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:客户,en:Customer,de:Kunde}:#客户#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:计划数量,en:Planned Qty,de:Planmenge}:#数量# lang:{zh:已发数量,en:Delivered Qty,de:Gelieferte Menge}:#已发数量#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:待发数量,en:Remaining Qty,de:Verbleibende Menge}:#剩余数量#&lt;/h4&gt;
+        &lt;/a&gt;
+        
+        &lt;ul class='mui-collapse-content'&gt;
+            &lt;div style="overflow: auto; padding:0;"&gt;
+                &lt;div class="link-table-default" style="margin-bottom:0px" append&gt;
+                    &lt;div class="link-table-fixed" save &gt;
+                        &lt;div style="min-width:120px;background-color:#546E7A;"&gt;lang:{zh:操作,en:Action,de:Aktion}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/div&gt;
+                        &lt;div style="min-width:240px;background-color:#546E7A;"&gt;lang:{zh:工单序号,en:Work Order Serial,de:Arbeitsauftragsseriennummer}&lt;/div&gt;
+                        &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:数量,en:Qty,de:Menge}&lt;/div&gt;
+                        &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                        &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:操作人员,en:Operator,de:Mitarbeiter}&lt;/div&gt;
+                        &lt;div style="min-width:180px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Operation Time,de:Zeitpunkt}&lt;/div&gt;
+                        &lt;div style="min-width:150px;background-color:#546E7A;"&gt;lang:{zh:发货单号,en:Delivery Note Number,de:Lieferscheinnummer}&lt;/div&gt;
+                        &lt;div style="min-width:150px;background-color:#546E7A;"&gt;lang:{zh:物流单号,en:Shipping Document:,de:Logistik-Einheit}&lt;/div&gt;
+                        &lt;div class="mui-hidden"&gt;PK_0&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+    
+    &lt;div class="mui-card-footer"&gt;
+        &lt;h4 style="white-space:pre-wrap ;color: #FF4757; margin: 8px 0;"&gt;lang:{zh:未提交,en:Pending,de:Nicht bestätigt}:#已备数量# #LOTFLG#-#SERFLG#&lt;/h4&gt;
+        &lt;button type="button" id="linkremove" style="width:80px;height:35px" class="mui-btn mui-btn-danger"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:删除,en:Delete,de:Löschen}&lt;/b&gt;
+        &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit>&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="地点" paratype="STR" paradm="" value="#地点#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"  style="padding:5px 5px 5px 5px;" &gt;
+&lt;div style="float:left;width:75%" class="mui-input-column"&gt;
+&lt;label&gt;lang:{zh:数量,en:Quantity,de:Menge}&lt;/label&gt;
+&lt;input type="number" required  class="" placeholder="lang:{zh:发货数量,en:Shipment Quantity,de:Versandmenge}" 
+id="发货数量" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div style="float:right;width:25%"&gt;
+&lt;button type="button"  style="width:120px;height:25px"  class="mui-btn mui-btn-blue linkdatasearch one" props id="选择库存" paradm=""  code="KEEWAYZUP605X" num="701" 
+text-value="选择-选择" para="{地点,产品编码,需发数量}" 
+automatch='{"库位":"库位","发货数量":"发货数量","序列号":"序列号","数据检查":"数据检查","STOCOU":"STOCOU","生产计划号":"生产计划号"}'reload value=""&gt;
+&lt;b style="font-size:16px"&gt;lang:{zh:选择库存,en:Select Stock,de:Lagerbestand wählen}&lt;/b&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:需发数量,en:Quantity to Send,de:Zu versendende Menge}&lt;/label&gt;
+&lt;input type="number" class="" placeholder="lang:{zh:需发数量,en:Quantity to Send,de:Zu versendende Menge}" readonly="readonly"
+id="需发数量" paratype="DEC" paradm="" value="#剩余数量#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:订单号,en:Order Number,de:Bestellnummer}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="销售订单号" paratype="STR" paradm="" value="#销售订单号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:生产计划号,en:Production Plan,de:Produktionsplan}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="生产计划号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;lang:{zh:订单行,en:Order Line,de:Bestellposition}&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="销售订单行" paratype="DEC" paradm="" value="#销售订单行#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:通知单号,en:Notification,de:Benachrichtigung}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="通知单号" paratype="STR" paradm="" value="#通知单号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;lang:{zh:行号,en:Line Number,de:Positionsnummer}&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="行号" paratype="DEC" paradm="" value="#行号#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product Code,de:Produktcode}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:产品编码,en:Product Code,de:Produktcode}" readonly="readonly"
+id="产品编码" paratype="STR" paradm="" value="#产品编码#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述1,en:Product Name1,de:Produktname1}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:产品描述1,en:Product Name1,de:Produktname1}" readonly="readonly"
+id="产品描述1" paratype="STR" paradm="" value="#产品描述1#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品描述2,en:Product Name2,de:Produktname2}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="lang:{zh:产品描述2,en:Product Name2,de:Produktname2}" readonly="readonly"
+id="产品描述2" paratype="STR" paradm="" value="#产品描述2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text"  required class="" placeholder=""  readonly="readonly"
+id="库位" paratype="STR" paradm="" value="#库位#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:序列号,en:Serial Number,de:Seriennummer}&lt;/label&gt;
+&lt;input type="text" #SERFLG# class="" placeholder="" 
+id="序列号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:数据检查,en:Data Check,de:Datenprüfung}&lt;/label&gt;
+&lt;input type="text" class="" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="date" required class="mui-input-clear" placeholder="lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}" 
+id="过账日期" paratype="DATEC10" paradm="" value="#过账日期#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;STOCOU&lt;/label&gt;
+&lt;input type="number" required  class="" placeholder="" 
+id="STOCOU" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;是否打印&lt;/label&gt;
+&lt;input type="text" class="mui-input" placeholder=""  not-reset
+id="printFlag" paratype="STR" paradm="" value="{5}" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;打印机编码&lt;/label&gt;
+&lt;input type="text" class="mui-input" placeholder=""  not-reset
+id="打印机编码" paratype="STR" paradm="" value="{3}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;button type="button" id="print11"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP605X" num="700"  linkparafill="0" para="{序列号,打印机编码}" 
+			script="502" class="mui-btn mui-btn-warning"&gt;
+			&lt;span class="mui-icon mui-icon-paperplane"&gt;&lt;/span&gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;button type="button" id="print"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP605X" num="700"  linkparafill="0" para="{序列号,打印机编码}" 
+			script="505" class="mui-btn mui-btn-warning"&gt;
+			&lt;span class="mui-icon mui-icon-paperplane"&gt;&lt;/span&gt;&lt;/button&gt;
+&lt;/div&gt;</H5Edit>
+  <H5Chart />
+  <H5MaxLines>500</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button"  required class="link-pick-btn mui-input-clear" not-reset placeholder=""  readonly="readonly"
+id="地点" paratype="PICKERSTR" paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:通知单号,en:Notice No.,de:Meldungsnummer}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请扫码查询,en:Fuzzy Search,de:Ungefähre Suche}" 
+id="通知单号" paratype="STR" paradm="" value="{1}" required onkeyup="this.value=this.value.toUpperCase()"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:打印机,en:Printer,de:Drucker}&lt;/label&gt;
+&lt;input type="button" required class="link-pick-btn mui-input-clear" placeholder="" 
+id="打印机" paratype="PICKERSTR" code="KEEWAYZUPSCH30" num="20"   para="{地点}"  text-value="XPRTNAM_0-XPRTCOD_0"  automatch='{"打印机编码":"XPRTCOD_0","打印机":"XPRTNAM_0"}' reload value="{2}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:打印机,en:Printer,de:Drucker}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="打印机编码" paratype="STR" paradm="" value="{3}"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:过账日期,en:Posting Date,de:Buchungsdatum}&lt;/label&gt;
+&lt;input type="date" required class="mui-input-clear" placeholder="lang:{zh:请输入过账日期,en:Please Enter Posting Date,de:Bitte Buchungsdatum eingeben}" 
+id="过账日期" paratype="DATEC10" paradm="" value="#LINK_TODAY#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkcheckbox-one "  value="2" requierd id="Whether" &gt;
+&lt;label&gt;lang:{zh:打印,en:Print,de:Drucken}&lt;/label&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;false&lt;/label&gt;
+   &lt;input type="checkbox" checked value="2"/&gt; 
+  &lt;/div&gt;
+  &lt;div class="mui-checkbox" &gt;
+   &lt;label&gt;true&lt;/label&gt;
+   &lt;input type="checkbox" value="1"/&gt; 
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly mui-hidden"&gt;  
+&lt;label&gt;lang:{zh:数据检查,en:data check}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:模糊搜索,en:fuzzy search}" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");
+}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+// 扫描后自动保存
+scanAfterAction = function (r) {
+    var currWebview = plus.webview.currentWebview();
+    var currWebtype = currWebview.functype;
+    var currWebid   = currWebview.id;
+
+    var dataCheck = $.trim($("#数据检查").val() || "");
+
+    // edit 页面逻辑
+    if (currWebtype === "edit") {
+        if (dataCheck) {
+            alert(dataCheck);
+            keep_focus("linkinput");
+            return;
+        }
+
+        // 数据检查通过，执行自动保存
+        recSave(
+            globleServer,
+            globleDmCode,
+            globleDmNum,
+            dataSumitScriptType,
+            "",
+            "autoSave",
+            "autoSave"
+        );            keep_focus("linkinput");
+        return;
+    }
+
+    // modelpara 页面逻辑
+    if (currWebid.indexOf("modelpara") !== -1) {
+        if (dataCheck) {
+            alert(dataCheck);
+            return;
+        }
+
+        var dmPara = reParaList();   // 获取界面参数
+        //showModelData(dmPara);      // 触发查询
+//延迟 150ms 触发，避开扫码枪硬件输入流的峰值
+        
+setTimeout(function()
+ {
+
+showModelData(dmPara); 
+}, 150);
+    }
+};
+
+
+
+
+
+
+
+editWebs=function(){
+	var max=$("#需发数量").val()*1
+	var val=$("#发货数量").val()*1
+	if(val==max){
+             //两者相等直接返回
+		showModelData(null);
+	}else{
+           //重新计算需发数量
+          $("#需发数量").val(max-val);
+          $("#库位").val("");
+          $("#发货数量").val("");
+          $("#序列号").val("");
+          $("#选择库存").val("");
+           //需要手动刷新详情界面
+           var con = plus.webview.getWebviewById('contentlist');
+	   mui.fire(con,'contentlist_local',{});
+	}
+};
+
+
+beforeFunction=function(sta,id){
+var a = $("#数据检查").val();
+var b = $("#发货数量").val() * 1;
+var c = $("#需发数量").val() * 1;
+   if (b === 0) {
+        alert("lang:{zh:发货数量不能为零,en:quantity cannot be zero,de:Die Liefermenge kann nicht 0 sein.}");
+        return true;  
+    }
+    
+    if (b &gt;c) {
+        alert("lang:{zh:输入的数量过大，已超出发货数量,en:The quantity exceeds the available shipment quantity,de:Mehr als lieferbare Menge}");
+        return true;
+    }
+   if(a!="OK"&amp;&amp;( sta=="new"||sta=="autoSave")){
+          alert(a);
+          return true;
+    }
+      else
+   {
+return false;
+   }
+   };
+
+
+repeatTime=function(id){
+   if(id=="linkpreprocess")
+    return 10
+    return 1
+}
+
+limitTimeAction=function(id){
+   if(id=="linkpreprocess")
+   alert("lang:{zh:10秒内不可重复点击,en:Cannot click repeatedly within 10 seconds,de:Innerhalb 10 Sekunden nicht wiederholt klicken}");
+}
+
+
+//删除后自动刷新
+afterFunction = function (sta, id) {
+    if (id == "autoSave" &amp;&amp; sta == "autoSave"){    
+setTimeout(function () {
+            keep_focus("linkinput");
+        }, 100);
+}
+var a=$("#printFlag").val() //扫码保存后触发自动打印
+
+if(a==1){
+$("#print").trigger("tap")
+}
+  
+var b=plus.webview.currentWebview().id;
+   if(sta == "linkquick12" &amp;&amp; b.indexOf("contentlist")!=-1)
+       reloadModelData()
+};</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#43</ImageFile>
+  <ListPrint />
+  <MD5HASH>4534cf9d40407c085ec84753112cd373</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Standort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Benachrichtigungsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Notification Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>通知单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Buchungsdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Posting Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>过账日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Notify Shipping</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Notify Shipping</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述</COLNAME>
+      <CAPTION>Produktbeschreibung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述</COLNAME>
+      <CAPTION>Product Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述</COLNAME>
+      <CAPTION>产品描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Produktbeschreibung 1</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Product Description 1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>产品描述1</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Produktbeschreibung 2</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Product Description 2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>产品描述2</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Einheit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>地点</COLNAME>
+      <CAPTION>Standort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>地点</COLNAME>
+      <CAPTION>Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>地点</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>发货状态</COLNAME>
+      <CAPTION>Versandstatus</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>发货状态</COLNAME>
+      <CAPTION>Shipping Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>发货状态</COLNAME>
+      <CAPTION>发货状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>过账日期</COLNAME>
+      <CAPTION>Buchungsdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>过账日期</COLNAME>
+      <CAPTION>Posting Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>过账日期</COLNAME>
+      <CAPTION>过账日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>客户</COLNAME>
+      <CAPTION>Kunde</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>客户</COLNAME>
+      <CAPTION>customer</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>客户</COLNAME>
+      <CAPTION>客户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>客户订单号</COLNAME>
+      <CAPTION>Kundenauftragsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>客户订单号</COLNAME>
+      <CAPTION>Customer Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>客户订单号</COLNAME>
+      <CAPTION>客户订单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>日期</COLNAME>
+      <CAPTION>Datum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>日期</COLNAME>
+      <CAPTION>Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>日期</COLNAME>
+      <CAPTION>日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>剩余数量</COLNAME>
+      <CAPTION>Restmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>剩余数量</COLNAME>
+      <CAPTION>Remaining Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>剩余数量</COLNAME>
+      <CAPTION>剩余数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>通知单号</COLNAME>
+      <CAPTION>Benachrichtigungsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>通知单号</COLNAME>
+      <CAPTION>Notification Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>通知单号</COLNAME>
+      <CAPTION>通知单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>销售订单号</COLNAME>
+      <CAPTION>Verkaufsauftragsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>销售订单号</COLNAME>
+      <CAPTION>Sales Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>销售订单号</COLNAME>
+      <CAPTION>销售订单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>销售订单行</COLNAME>
+      <CAPTION>Verkaufsauftragszeile</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>销售订单行</COLNAME>
+      <CAPTION>Sales Order Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>销售订单行</COLNAME>
+      <CAPTION>销售订单行</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>行号</COLNAME>
+      <CAPTION>Zeilennummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>行号</COLNAME>
+      <CAPTION>Line Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>行号</COLNAME>
+      <CAPTION>行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>已备数量</COLNAME>
+      <CAPTION>Bereitgestellte Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>已备数量</COLNAME>
+      <CAPTION>Prepared Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>已备数量</COLNAME>
+      <CAPTION>已备数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>已发数量</COLNAME>
+      <CAPTION>Ausgelieferte Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>已发数量</COLNAME>
+      <CAPTION>Shipped Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>已发数量</COLNAME>
+      <CAPTION>已发数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>装运地点</COLNAME>
+      <CAPTION>Versandort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>装运地点</COLNAME>
+      <CAPTION>Shipping Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>5</DMNUM>
+      <COLNAME>装运地点</COLNAME>
+      <CAPTION>装运地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

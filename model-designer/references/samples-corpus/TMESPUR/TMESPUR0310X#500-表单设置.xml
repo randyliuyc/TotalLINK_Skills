@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0310X</ModelCode>
+  <ModelNum>500</ModelNum>
+  <ModelDesc>表单设置</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>{
+    "LINKROWID": "#LINKROWID#",
+    "DOCTYP": "#DOCTYP#",
+    "DOCNUM": "#DOCNUM#",
+    "id": "#id#",
+    "DOCGRP": "#DOCGRP#",
+    "DOCSTA": "#DOCSTA#",
+    "DOCSTADES": "#DOCSTADES#",
+    "DOCDAT": "#DOCDAT#",
+    "WFLSTA": "#WFLSTA#",
+    "WFLSTADES": "#WFLSTADES#",
+    "DOCDES": "#DOCDES#",
+    "SITE": "#SITE#",
+    "SITENAM": "#SITENAM#",
+    "SITETRA": "#SITETRA#",
+    "SITETRANAM": "#SITETRANAM#",
+    "SITECUR": "#SITECUR#",
+    "FAC": "#FAC#",
+    "DEPT": "#DEPT#",
+    "GRP": "#GRP#",
+    "RESNO": "#RESNO#",
+    "RESNAM": "#RESNAM#",
+    "PRJNUM": "#PRJNUM#",
+    "BPSNO": "#BPSNO#",
+    "BPSNAM": "#BPSNAM#",
+    "CUR": "#CUR#",
+    "CURRAT": "#CURRAT#",
+    "BVATTYP": "#BVATTYP#",
+    "BVATTYPDES": "#BVATTYPDES#",
+    "SRCTYP": "#SRCTYP#",
+    "SRCDOC": "#SRCDOC#",
+    "SRCLIN": "#SRCLIN#",
+    "REMARK": "#REMARK#",
+    "CLOREA": "#CLOREA#",
+    "PRNCNT": "#PRNCNT#",
+    "CONTNOI": "#CONTNOI#",
+    "CONTNOE": "#CONTNOE#",
+    "POD": "#POD#",
+    "CONTDAT": "#CONTDAT#",
+    "CONTDES": "#CONTDES#",
+    "COTTONLEN": "#COTTONLEN#",
+    "COTTONMIC": "#COTTONMIC#",
+    "COTTONSTR": "#COTTONSTR#",
+    "LSD": "#LSD#",
+    "LCNO": "#LCNO#",
+    "LCBANK": "#LCBANK#",
+    "LCDATE": "#LCDATE#",
+    "AGENT": "#AGENT#",
+    "AGENTREF": "#AGENTREF#",
+    "CLAIM": "#CLAIM#",
+    "CONTMEMO": "#CONTMEMO#",
+    "CONTSPEC": "#CONTSPEC#",
+    "APPREASON": "#APPREASON#",
+    "PAYMETHOD": "#PAYMETHOD#",
+    "GOODDESC": "#GOODDESC#",
+    "OTHERTERMS": "#OTHERTERMS#",
+    "PRITERM": "#PRITERM#",
+    "CREUSR": "#CREUSR#",
+    "UPDUSR": "#UPDUSR#",
+    "CRETIM": "#CRETIM#",
+    "UPDTIM": "#UPDTIM#",
+    "SABFLG": "#SABFLG#",
+    "DEBFLG": "#DEBFLG#",
+    "SUBFLG": "#SUBFLG#",
+    "REBFLG": "#REBFLG#",
+    "CLBFLG": "#CLBFLG#",
+    "COPFLG": "#COPFLG#",
+    "PRINTS": "#PRINTS#",
+    "AMT": "#AMT#",
+    "SIGNLISTID": "#SIGNLISTID#",
+    "PITMNO": "#PITMNO#",
+    "PITMVER": "#PITMVER#",
+    "PELSE": "#PELSE#",
+    "PPINNUM": "#PPINNUM#",
+    "PBPSNO": "#PBPSNO#",
+    "TAXRT": "#TAXRT#"
+}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>{
+    "formtemplate":"MOD230300002",
+    "formData":"#FORMDATA#",
+    "selectData":{
+
+    },
+    "tableData":{
+        "TABLE_1":{
+            "dmCode":"TMESPUR03",
+            "dmNum":"20",
+            "Para":[
+                "#DOCNUM#"
+            ]
+        },
+        "LINKDOCLIST":{
+            "dmCode":"TMESPUR03",
+            "dmNum":"30",
+            "Para":[
+                "#DOCNUM#"
+            ]
+        },
+        "TABLE_2":{
+            "dmCode":"TMESPUR03",
+            "dmNum":"40",
+            "Para":[
+                "#DOCNUM#"
+            ]
+        },
+        "LINKSIGNLIST":{
+            "dmCode":"LINKFLOW",
+            "dmNum":"21",
+            "Para":[
+                "#DOCNUM#"
+            ]
+        }
+    },
+    "formbtns":[
+
+    ]
+}</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#46</ImageFile>
+  <ListPrint />
+  <MD5HASH>053a6fd5594ca3587f10825526d96261</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Form Settings</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Cài đặt biểu mẫu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0310X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Thiết lập biểu mẫu</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

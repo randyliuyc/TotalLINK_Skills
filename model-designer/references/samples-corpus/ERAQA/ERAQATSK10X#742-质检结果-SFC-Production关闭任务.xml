@@ -1,0 +1,359 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X</ModelCode>
+  <ModelNum>742</ModelNum>
+  <ModelDesc>质检结果-SFC-Production关闭任务</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKREFRESH
+--LINKLOADDATAIMMEDIATE
+DECLARE @RC INT
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+
+EXECUTE @RC = [SP_QA_RESULT] @DOCNUM
+    , @USER</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKEXECOUTPUT
+--当前的质检任务
+DECLARE @DOCNUM VARCHAR(30) = '{0}'
+-- 获取生产任务相关信息
+DECLARE @MFGNUM VARCHAR(30)
+DECLARE @OPENUM SMALLINT
+DECLARE @OPESPL SMALLINT
+DECLARE @BATCHID VARCHAR(50) = NEWID()
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+-- 质检状态
+DECLARE @XESMMONK TINYINT
+
+SELECT @MFGNUM = MFGNUM
+    , @OPENUM = ROUOPE
+    , @OPESPL = 0
+    , @XESMMONK = IIF(STA = 2, 1, 0) -- 2 表示已经合格
+FROM QAINSPH
+WHERE DOCNUM = @DOCNUM;
+
+-- 合格后处理回写到X3报工记录
+IF @XESMMONK = 1
+BEGIN
+    IF NOT EXISTS (
+            SELECT TOP 1 *
+            FROM #LC.X3DATA#XWSMKOES
+            WHERE MFGNUM_0 = @MFGNUM
+                AND OPENUM_0 = @OPENUM
+                AND OPESPLNUM_0 = @OPESPL
+            )
+    BEGIN
+        -- 不存在质检结果记录
+        INSERT INTO #LC.X3DATA#XWSMKOES (
+            MACHINEID_0
+            , USERID_0
+            , CUSERID_0
+            , VCRTYP_0
+            , PK_0
+            , BATCHID_0
+            , PKORI_0
+            , CREDATIM_0
+            , STAT_0
+            , SUBDATIM_0
+            , RPFLG_0
+            , RPNUM_0
+            , RPLIN_0
+            , RPNOTE_0
+            , RPDATE_0
+            , RPDATIM_0
+            , MFGNUM_0
+            , OPENUM_0
+            , OPESPLNUM_0
+            , MFGFCY_0
+            , ITMREF_0
+            , ROUALT_0
+            , OPEUOM_0
+            , CREDATTIM_0
+            , UPDDATTIM_0
+            , AUUID_0
+            , CREUSR_0
+            , UPDUSR_0
+            , XESMMSWN_0
+            , XESMMSWD_0
+            , XESMMSFT_0
+            , XESMMPRN_0
+            , XESMMPRD_0
+            , XESMMMAC_0
+            , XESMMTEG_0
+            , XESMMSPN_0
+            , XESMMCLIQ_0
+            , XESMMCLIW_0
+            , XESMMCLIL_0
+            , XESMMBEQ_0
+            , XESMMSPQ_0
+            , XESMMSPR_0
+            , XESMMTR1_0
+            , XESMMTR2_0
+            , XESMMONK_0
+            , XESMMLBP_0
+            , XESMMMFG_0
+            , XESMMALIO_0
+            , XESMMCLTQ_0
+            , XESMMHTNUM_0
+            , XESMMOPEORI_0
+            , XESMMMFGORI_0
+            , XESMMUFLDA_0
+            , XESMMUFLDA_1
+            , XESMMUFLDA_2
+            , XESMMUFLDA_3
+            , XESMMUFLDA_4
+            , XESMMUFLDB_0
+            , XESMMUFLDB_1
+            , XESMMUFLDB_2
+            , XESMMUFLDB_3
+            , XESMMUFLDB_4
+            , XESMMUFLDD_0
+            , XESMMUFLDD_1
+            , XESMMUFLDD_2
+            , XESMMUFLDD_3
+            , XESMMUFLDD_4
+,XESMMBRKPS_0
+            )
+        SELECT N'QA' MACHINEID_0
+            , @USER USERID_0
+            , @USER CUSERID_0
+            , 2 VCRTYP_0
+            , @BATCHID PK_0
+            , @BATCHID BATCHID_0
+            , N'' PKORI_0
+            , GETDATE() CREDATIM_0
+            , 1 STAT_0
+            , GETDATE() SUBDATIM_0
+            , 1 RPFLG_0
+            , N'' RPNUM_0
+            , 0 RPLIN_0
+            , N'' RPNOTE_0
+            , N'' RPDATE_0
+            , N'' RPDATIM_0
+            , O.MFGNUM_0
+            , O.OPENUM_0
+            , O.OPESPLNUM_0
+            , H.MFGFCY_0
+            , I.ITMREF_0 ITMREF_0
+            , H.ROUALT_0
+            , O.OPEUOM_0
+            , GETDATE() CREDATTIM_0
+            , GETDATE() UPDDATTIM_0
+            , NEWID() AUUID_0
+            , LEFT(@USER, 5) CREUSR_0
+            , N'' UPDUSR_0
+            , N'' XESMMSWN_0
+            , N'' XESMMSWD_0
+            , N'' XESMMSFT_0
+            , N'' XESMMPRN_0
+            , N'' XESMMPRD_0
+            , N'' XESMMMAC_0
+            , 0 XESMMTEG_0
+            , N'' XESMMSPN_0
+            , N'' XESMMCLIQ_0
+            , 0 XESMMCLIW_0
+            , 0 XESMMCLIL_0
+            , 0 XESMMBEQ_0
+            , 0 XESMMSPQ_0
+            -- , N'@LINKDROPDOWNXESMMSPR_0@' XESMMSPR_0
+            , N'' XESMMSPR_0
+            , N'' XESMMTR1_0
+            , N'' XESMMTR2_0
+            --, IIF('@XESMMONK_0@' = 'True',1,0) XESMMONK_0
+            , @XESMMONK XESMMONK_0
+            , 0 XESMMLBP_0
+            , '' XESMMMFG_0
+            , N'' XESMMALIO_0
+            , 0 XESMMCLTQ_0
+            , '' XESMMHTNUM_0
+            , '' XESMMOPEORI_0
+            , '' XESMMMFGORI_0
+            , '' XESMMUFLDA_0
+            , '' XESMMUFLDA_1
+            , '' XESMMUFLDA_2
+            , '' XESMMUFLDA_3
+            , '' XESMMUFLDA_4
+            , O.XESMMDWMM_0 XESMMUFLDB_0
+            , O.XESMMLTMM_0 XESMMUFLDB_1
+            , O.STDOPENUM_0 XESMMUFLDB_2
+            , 0 XESMMUFLDB_3
+            , 0 XESMMUFLDB_4
+            , '' XESMMUFLDD_0
+            , '' XESMMUFLDD_1
+            , '' XESMMUFLDD_2
+            , '' XESMMUFLDD_3
+            , '' XESMMUFLDD_4
+,0
+        FROM #LC.X3DATA#MFGOPE O
+        INNER JOIN #LC.X3DATA#MFGHEAD H
+            ON H.MFGNUM_0 = O.MFGNUM_0
+        INNER JOIN #LC.X3DATA#MFGITM I
+            ON I.MFGNUM_0 = O.MFGNUM_0
+                AND I.ITMTYP_0 = 1
+        WHERE O.MFGNUM_0 = @MFGNUM
+            AND O.OPENUM_0 = @OPENUM
+            AND O.OPESPLNUM_0 = @OPESPL
+    END
+    ELSE
+    BEGIN
+        -- 已经存在质检结果记录
+        UPDATE #LC.X3DATA#XWSMKOES
+        SET XESMMONK_0 = @XESMMONK
+            , UPDDATTIM_0 = GETDATE()
+            , UPDUSR_0 = LEFT(@USER, 5)
+        WHERE MFGNUM_0 = @MFGNUM
+            AND OPENUM_0 = @OPENUM
+            AND OPESPLNUM_0 = @OPESPL
+    END
+
+    -- 检验合格提醒
+    SELECT 0 RPTSTA
+        , N'已产生检验合格记录。' RPTMSG
+END
+ELSE
+BEGIN
+    -- 检验合格提醒
+    SELECT 0 RPTSTA
+        , N'检验尚为合格，未产生检验报工记录。' RPTMSG
+END</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#05</ImageFile>
+  <ListPrint />
+  <MD5HASH>a2c9f56de991597d2d3935ff5c05f26a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>742</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>Coil</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>742</DMNUM>
+      <COLNAME>DATORI</COLNAME>
+      <CAPTION>Data Ori</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>742</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>Work Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>742</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>Operation</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>742</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>Spool</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>742</DMNUM>
+      <COLNAME>VCRTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

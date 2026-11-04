@@ -1,0 +1,476 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA3030</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>Non conformities History</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DATSTR DATE = '{0}';
+DECLARE @DATEND DATE = DATEADD(DAY, 1, '{1}');
+
+SELECT H.DOCNUM
+  , CONVERT(VARCHAR(16), VL.CRETIM, 23) INSDAT
+  , H.MFGNUM
+  , H.ITMNO
+  , L.OPENUM
+  , D.OPEDES1
+  , D.OPEDES2
+  , VL.SPOOL
+  , VL.COIL
+  , VL.SAMP
+  , ISNULL(NCTYP.OPTDES, VL.NCTYP) NCTYP
+  , NCUSR
+  , CONVERT(VARCHAR(16), NCTIM, 21) NCTIM
+  , CAST(VL.N1 AS DECIMAL(18, 3)) N1
+  , CAST(VL.N2 AS DECIMAL(18, 3)) N2
+  , CAST(VL.N3 AS DECIMAL(18, 3)) N3
+  , CAST(VL.N4 AS DECIMAL(18, 3)) N4
+  , CAST(VL.N5 AS DECIMAL(18, 3)) N5
+  , CAST(VL.N6 AS DECIMAL(18, 3)) N6
+  , CAST(VL.N7 AS DECIMAL(18, 3)) N7
+  , CAST(VL.N8 AS DECIMAL(18, 3)) N8
+  , CAST(VL.VALMIN AS DECIMAL(18, 3)) VALMIN
+  , CAST(VL.VALAVG AS DECIMAL(18, 3)) VALAVG
+  , CAST(VL.VALMAX AS DECIMAL(18, 3)) VALMAX
+  , VL.L1
+  , VL.L2
+  , VL.STA
+  , VL.REMARK
+  , H.ROUTYP --不可删除，挖掘传参
+  , H.ROUCOD ROUCODCK --不可删除，挖掘传参
+FROM QAINSPVAL VL
+INNER JOIN QAINSPL L
+  ON VL.DOCNUM = L.DOCNUM
+    AND VL.OPENUM = L.OPENUM
+INNER JOIN QAINSPH H
+  ON VL.DOCNUM = H.DOCNUM
+INNER JOIN QAOPESTD D
+  ON D.OPESTD = L.OPESTD
+LEFT JOIN QAOPT NCTYP
+  ON NCTYP.OPTTYP = 'NCTYP'
+    AND NCTYP.OPTID = VL.NCTYP
+WHERE VL.NCTYP &lt;&gt; ''
+  AND VL.CRETIM BETWEEN @DATSTR AND @DATEND
+ORDER BY VL.CRETIM DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>起始日期</ParaLabel01>
+  <ParaType01>DATEVAL</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>结束日期</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#85</ImageFile>
+  <ListPrint />
+  <MD5HASH>20d02de21b16442b8e6daf16871f12f7</MD5HASH>
+  <ModelSetting>{
+    "DoubleClickDataMine": [
+        {
+            "DOCNUM": 10
+        }
+    ]
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>Coil</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Inspection Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>INSDAT</COLNAME>
+      <CAPTION>Inspection Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Non conformities History</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>Work Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N6</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N7</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N8</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>NCTIM</COLNAME>
+      <CAPTION>NC Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>NCTYP</COLNAME>
+      <CAPTION>NC Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>NCUSR</COLNAME>
+      <CAPTION>NC User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>Description in English</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>Description in Chinese</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>Sequence</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Remark</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>ROUCODCK</COLNAME>
+      <CAPTION>Routing Check</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>ROUTYP</COLNAME>
+      <CAPTION>Routing Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>SAMP</COLNAME>
+      <CAPTION>Sample</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>Spool</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALAVG</COLNAME>
+      <CAPTION>Average</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>Max</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>Min</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+  <DMUsage>
+    <DMUsage>
+      <DMCODE>ERAQA3030</DMCODE>
+      <DMNUM>20</DMNUM>
+      <SCRIPT>0</SCRIPT>
+      <DMUSAGE>检验异常处理历史记录
+
+params: ["起始日期","结束日期"]</DMUSAGE>
+    </DMUsage>
+  </DMUsage>
+</SysDataModelXML>

@@ -1,0 +1,829 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH4020X</ModelCode>
+  <ModelNum>1004</ModelNum>
+  <ModelDesc>监管报告-明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--监管产品交易明细
+DECLARE @STRDAT DATE = '{0}';
+DECLARE @ENDDAT DATE = '{1}';
+
+SELECT L.ZOLLLOT_0
+  , L.ITMREF_0
+  , L.IPTDAT_0
+  , L.TRSTYP_0
+  , L.TRSDES_0
+  , L.TRSFAM_0
+  , L.BPRNUM_0
+  , L.VCRTYP_0
+  , L.VCRDES_0
+  , L.VCRNUM_0
+  , L.VCRLIN_0
+  , L.VCRNUMORI_0 LINKSUB10_MFGNUM
+  , CAST(L.QTYSTU_0 AS INT) AS QTYSTU_0
+  , SUM(CAST(L.QTYSTU_0 AS INT)) OVER (
+    PARTITION BY L.ZOLLLOT_0, L.ITMREF_0 ORDER BY L.ZOLLLOT_0
+      , L.ITMREF_0
+      , L.IPTDAT_0
+      , L.VCRTYP_0
+      , L.VCRNUM_0
+      , L.VCRLIN_0 ROWS UNBOUNDED PRECEDING
+    ) AS QTYRT_0
+  , CAST(IIF(RECFLAG_0 = 1, QTYSTU_0, NULL) AS INT) RECQTYSTU_0
+  , CAST(IIF(RECFLAG_0 = 0, - QTYSTU_0, NULL) AS INT) ISSQTYSTU_0
+  , L.STU_0
+  , L.MVTDES_0
+  , L.YZUPATS_0 
+  , L.ZOLLLOT_0 + L.ITMREF_0 LINKROWIDL3
+FROM YZUPZOLL L
+WHERE ZOLLSTRDAT_0 &lt;= @STRDAT -- 当前监管期间之前的数据都需要显示
+  -- AND ZOLLENDDAT_0 = @ENDDAT
+ORDER BY L.ZOLLLOT_0
+  , L.ITMREF_0
+  , L.IPTDAT_0
+  , L.VCRTYP_0
+  , L.VCRNUM_0
+  , L.VCRLIN_0;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DATSTR</ParaLabel01>
+  <ParaType01>DATEVAL</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>DATEND</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#68</ImageFile>
+  <ListPrint />
+  <MD5HASH>28bfc82165726ec508c1bc2ce08b331c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>BPRNUM_0</COLNAME>
+      <CAPTION>Geschäftspartner</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>BPRNUM_0</COLNAME>
+      <CAPTION>Business Partner</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>BPRNUM_0</COLNAME>
+      <CAPTION>商业伙伴</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>IPTDAT_0</COLNAME>
+      <CAPTION>Buchungsdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>IPTDAT_0</COLNAME>
+      <CAPTION>Business Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>IPTDAT_0</COLNAME>
+      <CAPTION>业务日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ISSQTYSTU_0</COLNAME>
+      <CAPTION>Verbrauchsmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ISSQTYSTU_0</COLNAME>
+      <CAPTION>Consumption Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ISSQTYSTU_0</COLNAME>
+      <CAPTION>消耗数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>Artikelnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Regulierungsbericht detailliert</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Regulatory Report Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKROWIDL3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKSUB10_MFGNUM</COLNAME>
+      <CAPTION>Ticketnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKSUB10_MFGNUM</COLNAME>
+      <CAPTION>Ticket Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>LINKSUB10_MFGNUM</COLNAME>
+      <CAPTION>工单编号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>MVTDES_0</COLNAME>
+      <CAPTION>Transaktionsbeschreibung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>MVTDES_0</COLNAME>
+      <CAPTION>Transaction Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>MVTDES_0</COLNAME>
+      <CAPTION>交易描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>QTYRT_0</COLNAME>
+      <CAPTION>Mengenabgleich</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>QTYRT_0</COLNAME>
+      <CAPTION>Quantity Balance</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>QTYRT_0</COLNAME>
+      <CAPTION>结存数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>QTYSTU_0</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>RECQTYSTU_0</COLNAME>
+      <CAPTION>Eingangsmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>RECQTYSTU_0</COLNAME>
+      <CAPTION>Inbound Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>RECQTYSTU_0</COLNAME>
+      <CAPTION>入库数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>Einheit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>STU_0</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSDES_0</COLNAME>
+      <CAPTION>Transaktionsbeschreibung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSDES_0</COLNAME>
+      <CAPTION>Transaction Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSDES_0</COLNAME>
+      <CAPTION>交易描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSFAM_0</COLNAME>
+      <CAPTION>Transaktionstyp</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSFAM_0</COLNAME>
+      <CAPTION>Transaction Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSFAM_0</COLNAME>
+      <CAPTION>交易类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSTYP_0</COLNAME>
+      <CAPTION>Transaktionstyp</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSTYP_0</COLNAME>
+      <CAPTION>Transaction Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>TRSTYP_0</COLNAME>
+      <CAPTION>交易类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRDES_0</COLNAME>
+      <CAPTION>Belegbeschreibung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRDES_0</COLNAME>
+      <CAPTION>Document Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRDES_0</COLNAME>
+      <CAPTION>单据描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRLIN_0</COLNAME>
+      <CAPTION>Belegpositionsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRLIN_0</COLNAME>
+      <CAPTION>Document Line Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRLIN_0</COLNAME>
+      <CAPTION>单据行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRNUM_0</COLNAME>
+      <CAPTION>Belegnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRNUM_0</COLNAME>
+      <CAPTION>Document Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRNUM_0</COLNAME>
+      <CAPTION>单据号码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRNUMORI_0</COLNAME>
+      <CAPTION>Ursprungsbeleg</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRNUMORI_0</COLNAME>
+      <CAPTION>Original Document</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRNUMORI_0</COLNAME>
+      <CAPTION>原始单据</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRTYP_0</COLNAME>
+      <CAPTION>Belegtyp</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRTYP_0</COLNAME>
+      <CAPTION>Document Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>VCRTYP_0</COLNAME>
+      <CAPTION>单据类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>YZUPATS_0</COLNAME>
+      <CAPTION>ATS-Nummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>YZUPATS_0</COLNAME>
+      <CAPTION>ATS Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>YZUPATS_0</COLNAME>
+      <CAPTION>ATS号码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ZOLLLOT_0</COLNAME>
+      <CAPTION>Überwachungslos</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ZOLLLOT_0</COLNAME>
+      <CAPTION>Supervised Batch</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH4020X</DMCODE>
+      <DMNUM>1004</DMNUM>
+      <COLNAME>ZOLLLOT_0</COLNAME>
+      <CAPTION>监管批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

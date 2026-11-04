@@ -1,0 +1,342 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR06</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>采购填报详情</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKAPPMENUHIDE
+--LINKDETAILLIST(TMESPUR06,20,{0})
+--LINKMYROWDATA
+SELECT S.[ID]                                         LINKROWID
+       ,S.[DOCNUM]
+       ,S.[DOCNUM]                                    id
+       ,S.[DOCGRP]
+       ,DOCGRP.OPTDES                                 DOCGRPDES
+       ,DOCSTA.OPTDES                                 DOCSTA
+       ,WFLSTA.OPTDES                                 WFLSTA
+       ,CONVERT(VARCHAR(10), S.[DOCDAT], 21)          [DOCDAT]
+       ,S.[DOCDES]
+       ,S.[PRJNUM]
+       ,S.[SITE]
+       ,SI.[SITENAM]                                  SITEDES
+       ,S.FAC
+       ,F.FACNAM
+       ,S.[DEPT]
+       ,D.DEPTNAM                                     DEPTDES
+       ,S.[GRP]
+       ,G.GRPNAM                                      GRPDES
+       ,S.[RESNO]
+       ,R.RESNAM                                      RESNODES
+       ,S.[REMARK]
+       ,S.[CREUSR]
+       ,S.[UPDUSR]
+       ,CONVERT(VARCHAR(16), S.[CRETIM], 21)          CRETIM
+       ,CASE
+          WHEN S.UPDTIM IS NULL THEN ''
+          ELSE CONVERT(VARCHAR(16), S.UPDTIM, 21)
+        END                                           UPDTIM
+       ,S.[CLOREA]
+       ,Iif(S.[DOCSTA] = '1', '', '1')                SABFLG
+       ,Iif(S.[DOCSTA] = '1', '', '1')                DEBFLG
+       ,Iif(S.[DOCSTA] = '1', '', '1')                SUBFLG
+       ,Iif(S.[DOCSTA] = '3'
+            AND S.[UPDUSR] = '#LOGIN_USER#', '', '1') REBFLG
+       ,Iif(S.[DOCSTA]='2', '', '1')       CLBFLG
+       ,Iif(S.[DOCSTA] = '4', '', '1')                PRTFLG
+       ,'{1}'                                         SIGNLISTID
+       ,'{2}'                                         TASKID
+       ,'TSICOD1'                                     FLDTS1S --勿删，产品统计组1传参
+       ,'TSICOD2'                                     FLDTS2S --勿删，产品统计组2传参
+       ,'TSICOD3'                                     FLDTS3S --勿删，产品统计组3传参
+       ,'TSICOD4'                                     FLDTS4S --勿删，产品统计组4传参
+       ,''                                            TCLCODL
+       ,''                                            TSICOD1L
+       ,''                                            TSICOD2L --这几个空值字段，用于选择跳框的参数，不可删除
+       ,''                                            TSICOD3L
+       ,''                                            TSICOD4L
+       ,''                                            ITMNOL
+       ,''                                            ITMSIZEL
+       ,''                                            ITMSPECL
+       ,''                                            ITML
+--,N''                                            PPREQAH
+FROM   [dbo].[PREQAH] S
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = S.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN [ENTSITE] SI
+              ON S.[SITE] = SI.SITE
+       LEFT JOIN ENTFAC F
+              ON S.FAC = F.FAC
+       LEFT JOIN [LINKOPT] DOCGRP
+              ON S.DOCGRP = DOCGRP.OPTID
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'PRA'
+       LEFT JOIN [ENTDEPT] D
+              ON S.[DEPT] = D.DEPT
+       LEFT JOIN [ENTGRP] G
+              ON S.[GRP] = G.GRP
+       LEFT JOIN [ENTRES] R
+              ON S.[RESNO] = R.RESNO
+WHERE  S. [DOCNUM] = '{0}'
+UNION ALL
+SELECT ''                                   LINKROWID
+       ,N'#LINKDOCNUM({0},PRA)#'            [DOCNUM]
+       ,N'#LINKDOCNUM({0},PRA)#'            id
+       ,''                                  [DOCGRP]
+       ,''                                  [DOCGRPDES]
+       ,''                                  [DOCSTA]
+       ,''                                  [WFLSTA]
+       ,CONVERT(VARCHAR(10), Getdate(), 21) [DOCDAT]
+       ,''                                  [DOCDES]
+       ,''                                  [PRJNUM]
+       ,N'#LINKUSER(#LOGIN_USER#).DEPT1#'   [SITE]
+       ,N'#LINKUSER(#LOGIN_USER#).DEPT1#'   [SITEDES]
+       ,''                                  FAC
+       ,''                                  FACNAM
+       ,N'#LINKUSER(#LOGIN_USER#).DEPT3#'   [DEPT]
+       ,''                                  [DEPTDES]
+       ,''                                  [GRP]
+       ,''                                  [GRPDES]
+       ,''                                  [RESNO]
+       ,''                                  [RESNODES]
+       ,''                                  [REMARK]
+       ,''                                  [CREUSR]
+       ,''                                  [UPDUSR]
+       ,''                                  CRETIM
+       ,''                                  UPDTIM
+       ,''                                  [CLOREA]
+       ,''                                  SABFLG
+       ,'1'                                 DEBFLG
+       ,'1'                                 SUBFLG
+       ,'1'                                 REBFLG
+       ,'1'                                 CLBFLG
+       ,'1'                                 PRTFLG
+       ,'{1}'                               SIGNLISTID
+       ,'{2}'                               TASKID
+       ,'TSICOD1'                           FLDTS1S --勿删，产品统计组1传参
+       ,'TSICOD2'                           FLDTS2S --勿删，产品统计组2传参
+       ,'TSICOD3'                           FLDTS3S --勿删，产品统计组3传参
+       ,'TSICOD4'                           FLDTS4S --勿删，产品统计组4传参
+       ,''                                  TCLCODL
+       ,''                                  TSICOD1L
+       ,''                                  TSICOD2L --这几个空值字段，用于选择跳框的参数，不可删除
+       ,''                                  TSICOD3L
+       ,''                                  TSICOD4L
+       ,''                                  ITMNOL
+       ,''                                  ITMSIZEL
+       ,''                                  ITMSPECL
+       ,''                                  ITML
+--, N''                                  PPREQAH
+WHERE  '' = '{0}'</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE
+INTO
+[PREQAH] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,N'@DOCGRP@' DOCGRP
+,N'1' DOCSTA
+,N'SAVED' WFLSTA
+,N'@DOCDAT@' DOCDAT
+,N'@DOCDES@' DOCDES
+,N'@PRJNUM@' PRJNUM
+,N'@SITE@' SITE
+,N'@FAC@'   FAC
+,N'@DEPT@' DEPT
+,N'@GRP@' GRP
+,N'@RESNO@' RESNO
+,N'@REMARK@' REMARK
+,N'@CLOREA@' CLOREA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM])
+	WHEN MATCHED THEN
+UPDATE
+SET 
+ DOCNUM = S.DOCNUM
+,DOCGRP = S.DOCGRP
+,DOCDAT = S.DOCDAT
+,DOCDES = S.DOCDES
+,PRJNUM = S.PRJNUM
+,SITE = S.SITE
+,FAC = S.FAC
+,DEPT = S.DEPT
+,GRP = S.GRP
+,RESNO = S.RESNO
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,UPDUSR='#LOGIN_USER#'
+,UPDTIM=GETDATE()
+WHEN NOT MATCHED THEN
+INSERT
+(DOCNUM
+,DOCGRP
+,DOCSTA
+,WFLSTA
+,DOCDAT
+,DOCDES
+,PRJNUM
+,SITE
+,FAC
+,DEPT
+,GRP
+,RESNO
+,REMARK
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCGRP
+,S.DOCSTA
+,S.WFLSTA
+,S.DOCDAT
+,S.DOCDES
+,S.PRJNUM
+,S.SITE
+,S.FAC
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.REMARK
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>SIGNLISTID</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>TASKID</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM PREQAH WHERE DOCNUM='#DOCNUM#' AND DOCSTA='1';</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+ &lt;div class='mui-card-header C01'&gt;
+ &lt;button type="button" class="mui-btn mui-btn-danger" linkquick="8" btnid="502" linkrefresh="1" linkparafill="1" linklocatino="0" linktitle="驳回" style="width:80px;height:35px;font-size:16px"&gt;lang:{zh:驳回}&lt;/button&gt;
+   &lt;button type="button" class="mui-btn mui-btn-primary" linkquick="8" btnid="501" linkparafill="1" linkrefresh="1" linklocatino="0" linktitle="同意" style="width:80px;height:35px;font-size:16px"&gt;lang:{zh:同意}&lt;/button&gt;&lt;/div&gt;
+ &lt;div class='mui-card-content '&gt;
+
+         &lt;H4&gt;lang:{zh:单据号,vie:tài liệu số}:#DOCNUM#&lt;/H4&gt;         
+         &lt;H4&gt;lang:{zh:填报日期,vie:Điền ngày tháng}:#DOCDAT#&lt;/H4&gt;
+         &lt;H4&gt;lang:{zh:填报描述}:#DOCDES#&lt;/H4&gt;
+         &lt;H4&gt;lang:{zh:填报部门,vie:Điền vào bộ phận}:#DEPTDES#&lt;/H4&gt;
+         &lt;H4&gt;lang:{zh:备注,vie:Nhận xét}:#REMARK#&lt;/H4&gt;
+         &lt;H4&gt;lang:{zh:状态,vie:tình trạng}:#WFLSTA#&lt;/H4&gt;
+   &lt;div style="overflow: auto;padding:0"&gt;
+    &lt;div class="link-table-default" style="margin-bottom:0px"&gt; 
+    &lt;div class="link-table-fixed" &gt; 
+&lt;div style="min-width:10px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:行,vie:Được rồi}&lt;/div&gt;
+&lt;div style="min-width:25px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:产品编码,vie:mã sản phẩm}&lt;/div&gt;
+&lt;div style="min-width:230px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:中文名称,vie:tên tiếng trung}&lt;/div&gt;
+&lt;div style="min-width:160px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:品名,vie:Tên sản phẩm}&lt;/div&gt;
+&lt;div style="min-width:160px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:型号/件号,vie:Mẫu/số bộ phận}&lt;/div&gt;
+&lt;div style="min-width:160px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:尺寸规格}&lt;/div&gt;
+&lt;div style="min-width:100px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:数量[单位],vie:Đơn vị đo số lượng]}&lt;/div&gt;
+&lt;div style="min-width:160px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:需求日期,vie:ngày yêu cầu}&lt;/div&gt;
+&lt;div style="min-width:160px;background-color:#546E7A;font-size:18px;"&gt;lang:{zh:行备注,vie:Nhận xét dòng}&lt;/div&gt;
+    &lt;/div&gt;#LINKDETAILLIST#&lt;/div&gt;
+   &lt;/div&gt;
+
+ &lt;/div&gt;
+
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>contextTap = function(contextid, linktitle, linkrefresh, linkparafill, cRDs) {
+	var globleDmCode = "LINKWFTASKPR";
+	var globleDmNum = "10";
+	var AttachDmCode = globleDmCode + globleDmNum + 'X';
+	localStorage.setItem("AttachDmCode", AttachDmCode);
+	localStorage.setItem("AttachDmNum", contextid);
+	localStorage.setItem("AttachDmTitle", linktitle);
+	//附加参数功能允许用户补充必要的参数，确认后执行附加功能并返回
+	showAttachModelPara(LinkID, globleServer, globleDmCode, globleDmNum, contextid, cRDs, linkrefresh);
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#77</ImageFile>
+  <ListPrint />
+  <MD5HASH>ddc13c066fa9dc82c4e05d5c3db54366</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR06</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Mua sắm điền chi tiết</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

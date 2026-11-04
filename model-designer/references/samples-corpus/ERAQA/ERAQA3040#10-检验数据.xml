@@ -1,0 +1,1679 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA3040</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Inspection Data</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @STRDAT DATE='{0}';
+DECLARE @ENDDAT DATE='{1}';
+DECLARE @ROUTYP VARCHAR(30)='%{2}%';
+DECLARE @MATTYP VARCHAR(30)='%{3}%';
+DECLARE @ITMNO VARCHAR(30)='%{4}%';
+DECLARE @VCRNUM VARCHAR(30)='%{5}%';
+
+IF OBJECT_ID(N'tempdb..#TSCA') IS NOT NULL
+    DROP TABLE #TSCA;
+
+WITH CTE_SCA
+AS (
+    SELECT S.VALLINID
+        , K.SCADES1 + '/' + K.SCADES2 SCADES
+    FROM QAINSPVALSCA S
+    INNER JOIN QAINSPVAL V
+        ON S.VALLINID = V.ID
+    INNER JOIN QAINSPL L
+        ON L.DOCNUM = V.DOCNUM
+            AND L.OPENUM = V.OPENUM
+    INNER JOIN (
+        SELECT OPESTD
+            , SCACOD
+            , SCADES1
+            , SCADES2
+        FROM QAOPESTDSCA
+        ) K
+        ON K.OPESTD = L.OPESTD
+            AND K.SCACOD = S.SCACOD
+    )
+SELECT VALLINID
+    , STRING_AGG(SCADES, ';') SCADES
+INTO #TSCA
+FROM CTE_SCA
+GROUP BY VALLINID
+
+SELECT H.DOCNUM
+    , H.DOCDAT
+    , ROUTYP.OPTDES ROUTYP
+    , D.MATTYP
+    , H.ITMNO
+    , ITM.ITMDES2_0 RANGE
+    , IIF(ITM.ZDIA_MM_0 = 0, CAST(CAST(ITM.ZWIDTH_MM_0 AS DECIMAL(18, 3)) AS VARCHAR(30)) --
+        + ' * ' + CAST(CAST(ITM.ZTHICK_MM_0 AS DECIMAL(18, 3)) AS VARCHAR(30)), --
+        CAST(CAST(ITM.ZDIA_MM_0 AS DECIMAL(18, 3)) AS VARCHAR(30)) + ' mm') PRODIM
+    , H.MFGNUM
+    , M.GRDCOD
+    , E.GRDNAM
+    , H.LOT
+    , H.TV
+    , H.CUSCOD
+    , H.INTSPEC
+    , H.DEMANDER
+    , H.INSPREA
+    , CASE 
+        WHEN H.STA = 2
+            THEN '√'
+        WHEN H.STA = 1
+            THEN '×'
+        ELSE ''
+        END HSTA
+    , H.CLOSTA
+    , H.CLOUSR
+    , CONVERT(VARCHAR(16), H.CLOTIM, 21) CLOTIM
+    , L.OPENUM
+    , D.OPESTD
+    , D.OPEDES1
+    , D.OPEDES2
+    , D.INSTRUCTION
+    , L.OPEUNT
+    , L.CTLTYP
+    , L.MEAFRQ
+    , L.INSTCOD
+    , CAST(L.NMAX AS DECIMAL(18, 3)) NMAX
+    , CAST(L.NMIN AS DECIMAL(18, 3)) NMIN
+    , CAST(L.NNOR AS DECIMAL(18, 3)) NNOR
+    , CASE 
+        WHEN L.STA = 2
+            THEN '√'
+        WHEN L.STA = 1
+            THEN '×'
+        ELSE ''
+        END LSTA
+    , VL.SPOOL
+    , VL.COIL
+    , VL.SAMP
+    , CAST(VL.N1 AS DECIMAL(18, 3)) N1
+    , CAST(VL.N2 AS DECIMAL(18, 3)) N2
+    , CAST(VL.N3 AS DECIMAL(18, 3)) N3
+    , CAST(VL.N4 AS DECIMAL(18, 3)) N4
+    , CAST(VL.N5 AS DECIMAL(18, 3)) N5
+    , CAST(VL.N6 AS DECIMAL(18, 3)) N6
+    , CAST(VL.N7 AS DECIMAL(18, 3)) N7
+    , CAST(VL.N8 AS DECIMAL(18, 3)) N8
+    , CAST(VL.VALMIN AS DECIMAL(18, 3)) VALMIN
+    , CAST(VL.VALAVG AS DECIMAL(18, 3)) VALAVG
+    , CAST(VL.VALMAX AS DECIMAL(18, 3)) VALMAX
+    , CASE 
+        WHEN L.L1CHECK = 1
+            AND VL.L1 = 1
+            THEN '√'
+        WHEN L.L1CHECK = 1
+            AND VL.L1 = 0
+            AND VL.STA IS NOT NULL
+            THEN '×'
+        ELSE ''
+        END L1
+    , CASE 
+        WHEN L.L2CHECK = 1
+            AND VL.L2 = 1
+            THEN '√'
+        WHEN L.L2CHECK = 1
+            AND VL.L2 = 0
+            THEN '×'
+        ELSE ''
+        END L2
+    , CASE 
+        WHEN VL.STA = 1
+            THEN '√'
+        WHEN VL.STA = 0
+            THEN '×'
+        ELSE ''
+        END STA
+    , VL.REMARK
+    , NCTYP.OPTDES NCTYP
+    , ISNULL(VL.DEFECTS, '') + ISNULL(T.SCADES, '') SCADES
+    , VL.CREUSR
+    , CONVERT(VARCHAR(16), VL.CRETIM, 21) CRETIM
+    , VL.UPDUSR
+    , CONVERT(VARCHAR(16), VL.UPDTIM, 21) UPDTIM
+FROM QAINSPVAL VL
+INNER JOIN QAINSPL L
+    ON VL.DOCNUM = L.DOCNUM
+        AND VL.OPENUM = L.OPENUM
+INNER JOIN QAINSPH H
+    ON VL.DOCNUM = H.DOCNUM
+INNER JOIN QAOPESTD D
+    ON D.OPESTD = L.OPESTD
+LEFT JOIN QAOPT ROUTYP
+    ON ROUTYP.OPTTYP = 'ROUTYP'
+        AND ROUTYP.OPTID = H.ROUTYP
+LEFT JOIN QAOPT NCTYP
+    ON NCTYP.OPTTYP = 'NCTYP'
+        AND NCTYP.OPTID = VL.NCTYP
+LEFT JOIN QAMAT M
+    ON M.LOT = H.LOT
+        AND M.TV = H.TV
+LEFT JOIN QAGRADE E
+    ON M.GRDCOD = E.GRDCOD
+        AND E.CUSCOD = ''
+LEFT JOIN #LC.X3DATA#ITMMASTER ITM
+    ON ITM.ITMREF_0 #LC.X3COLLATE# = H.ITMNO
+LEFT JOIN #TSCA T
+    ON T.VALLINID = VL.ID
+WHERE H.DOCDAT BETWEEN @STRDAT AND @ENDDAT
+    AND H.ROUTYP LIKE @ROUTYP
+    AND D.MATTYP LIKE @MATTYP
+    AND ISNULL(H.ITMNO, '') LIKE @ITMNO
+    AND ISNULL(H.MFGNUM, '') LIKE @VCRNUM
+ORDER BY H.DOCDAT DESC
+    , H.DOCNUM DESC
+    , L.OPENUM
+    , VL.VALLIN
+    , VL.TRXLIN
+
+IF OBJECT_ID(N'tempdb..#TSCA') IS NOT NULL
+    DROP TABLE #TSCA;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>STRDAT</ParaLabel01>
+  <ParaType01>DATEVAL</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>ENDDAT</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>ROUTYP</ParaLabel03>
+  <ParaType03>DROPDOWN</ParaType03>
+  <ParaSearchCode03>ERAQAROUTYP#10</ParaSearchCode03>
+  <ParaDefVal03 />
+  <ParaLabel04>ITMTYP</ParaLabel04>
+  <ParaType04>DROPDOWN</ParaType04>
+  <ParaSearchCode04>ERAQAMATTYP#10</ParaSearchCode04>
+  <ParaDefVal04 />
+  <ParaLabel05>ITMNO</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>VCRNUM</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#86</ImageFile>
+  <ListPrint />
+  <MD5HASH>7a1cbbb69b8ee353da75b99f600bbfd2</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOSTA</COLNAME>
+      <CAPTION>Close</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOSTA</COLNAME>
+      <CAPTION>关闭状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOTIM</COLNAME>
+      <CAPTION>Close Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOTIM</COLNAME>
+      <CAPTION>关闭时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOUSR</COLNAME>
+      <CAPTION>Close User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOUSR</COLNAME>
+      <CAPTION>关闭用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>Coil</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>段</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTLTYP</COLNAME>
+      <CAPTION>Value Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTLTYP</COLNAME>
+      <CAPTION>控制类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CUSCOD</COLNAME>
+      <CAPTION>Customer</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CUSCOD</COLNAME>
+      <CAPTION>客户编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEMANDER</COLNAME>
+      <CAPTION>Demander</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEMANDER</COLNAME>
+      <CAPTION>请求者</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCDAT</COLNAME>
+      <CAPTION>Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCDAT</COLNAME>
+      <CAPTION>质检日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>Inspection Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION>质检单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDCOD</COLNAME>
+      <CAPTION>Grade Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDCOD</COLNAME>
+      <CAPTION>钢号编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDNAM</COLNAME>
+      <CAPTION>Grade</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRDNAM</COLNAME>
+      <CAPTION>钢号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>HSTA</COLNAME>
+      <CAPTION>Order Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>HSTA</COLNAME>
+      <CAPTION>整单状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSPREA</COLNAME>
+      <CAPTION>Reason</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSPREA</COLNAME>
+      <CAPTION>质检原因</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>Instrument</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>工具编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>Instruction</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>指导说明</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTSPEC</COLNAME>
+      <CAPTION>Internal Spec</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INTSPEC</COLNAME>
+      <CAPTION>内部控制</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Product/Instrument</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>L1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>L1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>L2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>L2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Start Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>开始日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>End Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>结束日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Ins.Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>质检类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Mat.Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>产品类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>Product</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Oridoc</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>原始单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Inspection Data</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>检验数据</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Heat No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>炉号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LSTA</COLNAME>
+      <CAPTION>Operation Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LSTA</COLNAME>
+      <CAPTION>工序状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MATTYP</COLNAME>
+      <CAPTION>Ins.Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MATTYP</COLNAME>
+      <CAPTION>产品类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MEAFRQ</COLNAME>
+      <CAPTION>Measurement frequency</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MEAFRQ</COLNAME>
+      <CAPTION>检验频率</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>Oridoc</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MFGNUM</COLNAME>
+      <CAPTION>原始单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N6</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N6</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N7</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N7</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N8</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>N8</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NCTYP</COLNAME>
+      <CAPTION>NC type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NCTYP</COLNAME>
+      <CAPTION>NC 类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NMAX</COLNAME>
+      <CAPTION>Range Max</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NMAX</COLNAME>
+      <CAPTION>要求最大值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NMIN</COLNAME>
+      <CAPTION>Range Min</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NMIN</COLNAME>
+      <CAPTION>要求最小值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NNOR</COLNAME>
+      <CAPTION>Nominal </CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>NNOR</COLNAME>
+      <CAPTION>公称值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>Description in English</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>英文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>Description in Chinese</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>中文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>Sequence</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION>工序号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>Standard Operation</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>标准工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PRODIM</COLNAME>
+      <CAPTION>Size</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PRODIM</COLNAME>
+      <CAPTION>尺寸</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RANGE</COLNAME>
+      <CAPTION>Range</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RANGE</COLNAME>
+      <CAPTION>范围</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Remark</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>备注</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUCODCK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUTYP</COLNAME>
+      <CAPTION>Ins.Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ROUTYP</COLNAME>
+      <CAPTION>质检类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SAMP</COLNAME>
+      <CAPTION>Sample</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SAMP</COLNAME>
+      <CAPTION>样品</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SCADES</COLNAME>
+      <CAPTION>Defects</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SCADES</COLNAME>
+      <CAPTION>缺陷描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>Spool</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>轴</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TV</COLNAME>
+      <CAPTION>TV No</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TV</COLNAME>
+      <CAPTION>TV号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>修改时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update User</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>修改用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>VALAVG</COLNAME>
+      <CAPTION>Real Average</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>VALAVG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>Real Max</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>Real Min</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+  <DMUsage>
+    <DMUsage>
+      <DMCODE>ERAQA3040</DMCODE>
+      <DMNUM>10</DMNUM>
+      <SCRIPT>0</SCRIPT>
+      <DMUSAGE>产品详细检验数据分析，分析后询问用户是否需要可视化展示
+
+params: ["起始日期","结束日期","质检类型(可空)","产品类型(可空)","产品编码(可空)","原始单号(可空)"]</DMUSAGE>
+    </DMUsage>
+  </DMUsage>
+</SysDataModelXML>

@@ -1,0 +1,441 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR07</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>采购提单详情</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.[ID]                                                                                          LINKROWID
+       ,S.[DOCNUM]
+       ,S.DOCTYP
+       ,S.[DOCGRP]
+       ,DOCGRP.OPTDES                                                                                  [DOCGRPDES]
+       ,S.[DOCSTA]
+       ,DOCSTA.OPTDES                                                                                  [DOCSTADES]
+       ,CONVERT(VARCHAR(16), S.DOCDAT, 23)                                                             [DOCDAT]
+       ,S.[WFLSTA]
+       ,WFLSTA.OPTDES                                                                                  [WFLSTADES]
+       ,S.[DOCDES]
+       ,S.[SITE]
+       ,SI.SITENAM
+       ,SI.CUR                                                                                         SITECUR
+       ,S.[DEPT]
+       ,DE.DEPTNAM
+       ,S.[GRP]
+       ,GR.GRPNAM
+       ,S.[RESNO]
+       ,RE.RESNAM
+       ,S.[PRJNUM]
+       ,S.[BPSNO]
+       ,BP.BPSNAM
+       ,S.[CUR]
+       ,S.[CURRAT]
+       ,S.[BVATTYP]
+       ,BVATTYP.OPTDES                                                                                 [BVATTYPDES]
+       ,S.[SRCTYP]
+       ,S.[SRCDOC]
+       ,S.[SRCLIN]
+       ,S.[REMARK]
+       ,S.[CLOREA]
+       ,S.[PRNCNT]
+       ,S.[SSCO]
+       ,S.[BLNO]
+       ,CONVERT(VARCHAR(10), S.[ETD], 23)                                                              ETD
+       ,CASE
+          WHEN CONVERT(VARCHAR(10), S.[ETA], 23) = '1900-01-01' THEN ''
+          ELSE CONVERT(VARCHAR(10), S.[ETA], 23)
+        END                                                                                            ETA
+       ,CASE
+          WHEN CONVERT(VARCHAR(10), S.[CLRDAT], 23) = '1900-01-01' THEN ''
+          ELSE CONVERT(VARCHAR(10), S.[CLRDAT], 23)
+        END                                                                                            CLRDAT
+       ,Cast(S.CLRSTA AS VARCHAR(1))                                                                   CLRSTA
+       ,CASE
+          WHEN CONVERT(VARCHAR(10), S.[BLD], 23) = '1900-01-01' THEN ''
+          ELSE CONVERT(VARCHAR(10), S.[BLD], 23)
+        END                                                                                            BLD
+       ,S.[INVNO]
+       ,CONVERT(VARCHAR(16), S.[INVDAT], 23)                                                           INVDAT
+       ,S.[INVAMT]
+       ,S.[PACQTY]
+       ,S.[LCDOX]
+       ,S.[COPHYTOFUMI]
+       ,S.[HVI]
+       ,S.[PLACEORI]
+       ,PLACEORI.OPTDES                                                                                PLACEORIDES
+       ,S.[CONTROLLER]
+       ,S.DCRDOC
+       ,S.DCRTYP
+       ,Iif(S.[DOCSTA] IN ( '1', '5' ), '', '1')                                                       SABFLG
+       ,Iif(S.[DOCSTA] IN ( '1', '5' ), '', '1')                                                       DEBFLG
+       ,Iif(S.[DOCSTA] IN ( '1', '5' ), '', '1')                                                       SUBFLG
+       ,Iif(S.[DOCSTA] = '3', '', '1')                                                                 REBFLG
+       ,Iif(S.[DOCSTA] IN( '1', '2', '5' ), '', '1')                                                   CLBFLG
+       ,Iif(S.[DOCSTA] IN( '1', '2', '5' ), '', '1')                                                   COPFLG
+       ,Iif(S.[DOCSTA] = '4', '', '1')                                                                 PRTFLG
+       ,Iif(S.CLRSTA = 0, '', '1')                                                                     CLRFLG
+       ,S.[CREUSR]
+       ,S.[UPDUSR]
+       ,CONVERT(VARCHAR(16), S.CRETIM, 21)                                                             CRETIM
+       ,Iif(CONVERT(VARCHAR(16), S.UPDTIM, 21) = '1900-01-01', '', CONVERT(VARCHAR(16), S.UPDTIM, 21)) UPDTIM
+       ,N''                                                                                            CONTNOIE
+       ,N''                                                                                            ITMNO1
+       ,N''                                                                                            ITMVER1
+       ,N''                                                                                            ELSE1
+FROM   [PBOLH] S
+       INNER JOIN ENTSITE SI
+               ON SI.SITE = S.SITE
+       LEFT JOIN ENTDEPT DE
+              ON DE.DEPT = S.DEPT
+       LEFT JOIN ENTGRP GR
+              ON GR.GRP = S.GRP
+       LEFT JOIN ENTRES RE
+              ON RE.RESNO = S.RESNO
+       LEFT JOIN BPSUP BP
+              ON BP.[BPSNO] = S.[BPSNO]
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = S.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'POR'
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = S.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN LINKOPT PLACEORI
+              ON PLACEORI.OPTID = S.PLACEORI
+                 AND PLACEORI.OPTTYP = 'PLACEORI'
+       LEFT JOIN LINKOPT BVATTYP
+              ON BVATTYP.OPTID = S.BVATTYP
+WHERE  S.DOCNUM = '{0}'
+UNION ALL
+SELECT 0                                    LINKROWID
+       ,N'#LINKDOCNUM({0},PBO)#'            [DOCNUM]
+       ,'PBO'                               DOCTYP
+       ,''                                  [DOCGRP]
+       ,''                                  [DOCGRPDES]
+       ,'1'                                 [DOCSTA]
+       ,N'计划的'                              [DOCSTADES]
+       ,CONVERT(VARCHAR(16), Getdate(), 23) [DOCDAT]
+       ,''                                  [WFLSTA]
+       ,''                                  [WFLSTADES]
+       ,''                                  [DOCDES]
+       ,'SV'                                [SITE]
+       ,'百隆越南'                              SITENAM
+       ,'VND'                               SITECUR
+       ,''                                  [DEPT]
+       ,''                                  DEPTNAM
+       ,''                                  [GRP]
+       ,''                                  GRPNAM
+       ,''                                  [RESNO]
+       ,''                                  RESNAM
+       ,''                                  [PRJNUM]
+       ,''                                  [BPSNO]
+       ,''                                  BPSNAM
+       ,''                                  [CUR]
+       ,0                                   [CURRAT]
+       ,''                                  [BVATTYP]
+       ,''                                  [BVATTYPDES]
+       ,''                                  [SRCTYP]
+       ,''                                  [SRCDOC]
+       ,0                                   [SRCLIN]
+       ,''                                  [REMARK]
+       ,''                                  [CLOREA]
+       ,0                                   [PRNCNT]
+       ,''                                  [SSCO]
+       ,''                                  [BLNO]
+       ,CONVERT(VARCHAR(16), Getdate(), 21) [ETD]
+       ,''                                  [ETA]
+       ,''                                  CLRDAT
+       ,'1'                                 CLRSTA
+       ,''                                  BLD
+       ,''                                  [INVNO]
+       ,CONVERT(VARCHAR(16), Getdate(), 23) [INVDAT]
+       ,0                                   [INVAMT]
+       ,0                                   [PACQTY]
+       ,''                                  [LCDOX]
+       ,''                                  [COPHYTOFUMI]
+       ,''                                  [HVI]
+       ,''                                  [PLACEORI]
+       ,''                                  [PLACEORIDES]
+       ,''                                  [CONTROLLER]
+       ,''                                  DCRDOC
+       ,''                                  DCRTYP
+       ,''                                  SABFLG
+       ,'1'                                 DEBFLG
+       ,'1'                                 SUBFLG
+       ,'1'                                 REBFLG
+       ,'1'                                 CLBFLG
+       ,'1'                                 COPFLG
+       ,'1'                                 PRTFLG
+       ,'1'                                 CLRFLG
+       ,''                                  [CREUSR]
+       ,''                                  [UPDUSR]
+       ,CONVERT(VARCHAR(16), Getdate(), 21) CRETIM
+       ,CONVERT(VARCHAR(16), Getdate(), 21) UPDTIM
+       ,N''                                 CONTNOIE
+       ,N''                                 ITMNO1
+       ,N''                                 ITMVER1
+       ,N''                                 ELSE1
+WHERE  '' = '{0}'</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE INTO [PBOLH] D
+USING (SELECT N'#DOCNUM#'       DOCNUM
+              ,N'#DOCGRP#'      DOCGRP
+              ,N'#DOCDAT#'      DOCDAT
+              ,N'#DOCSTA#'      DOCSTA
+              ,N'SAVED'         WFLSTA
+              ,N'#DOCDES#'      DOCDES
+              ,N'#SITE#'        SITE
+              ,N'#DEPT#'        DEPT
+              ,N'#GRP#'         GRP
+              ,N'#RESNO#'       RESNO
+              ,N'#PRJNUM#'      PRJNUM
+              ,N'#BPSNO#'       BPSNO
+              ,N'#CUR#'         CUR
+              ,0#CURRAT#      CURRAT
+              ,N'#BVATTYP#'     BVATTYP
+              ,N'#SRCTYP#'      SRCTYP
+              ,N'#SRCDOC#'      SRCDOC
+              ,0#SRCLIN#      SRCLIN
+              ,N'#REMARK#'      REMARK
+              ,N'#CLOREA#'      CLOREA
+              ,0#PRNCNT#      PRNCNT
+              ,N'#SSCO#'        SSCO
+              ,N'#BLNO#'        BLNO
+              ,N'#ETD#'         ETD
+              ,N'#ETA#'         ETA
+              ,N'#CLRDAT#'      CLRDAT
+              ,0#CLRSTA#         CLRSTA
+              ,N'#BLD#'         BLD
+              ,N'#INVNO#'       INVNO
+              ,N'#INVDAT#'    INVDAT
+              ,0#INVAMT#      INVAMT
+              ,0#PACQTY#      PACQTY
+              ,N'#LCDOX#'       LCDOX
+              ,N'#COPHYTOFUMI#' COPHYTOFUMI
+              ,N'#HVI#'         HVI
+              ,N'#PLACEORI#'    PLACEORI
+              ,N'#CONTROLLER#'  CONTROLLER
+              ,N'#DCRDOC#'      DCRDOC
+              ,N'#DCRTYP#'      DCRTYP
+              ,N'#LOGIN_USER#'  CREUSR
+              ,Getdate()        CRETIM) S
+ON ( S.[DOCNUM] = D.[DOCNUM] )
+WHEN MATCHED THEN
+  UPDATE SET DOCGRP = S.DOCGRP
+             ,DOCDAT = S.DOCDAT
+             ,DOCSTA = S.DOCSTA
+             ,DOCDES = S.DOCDES
+             ,SITE = S.SITE
+             ,DEPT = S.DEPT
+             ,GRP = S.GRP
+             ,RESNO = S.RESNO
+             ,PRJNUM = S.PRJNUM
+             ,BPSNO = S.BPSNO
+             ,CUR = S.CUR
+             ,CURRAT = S.CURRAT
+             ,BVATTYP = S.BVATTYP
+             ,SRCTYP = S.SRCTYP
+             ,SRCDOC = S.SRCDOC
+             ,SRCLIN = S.SRCLIN
+             ,REMARK = S.REMARK
+             ,CLOREA = S.CLOREA
+             ,PRNCNT = S.PRNCNT
+             ,SSCO = S.SSCO
+             ,BLNO = S.BLNO
+             ,ETD = S.ETD
+             ,ETA = S.ETA
+             ,CLRDAT = S.CLRDAT
+             ,CLRSTA = S.CLRSTA
+             ,BLD = S.BLD
+             ,INVNO = S.INVNO
+             ,INVDAT = S.INVDAT
+             ,INVAMT = S.INVAMT
+             ,PACQTY = S.PACQTY
+             ,LCDOX = S.LCDOX
+             ,COPHYTOFUMI = S.COPHYTOFUMI
+             ,HVI = S.HVI
+             ,PLACEORI = S.PLACEORI
+             ,CONTROLLER = S.CONTROLLER
+             ,DCRDOC=S.DCRDOC
+             ,DCRTYP=S.DCRTYP
+             ,UPDUSR = '#LOGIN_USER#'
+             ,UPDTIM = Getdate()
+WHEN NOT MATCHED THEN
+  INSERT (DOCNUM
+          ,DOCGRP
+          ,DOCSTA
+          ,DOCDAT
+          ,WFLSTA
+          ,DOCDES
+          ,SITE
+          ,DEPT
+          ,GRP
+          ,RESNO
+          ,PRJNUM
+          ,BPSNO
+          ,CUR
+          ,CURRAT
+          ,BVATTYP
+          ,SRCTYP
+          ,SRCDOC
+          ,SRCLIN
+          ,REMARK
+          ,CLOREA
+          ,PRNCNT
+          ,SSCO
+          ,BLNO
+          ,ETD
+          ,ETA
+          ,CLRDAT
+          ,CLRSTA
+          ,BLD
+          ,INVNO
+          ,INVDAT
+          ,INVAMT
+          ,PACQTY
+          ,LCDOX
+          ,COPHYTOFUMI
+          ,HVI
+          ,PLACEORI
+          ,CONTROLLER
+          ,DCRDOC
+          ,DCRTYP
+          ,CREUSR
+          ,CRETIM )
+  VALUES ( S.DOCNUM
+           ,S.DOCGRP
+           ,S.DOCSTA
+           ,S.DOCDAT
+           ,S.WFLSTA
+           ,S.DOCDES
+           ,S.SITE
+           ,S.DEPT
+           ,S.GRP
+           ,S.RESNO
+           ,S.PRJNUM
+           ,S.BPSNO
+           ,S.CUR
+           ,S.CURRAT
+           ,S.BVATTYP
+           ,S.SRCTYP
+           ,S.SRCDOC
+           ,S.SRCLIN
+           ,S.REMARK
+           ,S.CLOREA
+           ,S.PRNCNT
+           ,S.SSCO
+           ,S.BLNO
+           ,S.ETD
+           ,S.ETA
+           ,S.CLRDAT
+           ,S.CLRSTA
+           ,S.BLD
+           ,S.INVNO
+           ,S.INVDAT
+           ,S.INVAMT
+           ,S.PACQTY
+           ,S.LCDOX
+           ,S.COPHYTOFUMI
+           ,S.HVI
+           ,S.PLACEORI
+           ,S.CONTROLLER
+           ,S.DCRDOC
+           ,S.DCRTYP
+           ,S.CREUSR
+           ,S.CRETIM );</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM [PBOLH]  WHERE DOCNUM='#DOCNUM#'  AND DOCSTA IN ('1','5');
+DELETE FROM [PBOLD]  WHERE DOCNUM='#DOCNUM#' ;</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#77</ImageFile>
+  <ListPrint />
+  <MD5HASH>e48daa847bc014dc6cfd9185433d338b</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết vận đơn mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết vận đơn mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

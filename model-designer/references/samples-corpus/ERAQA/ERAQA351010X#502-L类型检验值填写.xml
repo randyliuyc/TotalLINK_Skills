@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA351010X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>L类型检验值填写</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @DOCNUM VARCHAR(30) = '#DOCNUM#';
+DECLARE @OPENUM VARCHAR(30) = '#OPENUM#';
+DECLARE @VALLIN INT = 0#VALLIN#;
+DECLARE @TRXLIN INT = 0#TRXLIN#;
+
+UPDATE QAINSPVAL SET L1=IIF('#L1#'='True',1,0)
+                    ,L2=IIF('#L2#'='True',1,0)
+		    ,REMARK = '#REMARK#'
+                    ,DEFECTS = N'#DEFECTS#'
+                    ,UPDTIM = GETDATE()
+                    ,UPDUSR = '#LOGIN_USER#'
+WHERE DOCNUM = @DOCNUM
+  AND OPENUM = @OPENUM
+  AND VALLIN = @VALLIN
+  AND TRXLIN = @TRXLIN
+
+-- 行计算值
+EXECUTE [SP_INSPVAL_LCHECK] 
+   @DOCNUM
+  ,@OPENUM
+  ,@VALLIN
+  ,@TRXLIN;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;OPEDES2&lt;/label&gt;
+&lt;input type="text" class="" placeholder="请输入OPEDES2" readonly="readonly"
+id="OPEDES2" paratype="STR" paradm="" value="#OPEDES2#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;QAITM&lt;/label&gt;
+&lt;input type="text" class="" placeholder="请输入QAITM" readonly="readonly"
+id="QAITM" paratype="STR" paradm="" value="#QAITM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-checkbox mui-center  #FL1#  "&gt;
+						&lt;label&gt;#TL1#&lt;/label&gt;
+						&lt;input name="checkbox" id="L1"  value="#L1#" type="checkbox" &gt;
+					&lt;/div&gt;
+&lt;div class="mui-input-row mui-checkbox mui-center  #FL2#  "&gt;
+						&lt;label&gt;#TL2#&lt;/label&gt;
+						&lt;input name="checkbox" id="L2"  value="#L2#" type="checkbox" &gt;
+					&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row  "&gt;
+&lt;label&gt;Remark&lt;/label&gt;
+&lt;input type="text"  class="" placeholder="" 
+id="REMARK" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row  "&gt;
+&lt;label&gt;Defects&lt;/label&gt;
+&lt;input type="text"  class="" placeholder="" 
+id="DEFECTS" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;DOCNUM&lt;/label&gt;
+&lt;input type="text"  class="" placeholder="" 
+id="DOCNUM" paratype="STR" paradm="" value="#DOCNUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;OPENUM&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="OPENUM" paratype="DEC" paradm="" value="#OPENUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;VALLIN&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="VALLIN" paratype="DEC" paradm="" value="#VALLIN#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;TRXLIN&lt;/label&gt;
+&lt;input type="number" class="" placeholder="" 
+id="TRXLIN" paratype="DEC" paradm="" value="#TRXLIN#"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#20</ImageFile>
+  <ListPrint />
+  <MD5HASH>4d58a2705b316d59f5329005f4b48f5e</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

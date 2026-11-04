@@ -1,0 +1,452 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH2010X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>销售订单明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SOHNUM VARCHAR(30) = '{0}';
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+
+WITH CTE_DEITM
+AS (
+  -- 海关监管产品对照编码，按ZJKC供应商产品编码对照
+  SELECT ITMREFBPS_0 ITMREF_0
+    , ITMREF_0 ITMREFBPC_0
+  FROM ITMBPS
+  WHERE BPSNUM_0 = 'ZJKC'
+  )
+  , CTE_GCSO
+AS (
+  SELECT Q.SOHNUM_0
+    , Q.SOPLIN_0
+    , Q.ITMREF_0 GC产品编码
+    , ISNULL(DEITM.ITMREFBPC_0, Q.ITMREF_0) ZU产品编码
+    , CAST(Q.QTY_0 AS REAL) 订单数量
+    , P.SAU_0 单位
+    , CONVERT(VARCHAR(16), Q.EXTDLVDAT_0, 23) 预计发货日期
+  FROM SORDERQ Q
+  INNER JOIN SORDER R
+    ON Q.SOHNUM_0 = R.SOHNUM_0
+  INNER JOIN SORDERP P
+    ON Q.SOHNUM_0 = P.SOHNUM_0
+      AND Q.SOPLIN_0 = P.SOPLIN_0
+  LEFT JOIN CTE_DEITM DEITM
+    ON Q.ITMREF_0 = DEITM.ITMREF_0
+      -- 仅 SKT 的订单需要转换编码
+      AND R.SOHTYP_0 = 'SKT'
+  WHERE Q.SOHNUM_0 = @SOHNUM
+    AND P.LINTYP_0 &lt;&gt; 6
+  )
+SELECT Q.GC产品编码
+  , Q.ZU产品编码
+  , ISNULL(L1.ITMDES, ITM.ITMDES1_0) 产品描述1
+  , ISNULL(L2.ITMDES, ITM.ITMDES2_0) 产品描述2
+  , Q.订单数量
+  , Q.单位
+  , Q.预计发货日期
+  , CASE 
+    WHEN ITF.ITMREF_0 IS NULL
+      THEN N'lang:{zh:产品地点不存在,en:Product Site is missing.,de:Produktstandort fehlt.}'
+    WHEN XPO.SOHNUM_0 IS NOT NULL
+      THEN 
+        N'lang:{zh:有转单遗留数据,en:There is carryover data from order transfers.,de:Es gibt übertragene Daten aus Auftragsumleitungen.}'
+    ELSE ''
+    END 数据检查
+  , CASE 
+    WHEN ITF.ITMREF_0 IS NULL
+      THEN 'E02'
+    WHEN XPO.SOHNUM_0 IS NOT NULL
+      THEN 'D02'
+    ELSE ''
+    END LINKAPPRROW
+FROM CTE_GCSO Q
+LEFT JOIN XWSPOH XPO
+  ON XPO.SOHNUM_0 = Q.SOHNUM_0
+    AND XPO.SOPLIN_0 = Q.SOPLIN_0
+INNER JOIN ITMMASTER ITM
+  ON Q.ZU产品编码 = ITM.ITMREF_0
+LEFT JOIN ITMFACILIT ITF
+  ON Q.ZU产品编码 = ITF.ITMREF_0
+    AND ITF.STOFCY_0 = 'ZUPK'
+LEFT JOIN ITMLAN1 L1
+  ON L1.ITMREF = ITM.ITMREF_0
+    AND L1.LANX3 = @LANX3
+LEFT JOIN ITMLAN2 L2
+  ON L2.ITMREF = ITM.ITMREF_0
+    AND L2.LANX3 = @LANX3
+ORDER BY Q.SOPLIN_0;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>销售订单</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#66</ImageFile>
+  <ListPrint />
+  <MD5HASH>02ee081a84b496c50b61451ac685d863</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Verkaufsauftrag</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Sales Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>销售订单</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Verkaufsauftragsdetails</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Sales Order Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Produktbeschreibung1</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Product Name1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Produktbeschreibung2</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Product Name2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Produktname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Product Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>产品名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Einheit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>订单数量</COLNAME>
+      <CAPTION>Auftragsmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>订单数量</COLNAME>
+      <CAPTION>Order Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>订单数量</COLNAME>
+      <CAPTION>订单数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>数据检查</COLNAME>
+      <CAPTION>Datenprüfung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>数据检查</COLNAME>
+      <CAPTION>Data Check</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>数据检查</COLNAME>
+      <CAPTION>数据检查</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>预计发货日期</COLNAME>
+      <CAPTION>Voraussichtliches Versanddatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>预计发货日期</COLNAME>
+      <CAPTION>Estimated Shipping Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>预计发货日期</COLNAME>
+      <CAPTION>预计发货日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

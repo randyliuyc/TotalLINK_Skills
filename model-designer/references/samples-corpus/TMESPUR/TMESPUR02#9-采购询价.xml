@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR02</ModelCode>
+  <ModelNum>9</ModelNum>
+  <ModelDesc>采购询价</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType>AreaChart</ChartType>
+  <SQLScript>SELECT H.ID                                                                                            LINKROWID
+       ,H.DOCNUM --询价单号
+       ,ISNULL(DOCGRP.OPTDES,'')                                                                                  DOCGRP --单据分组
+       ,DOCSTA.OPTDES                                                                                  DOCSTA
+       ,WFLSTA.OPTDES                                                                                  WFLSTA --工作流状态
+       ,CONVERT(VARCHAR(16), H.DOCDAT, 23)                                                             DOCDAT --单据日期
+       ,H.DOCDES --单据描述
+       ,S3.Name                                                                                        NAME
+       ,H.PRJNUM --项目编号
+       ,SI.SITENAM                                                                                     [SITE] --地点
+       ,H.REMARK --备注
+       ,S1.NAME + '(' + H.CREUSR + ')'                                                                 CREUSR
+       ,S2.NAME + '(' + H.UPDUSR + ')'                                                                 UPDUSR
+       ,CONVERT(VARCHAR(16), H.CRETIM, 21)                                                             CRETIM --创建时间
+       ,Iif(CONVERT(VARCHAR(16), H.UPDTIM, 23) = '1900-01-01', '', CONVERT(VARCHAR(16), H.UPDTIM, 21)) UPDTIM
+       ,H.CLOREA --关闭原因
+       ,H.PRNCNT --打印次数
+       ,H.CMPFLG --完成状态
+FROM   PINQUH H
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = H.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = H.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+                 AND DOCGRP.LINKOPTID = 'PIN'
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = H.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN ENTSITE SI
+              ON SI.SITE = H.SITE
+       LEFT JOIN LINK.DBO.SysUser S1
+              ON H.CREUSR = S1.LoginUser
+       LEFT JOIN LINK.DBO.SysUser S2
+              ON H.UPDUSR = S2.LoginUser
+       LEFT JOIN LINK.DBO.SysUser S3
+              ON H.RESNO = S3.LoginUser
+WHERE  ( H.RESNO = N'#LOGIN_USER#' --用户自己
+          OR '#LINKUSER(#LOGIN_USER#).DOCGRP#' = ''
+          OR Charindex(S3.UDF001, '#LINKUSER(#LOGIN_USER#).DOCGRP#') &gt; 0 )
+       AND H.DOCNUM + H.DOCGRP + H.DOCSTA + H.DOCDES + H.PRJNUM
+       + H.SITE + H.REMARK + H.CREUSR + H.UPDUSR + H.CLOREA LIKE N'%{0}%'
+       AND CONVERT(VARCHAR, H.CRETIM, 23) BETWEEN '{1}' AND '{2}'
+       AND H.DOCSTA LIKE '%{3}%'
+       AND ( H.RESNO = '{4}'
+              OR '{4}' = '' )
+ORDER  BY H.ID DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>搜索内容</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>开始时间</ParaLabel02>
+  <ParaType02>DATEC10</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>结束时间</ParaLabel03>
+  <ParaType03>DATEC10</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>单据状态</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#80</ImageFile>
+  <ListPrint />
+  <MD5HASH>c31577cc65ed371e2707191bc1cb717d</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase inquiry</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu báo giá mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>9</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

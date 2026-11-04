@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR039X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>有效的采购请求</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT H.DOCNUM + '-' + CAST(S.DOCLIN AS CHAR)       DOCKEY
+      ,'PRE'                                          SRCTYP
+      ,H.DOCNUM                                       SRCDOC
+      ,S.DOCLIN                                       SRCLIN
+      ,CONVERT(VARCHAR(16), H.DOCDAT, 23)             DOCDAT
+      ,DE.DEPTNAM + '-' + GR.GRPNAM + '-' + RE.RESNAM  RESNO
+      ,H.DOCDES
+      ,H.PRJNUM
+      ,S.ITMNO
+      ,ITM.ITMNAM
+      ,CONVERT(VARCHAR(16), S.REQDAT, 23)             REQDAT
+      ,S.STU
+      ,S.PUU
+      ,S.PUUCOE
+      ,(S.QTYPUU - S.ORDQTYPUU)                      QTYPUU
+      ,(S.QTYSTU - S.ORDQTYSTU)                      QTYSTU
+      ,S.QTYPUU                                       PREQTYPUU
+      ,S.QTYSTU                                       PREQTYSTU
+      ,S.REMARK                            LREMARK
+FROM   PREQUH H
+       INNER JOIN PREQUL S
+               ON H.DOCNUM = S.DOCNUM
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN ENTDEPT DE
+              ON DE.DEPT = H.DEPT
+       LEFT JOIN ENTGRP GR
+              ON GR.GRP = H.GRP
+       LEFT JOIN ENTRES RE
+              ON RE.RESNO = H.RESNO
+WHERE  H.SITE = '{0}'
+       AND S.DOCSTA = 2
+       AND H.DOCNUM + H.DOCDES + H.PRJNUM + S.ITMNO
+           + ITM.ITMNAM + H.REMARK + S.REMARK + ISNULL(DE.DEPTNAM,'')
+           + ISNULL(GR.GRPNAM,'') + ISNULL(RE.RESNAM,'') LIKE '%{1}%'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>搜索</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#76</ImageFile>
+  <ListPrint />
+  <MD5HASH>af6c244a535055ef09918f4653828251</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR039X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Valid purchase request</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR039X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu mua hàng hợp lệ</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR039X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Yêu cầu mua hàng hợp lệ</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

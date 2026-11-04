@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA353020X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>附件列表</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @DOCNUM VARCHAR(30) = N'{0}'
+SELECT DOCKEY
+      ,[SRCTYP]
+      ,[SRCKEY]   ITMNO
+      ,[SRCKEY]   
+      ,[DOCTYP]
+      ,[DOCNAM]
+      ,[DOCDES]
+      ,DOCDIR
+      ,DOCURL   name
+      ,[DOCURL] picture
+      --,'#LINKSERVER#/Files/Upload/'+[DOCDIR]  name     
+      --,'#LINKSERVER#/Files/Upload/'+[DOCDIR]  picture  
+      -- ,[DOCURL]
+      ,[COMMENT]
+      ,[B01]
+      ,[B02]
+      ,[CREUSR]
+      ,[UPDUSR]
+      ,CONVERT(VARCHAR(16),[CREDAT],21)  [CREDAT]
+      ,CONVERT(VARCHAR(16),[UPDDAT],21)  [UPDDAT]
+  FROM LINKDOC
+  WHERE SRCKEY= @DOCNUM AND ISNULL(SRCKEY,'')&lt;&gt;''
+  ORDER BY [DOCNAM]</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>参数1</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>DECLARE @DOCNUM VARCHAR(30) = N'{0}'
+INSERT INTO LINKDOC
+            ([DOCKEY]
+             ,[SRCTYP]
+             ,[SRCKEY]
+             ,[DOCTYP]
+             ,[DOCNAM]
+             ,[DOCDES]
+             ,[DOCDIR]
+             ,[DOCURL]
+             ,[COMMENT]
+             ,[B01]
+             ,[B02]
+             ,[CREUSR]
+             ,[CREDAT]
+             ,[UPDUSR]
+             ,[UPDDAT])
+VALUES      ( Newid()--&lt;DOCKEY, varchar(30),&gt;
+              ,'VOM'--&lt;SRCTYP, varchar(30),&gt;
+              ,@DOCNUM  --&lt;SRCKEY, uniqueidentifier,&gt;
+              ,'#LINKUPLOADFILETYPE#'--&lt;DOCTYP, varchar(30),&gt;
+              ,'#LINKUPLOADFILENAME#'--&lt;DOCNAM, varchar(30),&gt;
+              ,N'车辆管理出门'--&lt;DOCDES, [dbo].[ADES],&gt;
+              ,'#LINKUPLOADFILEPATH#'--&lt;DOCDIR, varchar(30),&gt;
+              ,'/Files/Upload/#LINKUPLOADFILEPATH#'--&lt;DOCURL, varchar(30),&gt;
+              ,''--&lt;COMMENT, [dbo].[ANOTE],&gt;
+              ,0--&lt;B01,bit,&gt;
+              ,0--&lt;B02,bit,&gt;
+              ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+              ,Getdate()--&lt;CREDAT, datetime,&gt;
+              ,''--&lt;UPDUSR, varchar(30),&gt;
+              ,''--&lt;UPDDAT, datetime,&gt;
+);</SQLNew>
+  <SQLRemove>DELETE FROM LINKDOC where DOCKEY = '#DOCKEY#' and CREUSR='#LOGIN_USER#'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#48</ImageFile>
+  <ListPrint />
+  <MD5HASH>90710c0ab6c41dffd89001ecfb182ffc</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA353020X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Danh sách tệp</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP10110X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>收货单明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#';
+DECLARE @LANX3 VARCHAR(30) = (
+    SELECT #LC.X3ERP#GETLANX3(@LAN)
+    );
+DECLARE @SITE VARCHAR(10)='{0}'; --收货地点
+DECLARE @PTHNUM VARCHAR(50)='%{1}%'; --收货单号
+DECLARE @BATCHID VARCHAR(50)=N'{2}';
+
+SELECT D.POHNUM_0                             采购订单号
+      ,D.ITMREF_0                             存货编码
+      ,ISNULL(L1.ITMDES, ITM.ITMDES1_0)       产品描述1
+      ,ISNULL(L2.ITMDES, ITM.ITMDES2_0)       产品描述2
+      ,D.UOM_0                                单位
+      ,cast(D.QTYUOM_0 AS REAL)               数量
+      ,F.DEFLOC_0                             收货库位
+      ,R.ORDREF_0                             备注
+      ,D.PTHNUM_0                             pid
+      ,D.UPDUSR_0                             操作人员
+      ,CONVERT(VARCHAR(16), D.UPDDATTIM_0, 21)操作时间
+FROM   PRECEIPTD D
+       INNER JOIN ITMFACILIT F
+               ON D.POHFCY_0 = F.STOFCY_0
+                  AND D.ITMREF_0 = F.ITMREF_0
+       INNER JOIN PORDER R
+               ON D.POHNUM_0 = R.POHNUM_0
+       LEFT JOIN (SELECT MAX(BATCHID_0) BATCHID_0
+                        ,RPNUM_0
+                  FROM   XWSPTH
+                  WHERE  RPFLG_0 = 3
+                  GROUP  BY RPNUM_0)XWS
+              ON XWS.RPNUM_0 = D.PTHNUM_0
+       INNER JOIN ITMMASTER ITM
+               ON ITM.ITMREF_0 = D.ITMREF_0
+          LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = ITM.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = ITM.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+WHERE  D.PRHFCY_0 = @SITE
+       AND D.PTHNUM_0 LIKE @PTHNUM
+       AND ( ISNULL(XWS.BATCHID_0, '') = @BATCHID
+              OR @BATCHID = '' )
+ORDER  BY D.PTDLIN_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>收货地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>收货订单</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>BACTHID</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div&gt;#存货编码#&lt;/div&gt;
+&lt;div&gt;#产品描述1#&lt;/div&gt;
+&lt;div&gt;#单位#&lt;/div&gt;
+&lt;div&gt;#数量#&lt;/div&gt;
+&lt;div&gt;#收货库位#&lt;/div&gt;
+&lt;div&gt;#备注#&lt;/div&gt;
+&lt;div&gt;#采购订单号#&lt;/div&gt;
+&lt;div&gt;#操作人员#&lt;/div&gt;
+&lt;div&gt;#操作时间#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#20</ImageFile>
+  <ListPrint />
+  <MD5HASH>2cf451a39e5ef6bf978e063dc0ed940a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10110X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Receiving Note Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP10110X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Receiving Note Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

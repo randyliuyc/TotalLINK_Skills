@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5010X</ModelCode>
+  <ModelNum>710</ModelNum>
+  <ModelDesc>完工明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @MFGNUM VARCHAR(30)=N'{0}';
+DECLARE @ITMREF VARCHAR(30)=N'{1}';
+DECLARE @DYMB NVARCHAR(30)=N'{2}';
+DECLARE @DYFS NVARCHAR(30)=N'{3}';
+SELECT 
+ XWS.SERNUM_0 车架码
+,XWS.XTXT_0 电池码  
+,XWS.XTXT_1 电机码
+,XWS.XRMK1_0  控制器型号
+,XWS.XRMK2_0  控制器序号
+,XWS.XRMK3_0  客户订单号
+,XWS.XRMK4_0  备注
+,CAST(XWS.QTYPCU_0 AS REAL) 数量
+,XWS.LOC_0 库位
+,XWS.CUSERID_0 操作人
+,CONVERT(VARCHAR(16),XWS.CREDATIM_0,21) 操作时间
+,XWS.RPNUM_0 入库单号
+,XWS.USERID_0 入库人
+,CASE WHEN CONVERT(VARCHAR(16),XWS.RPDATIM_0,21)='1900-01-01'  THEN '' ELSE CONVERT(VARCHAR(16),XWS.RPDATIM_0,21) END 入库时间
+,XWS.ROWID LINKROWID
+,CASE WHEN XWS.RPNUM_0&lt;&gt;'' THEN 'H02' ELSE '' END LINKAPPRROW
+,CAST(XWS.XDCB_0 AS REAL)   汇总数
+,@DYMB 打印模板
+,@DYFS 打印份数
+,'' LINKAPPR车架码 --控制车架码是否可修改，已入库不可修改
+,'' LINKAPPR电池码 --控制电池码是否可修改，已入库不可修改
+,'' LINKAPPR电机码 --控制电机码是否可修改，已入库不可修改
+FROM XWSMKI XWS
+INNER JOIN ITMMASTER ITM
+ON XWS.ITMREF_0=ITM.ITMREF_0
+WHERE XWS.MFGNUM_0=@MFGNUM
+  AND XWS.ITMREF_0=@ITMREF
+ORDER BY XWS.XDCB_0,XWS.ROWID DESC</SQLScript>
+  <SQLUpdateScript>UPDATE XWSMKI SET 
+         SERNUM_0='@车架码@'
+        ,XTXT_0='@电池码@'
+        ,XTXT_1='@电机码@' 
+        ,XDCB_0='@汇总数@'
+	,XRMK1_0='@控制器型号@'
+        ,XRMK2_0='@控制器序号@'
+        ,XRMK3_0='@客户订单号@' 
+        ,XRMK4_0='@备注@'
+WHERE ROWID=0#LINKROWID# AND RPNUM_0=''</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>工单编号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>打印模板</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>打印份数</ParaLabel04>
+  <ParaType04>DEC</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM XWSMKI  WHERE RPFLG_0&lt;&gt;3 AND ROWID=0#LINKROWID#</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#57</ImageFile>
+  <ListPrint />
+  <MD5HASH>9f60e1166860741942cdc12bc50047dd</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKAPPR车架码</COLNAME>
+      <CAPTION />
+      <COLTYPE>COLFORMAT</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>IF([入库单号]&lt;&gt;' ','Disable01','')</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKAPPR电池码</COLNAME>
+      <CAPTION />
+      <COLTYPE>COLFORMAT</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>IF([入库单号]&lt;&gt;' ','Disable01','')</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKAPPR电机码</COLNAME>
+      <CAPTION />
+      <COLTYPE>COLFORMAT</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>IF([入库单号]&lt;&gt;' ','Disable01','')</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Completion Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>710</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Completion Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP305X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>领料转移选择库存</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @FCY VARCHAR(30)='{0}';
+DECLARE @ITMREF VARCHAR(30)='{1}';
+DECLARE @REMINQTY DECIMAL(16, 2)=0{2};
+DECLARE @LOC VARCHAR(30)='{3}';
+DECLARE @X9HNUM VARCHAR(30)='{4}';
+
+SELECT  N'lang:{zh:库位,en:Location,de:Lagerplatz}:' + K.LOC_0 + N'&lt;br&gt;lang:{zh:可用数量,en:Quantity,de:Menge}:'
+       + Cast(Cast(K.QTYSTU_0-Isnull(XWS.QTY, 0) AS REAL) AS VARCHAR)
+	    +N'&lt;br&gt;lang:{zh:库存异常数量,en:Inventory Anomaly Qty,de:Bestandsabweichung}:'
+	   +CAST(CAST(K.CUMWIPQTY_0 AS REAL)AS varchar)
+       + N'&lt;br&gt;lang:{zh:供应商批次,en:Supplier Lot,de:Chargen Nr.}:' + K.BPSLOT_0
+       + N'&lt;br&gt;lang:{zh:批次,en:Lot,de:charge}:' + K.LOT_0
+       + N'&lt;br&gt;lang:{zh:自定义字段1,en:Custom Field1,de:Benutzerdefiniertes1}:' + K.STOFLD1_0
+       + N'&lt;br&gt;lang:{zh:自定义字段2,en:Custom Field2,de:Benutzerdefiniertes2}:' + K.STOFLD2_0
+       + N'&lt;br&gt;lang:{zh:序列号,en:Serial number,de:Seriennummer}:' + K.SERNUM_0 选择
+       ,Cast(CASE
+               WHEN K.SERNUM_0 &lt;&gt; '' THEN 1
+               WHEN K.QTYSTU_0 - Isnull(XWS.QTY, 0) &gt; @REMINQTY
+                    AND K.SERNUM_0 = '' THEN @REMINQTY
+               WHEN K.QTYSTU_0 - Isnull(XWS.QTY, 0) &lt; 0 THEN 0
+               ELSE K.QTYSTU_0 - Isnull(XWS.QTY, 0)
+             END AS REAL)         领料数量
+       ,K.LOC_0                   库位
+       ,K.SERNUM_0                序列号
+       ,K.LOT_0                   批次
+       ,CASE
+          WHEN K.QTYSTU_0 - Isnull(XWS.QTY, 0) &lt;= 0 THEN N'lang:{zh:可用库存不足,en:Insufficient Available Stock,de:Unzureichender verfügbarer Bestand}'
+          ELSE 'OK'
+        END                       AS 数据检查
+       ,K.PALNUM_0                生产计划号
+       ,K.STOCOU_0                STOCOU
+FROM   STOCK K
+       LEFT JOIN STOLOC STC ON K.STOFCY_0=STC.STOFCY_0 AND K.LOC_0=STC.LOC_0
+       LEFT JOIN (SELECT STOCOU_0
+                         ,Sum(QTYSTU_0) QTY
+                  FROM   XWSSCS
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY STOCOU_0
+                            ,SERNUM_0)XWS
+              ON XWS.STOCOU_0 = K.STOCOU_0
+       LEFT JOIN XCN09SGST C ON K.STOFCY_0=C.STOFCY_0 AND K.ITMREF_0=C.ITMREF_0 AND K.LOT_0=C.LOT_0 AND K.LOC_0=K.LOC_0 AND K.LOT_0=C.LOT_0
+		AND K.STOFLD1_0=C.STOFLD1_0 AND K.STOFLD2_0=C.STOFLD2_0 AND C.X9HNUM_0=@X9HNUM
+WHERE  K.STOFCY_0 = @FCY
+       AND K.ITMREF_0 = @ITMREF
+       AND K.LOC_0 &lt;&gt; @LOC
+       AND K.STA_0 LIKE 'A%' AND STC.YZUPAFSFLG_0&lt;&gt;2
+
+AND (
+           -- 分支 1：如果 C 表有该物料的记录，则强制要求 K 表必须在 C 表中存在（只显示不是 NULL 的记录）
+           (
+               EXISTS (SELECT 1 FROM XCN09SGST C WHERE C.STOFCY_0 = @FCY AND C.ITMREF_0 = @ITMREF)
+               AND 
+               EXISTS (
+                   SELECT 1 FROM XCN09SGST C 
+                   WHERE K.STOFCY_0 = C.STOFCY_0 
+                     AND K.ITMREF_0 = C.ITMREF_0 
+                     AND K.LOT_0    = C.LOT_0 
+                     AND K.LOC_0    = C.LOC_0
+ AND K.LOT_0=C.LOT_0
+		AND K.STOFLD1_0=C.STOFLD1_0 AND K.STOFLD2_0=C.STOFLD2_0 AND X9HNUM_0=@X9HNUM            )
+           )
+           OR
+           -- 分支 2：如果 C 表里根本没有这个物料的记录（完全是 NULL），则直接放行 K 表原有的记录
+           NOT EXISTS (
+               SELECT 1 FROM XCN09SGST C 
+               WHERE C.STOFCY_0 = @FCY AND C.ITMREF_0 = @ITMREF
+  AND K.LOT_0= C.LOT_0 
+AND K.LOC_0    = C.LOC_0
+ AND K.LOT_0=C.LOT_0 AND K.STOFLD1_0=C.STOFLD1_0 AND K.STOFLD2_0=C.STOFLD2_0 AND X9HNUM_0=@X9HNUM          )
+       );</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>剩余数量</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>目标库位</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>通知单号</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#10</ImageFile>
+  <ListPrint />
+  <MD5HASH>53d4bf7829c1d01c11d86be83a360f07</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP305X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Picking Transfer Select Inventory</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP305X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Picking Transfer Select Inventory</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

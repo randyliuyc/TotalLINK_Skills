@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR03</ModelCode>
+  <ModelNum>30</ModelNum>
+  <ModelDesc>订单附件列表</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @POHNUM VARCHAR(30) = '{0}'
+SELECT S.[ID]
+      ,S.[FILKEY]
+      ,S.[FILGRP]
+      ,T.OPTDES FILGRPDES
+      ,S.[FILTYP]
+      ,S.[FILNAM] text
+      ,S.[FILDES]
+      ,S.[FILDIR]
+      ,S.[FILURL] name
+      ,S.[FILURL] picture
+      ,S.[SRCTYP] 
+      ,S.[SRCDOC]
+      ,S.[SRCLIN]
+      ,S.[REMARK]
+      ,S.[FLG01]
+      ,S.[FLG02]
+      ,ISNULL(U.Name,S.[CREUSR]) CREUSR
+      ,S.[UPDUSR]
+      ,CONVERT(VARCHAR(16),S.[CRETIM],21) CRETIM
+      ,S.[UPDTIM]
+  FROM [LINKDOCFIL] S
+     LEFT JOIN LINK.dbo.SysUser U
+	 ON S.[CREUSR]=U.LoginUser
+     LEFT JOIN LINKOPT T ON  S.FILGRP=T.OPTID
+  WHERE (S.SRCDOC=@POHNUM
+        OR  SRCDOC = (
+        SELECT LCNO   --信用证
+        FROM PORDER
+        WHERE DOCNUM = @POHNUM 
+        AND ISNULL(LCNO,'')&lt;&gt;''
+        )
+        OR  SRCDOC = (
+        SELECT CONTNOE --合同号
+        FROM PORDER
+        WHERE DOCNUM = @POHNUM 
+        AND ISNULL(CONTNOE,'') &lt;&gt; ''
+        )
+        OR  SRCDOC = (
+        SELECT CONTNOI --百隆合同号
+        FROM PORDER
+        WHERE DOCNUM = @POHNUM 
+        AND ISNULL(CONTNOI,'') &lt;&gt; ''
+        ))
+      AND S.SRCDOC&lt;&gt;''
+      AND S.SRCTYP = 'POR' --20250220区分提单与订单
+ORDER BY S.ID</SQLScript>
+  <SQLUpdateScript>--LINKAUTOREPLACEEMPTYCOLUMNS
+UPDATE LINKDOCFIL 
+SET FILGRP='#FILGRP#'
+   ,FILDES='#FILDES#'
+   ,REMARK='#REMARK#' 
+WHERE FILKEY='#FILKEY#';</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>POHNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKAUTOREPLACEEMPTYCOLUMNS
+--LINKUPLOAD_PATHASSIGN:
+--LINKUPLOAD_FILETYPE:
+--LINKUPLOAD_KEEPFILENAME:1
+INSERT INTO [LINKDOCFIL]   
+           ([FILGRP]
+           ,[FILTYP]
+           ,[FILNAM]
+           ,[FILDES]
+           ,[FILDIR]
+           ,[FILURL]
+           ,[SRCTYP]
+           ,[SRCDOC]
+           ,[SRCLIN]
+           ,[REMARK]
+           ,[FLG01]
+           ,[FLG02]
+           ,[CREUSR]
+           ,[UPDUSR]
+           ,[CRETIM]
+           ,[UPDTIM])
+     VALUES
+           (''--&lt;FILGRP, varchar(30),&gt;
+           ,N'#LINKUPLOADFILETYPE#'--&lt;FILTYP, varchar(30),&gt;
+           ,N'#LINKUPLOADFILENAME#'--&lt;FILNAM, nvarchar(200),&gt;
+           ,''--&lt;FILDES, nvarchar(200),&gt;
+           ,N'#LINKUPLOADFILEPATH#'--&lt;FILDIR, nvarchar(500),&gt;
+           ,N'/Files/Upload/#LINKUPLOADFILEPATH#'--&lt;FILURL, nvarchar(1000),&gt;
+           ,'POR'--&lt;SRCTYP, varchar(30),&gt;
+           ,'#DOCNUM#'--&lt;SRCDOC, varchar(30),&gt;
+           ,0--&lt;SRCLIN, int,&gt;
+           ,''--&lt;REMARK, nvarchar(100),&gt;
+           ,0--&lt;FLG01, bit,&gt;
+           ,0--&lt;FLG02, bit,&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,''--&lt;UPDUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+           ,''--&lt;UPDTIM, datetime,&gt;
+        )</SQLNew>
+  <SQLRemove>DELETE FROM LINKDOCFIL WHERE FILKEY='#FILKEY#'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#33</ImageFile>
+  <ListPrint />
+  <MD5HASH>3f095680a3b097b807a44a2e06c95d83</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>30</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Danh sách đính kèm đơn hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

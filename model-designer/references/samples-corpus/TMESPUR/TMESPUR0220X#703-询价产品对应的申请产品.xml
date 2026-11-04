@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0220X</ModelCode>
+  <ModelNum>703</ModelNum>
+  <ModelDesc>询价产品对应的申请产品</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT PRE.ITMNO
+       ,H.DOCNUM
+       ,CONVERT(VARCHAR(10), H.DOCDAT, 21)    DOCDAT
+       ,H.DEPT
+       ,D.DEPTNAM
+       ,H.CREUSR
+       ,S1.NAME                               RNAME
+       ,Cast(PRE.QTY AS REAL)                 QTY
+       ,CONVERT(VARCHAR(10), PRE.REQDAT, 21)  REQDAT
+       ,PRE.REMARK
+       ,Isnull((SELECT TOP 1 [FILURL]
+                FROM   [LINKDOCFIL]
+                WHERE  SRCDOC = H.DOCNUM
+                ORDER  BY [CRETIM] DESC), '') NAME
+       ,Isnull((SELECT TOP 1 [FILNAM]
+                FROM   [LINKDOCFIL]
+                WHERE  SRCDOC = H.DOCNUM
+                ORDER  BY [CRETIM] DESC), '') text
+FROM   PINQUL PIN
+       LEFT JOIN PREQUL PRE
+              ON PRE.PINNUM = PIN.DOCNUM
+                 AND PRE.ITMNO = PIN.ITMNO
+       LEFT JOIN PREQUH H
+              ON H.DOCNUM = PRE.DOCNUM
+       LEFT JOIN LINK.DBO.SysUser S1
+              ON H.CREUSR = S1.LoginUser
+       LEFT JOIN [ENTDEPT] D
+              ON H.[DEPT] = D.DEPT
+WHERE  PRE.PINNUM = '{0}'
+       AND PRE.ITMNO = '{1}'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>PINNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>ITMNO</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#90</ImageFile>
+  <ListPrint />
+  <MD5HASH>196dd00bef5921a9869114fc12f0726c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0220X</DMCODE>
+      <DMNUM>703</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>SP báo giá</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

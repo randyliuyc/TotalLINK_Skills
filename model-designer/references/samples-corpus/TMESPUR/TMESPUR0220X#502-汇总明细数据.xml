@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0220X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>汇总明细数据</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>DELETE FROM PINQUS WHERE  DOCNUM='#DOCNUM#' 
+INSERT INTO [PINQUS]
+            ([DOCTYP],
+             [DOCNUM],
+             [DOCLIN],
+             [ITMNO],
+             [ITMVER],
+             [BPSNO],
+             [IVATTYP],
+             [BVATTYP],
+             [FAC],
+             [PINQUSVAL],
+             [REQDAT],
+             [STU],
+             [UOM],
+             [UOMCOE],
+             [QTY],
+             [QTYSTU],
+             [PORQTY],
+             [PORQTYSTU],
+             [CUR],
+             [NETPRI],
+             [GROPRI],
+             [TAXRT],
+             [REMARK],
+             [SRCTYP],
+             [SRCDOC],
+             [SRCLIN],
+             [DOCSTA],
+             [CLOREA],
+             [CREUSR],
+             [UPDUSR],
+             [CRETIM],
+             [UPDTIM])
+SELECT L.DOCTYP--&lt;DOCTYP, varchar(3),&gt;
+      ,L.DOCNUM--&lt;DOCNUM, varchar(30),&gt;
+      ,row_number()
+          OVER (
+            ORDER BY L.FAC, L.ITMNO, L.ITMVER) * 10 DOCLIN --&lt;DOCLIN, int,&gt;
+      ,L.ITMNO--&lt;ITMNO, varchar(30),&gt;
+      ,L.ITMVER--&lt;ITMVER, [dbo].[ACD30],&gt;
+      ,''--&lt;BPSNO, varchar(30),&gt;
+      ,L.IVATTYP--&lt;IVATTYP, varchar(30),&gt;
+      ,''--&lt;BVATTYP, varchar(30),&gt;
+      ,L.FAC--&lt;FAC, varchar(30),&gt;
+      ,0--&lt;PINQUSVAL, bit,&gt;
+      ,MIN(L.REQDAT)--&lt;REQDAT, date,&gt;
+      ,L.STU--&lt;STU, nvarchar(6),&gt;
+      ,L.UOM--&lt;UOM, nvarchar(6),&gt;
+      ,L.UOMCOE--&lt;UOMCOE, [dbo].[AQTY],&gt;
+      ,SUM(L.QTY)--&lt;QTY, [dbo].[AQTY],&gt;
+      ,SUM(L.QTYSTU)--&lt;QTYSTU, [dbo].[AQTY],&gt;
+      ,0--&lt;PORQTY, [dbo].[AQTY],&gt;
+      ,0--&lt;PORQTYSTU, [dbo].[AQTY],&gt;
+      ,''--&lt;CUR, varchar(3),&gt;
+      ,0--&lt;NETPRI, [dbo].[AQTY],&gt;
+      ,0--&lt;GROPRI, [dbo].[AQTY],&gt;
+      ,0--&lt;TAXRT, [dbo].[AQTY],&gt;
+      ,''--&lt;REMARK, [dbo].[ANOTE],&gt;
+      ,''--&lt;SRCTYP, varchar(3),&gt;
+      ,''--&lt;SRCDOC, varchar(30),&gt;
+      ,''--&lt;SRCLIN, int,&gt;
+      ,1--&lt;DOCSTA, varchar(1),&gt;
+      ,''--&lt;CLOREA, [dbo].[ADES],&gt;
+      ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+      ,''--&lt;UPDUSR, varchar(30),&gt;
+      ,GETDATE()--&lt;CRETIM, datetime,&gt;
+      ,''--&lt;UPDTIM, datetime,&gt;
+FROM   PINQUL L
+WHERE  L.DOCNUM = '#DOCNUM#'
+GROUP  BY L.DOCNUM
+          ,L.DOCTYP
+          ,L.FAC
+          ,L.ITMNO
+          ,L.ITMVER
+          ,L.STU
+          ,L.UOM
+          ,L.UOMCOE
+          ,L.IVATTYP</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#85</ImageFile>
+  <ListPrint />
+  <MD5HASH>2bd37a686db16b6e8f273be0f824f880</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0220X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Tóm tắt dữ liệu chi tiết</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0220X</DMCODE>
+      <DMNUM>502</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Tổng hợp dữ liệu phân tích</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

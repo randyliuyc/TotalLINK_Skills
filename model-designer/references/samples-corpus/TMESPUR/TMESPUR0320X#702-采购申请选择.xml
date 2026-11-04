@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0320X</ModelCode>
+  <ModelNum>702</ModelNum>
+  <ModelDesc>采购申请选择</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.DOCNUM + '-' + Cast(S.DOCLIN AS VARCHAR) DOCKEY
+       ,S.DOCNUM                                  SRCDOC
+       ,S.SRCDOC                                  ORIDOC
+       ,S.DOCLIN                                  SRCLIN
+       ,S.DOCTYP                                  SRCTYP
+       ,H.DEPT
+       ,S.ITMNO
+       ,ITM.ITMNAM
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,BPS.BPSNO
+       ,BPS.BPSNAM
+       ,S.ITMVER --产品版本
+       ,ITM.TSICOD1
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,T1.OPTDES                                 OPTDES1
+       ,T2.OPTDES                                 OPTDES2
+       ,CONVERT(VARCHAR, S.REQDAT, 23)            REQDAT
+       ,S.UOM --采购单位
+       ,Cast(S.UOMCOE AS REAL)                    UOMCOE --采购单位系数
+       ,( S.QTY - Isnull(P.PORQTY, 0) )           QTY --采购单位数量
+       ,S.STU --库存单位
+       ,( S.QTYSTU - Isnull(P.PORQTYSTU, 0) )     QTYSTU --库存单位数量
+       ,S.REMARK                                  LREMARK
+       ,ITM.IVATTYP
+       ,S.FAC
+       ,BPS1.BPSNAM
+       ,PLIST.PRI                                 NETPRI
+       ,0{6}                                      TAXRT
+FROM   PREQUL S
+       LEFT JOIN PRILIST PLIST
+              ON PLIST.PRICD1 = S.ITMNO
+       LEFT JOIN ITM
+              ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN LINKOPT T1
+              ON ITM.TSICOD1 = T1.OPTID
+                 AND T1.OPTTYP = 'TSICOD1'
+       LEFT JOIN LINKOPT T2
+              ON ITM.TSICOD2 = T2.OPTID
+                 AND T2.OPTTYP = 'TSICOD2'
+       LEFT JOIN PREQUH H
+              ON S.DOCNUM = H.DOCNUM
+       LEFT JOIN (SELECT L.SRCDOC
+                         ,L.SRCLIN
+                         ,Sum(L.QTY)    PORQTY
+                         ,Sum(L.QTYSTU) PORQTYSTU
+                  FROM   PORDLIN L
+                         INNER JOIN PORDER R
+                                 ON L.DOCNUM = R.DOCNUM
+                  WHERE  Isnull(R.CLOREA, '') + Isnull(L.CLOREA, '') = '' --排除手动关闭的记录
+                         AND L.SRCTYP = 'PRQ'
+                  GROUP  BY L.SRCDOC
+                            ,L.SRCLIN)P
+              ON P.SRCDOC = S.DOCNUM
+                 AND P.SRCLIN = S.DOCLIN
+       LEFT JOIN BPSUP BPS
+              ON S.BPSNO = BPS.BPSNO
+       LEFT JOIN [BPSUP] BPS1
+              ON BPS1.BPSNO = PLIST.PRICD2
+WHERE  S.DOCSTA = 2
+       AND Isnull(PINNUM, '') = '' --选择未询价的记录
+       AND S.QTY - Isnull(P.PORQTY, 0) &gt; 0
+       AND H.SITE = '{0}'
+       AND S.ITMNO LIKE N'%{1}%'
+       AND S.ITMVER LIKE N'%{2}%'
+       AND ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMSPEC
+           + ITM.ITMSIZE LIKE N'%{3}%'
+       AND ( PLIST.PRICD2 = '{4}'
+              OR '{4}' = '' )
+       AND ( PLIST.CUR = '{5}'
+              OR '{5}' = '' )
+       AND ( CONVERT(VARCHAR(10), Getdate(), 21) BETWEEN PLIST.STRDAT AND PLIST.ENDDAT
+              OR Isnull(PLIST.STRDAT, '') = '' )
+ORDER  BY REQDAT DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>SITE</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>ITMNO</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>ITMVER</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>ITMINFO</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>BPSNO</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>CUR</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#76</ImageFile>
+  <ListPrint />
+  <MD5HASH>d4756ae25ec6dede6a1dcc8f23958cfd</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0320X</DMCODE>
+      <DMNUM>702</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chọn yêu cầu mua</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

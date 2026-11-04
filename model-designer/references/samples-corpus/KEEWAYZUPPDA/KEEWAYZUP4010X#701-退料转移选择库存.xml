@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP4010X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>退料转移选择库存</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @FCY VARCHAR(30)='{0}';
+DECLARE @ITMREF VARCHAR(30)='{1}';
+DECLARE @LOC VARCHAR(30)='{2}';
+
+SELECT N'lang:{zh:库位,en:Location,de:Lagerplatz}:' + K.LOC_0 
+       + N'&lt;br&gt;lang:{zh:可用数量,en:Available Qty,de:Verfügbare Menge}:'
+       + Cast(Cast(K.QTYSTU_0-Isnull(XWS.QTY, 0)-CUMALLQTY_0 AS REAL) AS VARCHAR)
+	   + N'&lt;br&gt;lang:{zh:库存异常数量,en:Inventory Anomaly Qty,de:Bestandsabweichung}:'
+	   + CAST(CAST(K.CUMWIPQTY_0 AS REAL) AS VARCHAR)
+       + N'&lt;br&gt;lang:{zh:序列号,en:Serial No.,de:Seriennr.}:' + K.SERNUM_0      
+	   + N'&lt;br&gt;lang:{zh:批次,en:Lot,de:Lieferantencharge}:' + K.LOT_0 选择  
+       ,K.LOC_0                   库位
+       ,K.SERNUM_0                序列号
+       ,CASE
+          WHEN K.QTYSTU_0 - Isnull(XWS.QTY, 0) - CUMALLQTY_0 &lt;= 0 THEN N'lang:{zh:可用库存不足,en:Insufficient Available Stock,de:Unzureichender verfügbarer Bestand}'
+          ELSE 'OK'
+        END                       AS 数据检查
+       ,K.PALNUM_0                AS 生产计划号
+       ,K.STOCOU_0                STOCOU
+       ,Cast(Cast(K.QTYSTU_0-Isnull(XWS.QTY, 0)-CUMALLQTY_0 AS REAL) AS VARCHAR) AS 退料数量
+FROM   STOCK K
+       LEFT JOIN (SELECT STOCOU_0
+                         ,Sum(QTYSTU_0) QTY
+                  FROM   XWSSCS
+                  WHERE  RPFLG_0 &lt;&gt; 3
+                  GROUP  BY STOCOU_0
+                            ,SERNUM_0)XWS
+              ON XWS.STOCOU_0 = K.STOCOU_0
+WHERE  K.STOFCY_0 = @FCY
+       AND K.ITMREF_0 = @ITMREF
+       AND K.LOC_0 = @LOC
+-- AND K.QTYSTU_0 - ISNULL(XWS.QTY,0) &gt; 0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>剩余数量</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#10</ImageFile>
+  <ListPrint />
+  <MD5HASH>dfa71f48922616ec5e80e90e07581363</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP4010X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Return Transfer Select Inventory</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP4010X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Return Transfer Select Inventory</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

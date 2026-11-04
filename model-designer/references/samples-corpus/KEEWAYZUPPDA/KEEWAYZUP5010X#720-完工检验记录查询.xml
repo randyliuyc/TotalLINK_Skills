@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP5010X</ModelCode>
+  <ModelNum>720</ModelNum>
+  <ModelDesc>完工检验记录查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE
+DECLARE @STOFCY VARCHAR(30)=N'{0}';
+DECLARE @MFGNUM VARCHAR(30)=N'%{1}%';
+DECLARE @SERNUM VARCHAR(30)=N'%{2}%';
+DECLARE @DCM VARCHAR(30)=N'%{3}%';
+DECLARE @DJM VARCHAR(30)=N'%{4}%';
+SELECT TOP 1000
+ XWS.SERNUM_0 车架码
+,XWS.XTXT_0 电池码  
+,XWS.XTXT_1 电机码
+,XWS.MFGNUM_0 工单号
+,XWS.ITMREF_0 产品编码
+,ITM.ITMDES1_0 产品名称
+,ITM.ITMDES2_0+ITM.ITMDES3_0 产品描述
+,ITM.YMDDES_0 产品说明
+,CAST(XWS.QTYPCU_0 AS REAL) 数量
+,XWS.LOC_0 库位
+,XWS.CUSERID_0 操作人
+,CONVERT(VARCHAR(16),XWS.CREDATIM_0,21) 操作时间
+,XWS.RPNUM_0 入库单号
+,XWS.USERID_0 入库人
+,CASE WHEN CONVERT(VARCHAR(16),XWS.RPDATIM_0,21)='1900-01-01'  THEN '' ELSE CONVERT(VARCHAR(16),XWS.RPDATIM_0,21) END 入库时间
+,XWS.ROWID LINKROWID
+,CAST(XWS.XDCB_0 AS REAL)   汇总数
+FROM XWSMKI XWS
+INNER JOIN ITMMASTER ITM
+ON XWS.ITMREF_0=ITM.ITMREF_0
+WHERE XWS.MFGFCY_0=@STOFCY
+  AND XWS.MFGNUM_0 LIKE @MFGNUM
+  AND XWS.SERNUM_0 LIKE @SERNUM
+  AND XWS.XTXT_0 LIKE @DCM
+  AND XWS.XTXT_1 LIKE @DJM
+ORDER BY XWS.ROWID DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>工单编号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>车架码</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>电池码</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>电机码</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>打印模板</ParaLabel06>
+  <ParaType06>DROPDOWN</ParaType06>
+  <ParaSearchCode06>KEEWAYPDANEW1820X710X#20</ParaSearchCode06>
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#06</ImageFile>
+  <ListPrint />
+  <MD5HASH>6559622ea855f5ca45127f8cc389fad6</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>720</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Completion Inspection Record Query</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP5010X</DMCODE>
+      <DMNUM>720</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Completion Inspection Record Query</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

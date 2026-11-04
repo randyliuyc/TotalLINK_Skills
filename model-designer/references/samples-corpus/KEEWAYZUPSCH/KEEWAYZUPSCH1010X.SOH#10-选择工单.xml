@@ -1,0 +1,651 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH1010X.SOH</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>选择工单</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKLOADDATAIMMEDIATE
+--LINKREFRESH
+DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @FCY VARCHAR(30) = '{0}'
+DECLARE @XMH VARCHAR(30) = '{1}'
+DECLARE @CUTDAT DATE = '{2}'
+
+SELECT CAST(0 AS BIT) 选择
+  , H.YMFGTYP_0 类型
+  , M.MFGNUM_0 工单号
+  , M.MFGLIN_0 工单行
+  , M.ITMREF_0 产品编号
+  , ISNULL(L1.ITMDES, ITM.ITMDES1_0) 产品描述1
+  , ISNULL(L2.ITMDES, ITM.ITMDES2_0) 产品描述2
+  , CAST(M.EXTQTY_0 AS REAL) 数量
+  , M.UOM_0 单位
+  , CONVERT(VARCHAR, M.STRDAT_0, 23) 开始日期
+  , CONVERT(VARCHAR, M.ENDDAT_0, 23) 结束日期
+  , CONVERT(VARCHAR(16), M.CREDATTIM_0, 21) 创建时间
+FROM MFGITM M
+INNER JOIN MFGHEAD H
+  ON M.MFGNUM_0 = H.MFGNUM_0
+INNER JOIN ITMMASTER ITM
+  ON ITM.ITMREF_0 = M.ITMREF_0
+LEFT JOIN XWSSCHSRC XWS
+  ON XWS.SRCNUM_0 = M.MFGNUM_0
+    AND XWS.SRCLIN_0 = M.MFGLIN_0
+LEFT JOIN ITMLAN1 L1
+  ON L1.ITMREF = ITM.ITMREF_0
+    AND L1.LANX3 = @LANX3
+LEFT JOIN ITMLAN2 L2
+  ON L2.ITMREF = ITM.ITMREF_0
+    AND L2.LANX3 = @LANX3
+WHERE M.MFGFCY_0 = @FCY
+  AND H.MFGSTA_0 = 1
+  AND M.ITMTYP_0 = 1  --仅选择主产品，不考虑副产品 
+  -- 截止日期之前开始的工单，仅选择半成品工单
+  AND H.STRDAT_0 &lt;= @CUTDAT
+  -- 2026年2月28日，去掉 SEMI限制，因为有些产品是单层 BOM
+  -- AND M.ITMREF_0 LIKE '%-SEMI'
+  AND XWS.SRCNUM_0 IS NULL
+ORDER BY M.MFGNUM_0</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+INSERT INTO XWSSCHSRC
+            (MACHINEID_0,
+             USERID_0,
+             SCHTYP_0,
+             XMHNUM_0,
+             PK_0,
+             STOFCY_0,
+             SRCTYP_0,
+             SRCNUM_0,
+             SRCLIN_0,
+             BPCORD_0,
+             STRDAT_0,
+             ENDDAT_0,
+             ITMREF_0,
+             STU_0,
+             QTY_0,
+             PJT_0,
+             CREDATTIM_0,
+             UPDDATTIM_0,
+             AUUID_0,
+             CREUSR_0,
+             UPDUSR_0)
+--主计划内容
+SELECT '#LOGIN_ID#'   MACHINEID_0
+      ,'#LOGIN_USER#' USERID_0
+      ,'BATCH'        SCHTYP_0
+      ,'{1}'          XMHNUM_0
+      ,NEWID()        PK_0
+      ,M.MFGFCY_0     STOFCY_0
+      ,'MFG'          SRCTYP_0
+      ,M.MFGNUM_0     SRCNUM_0
+      ,M.MFGLIN_0     SRCLIN_0
+      ,''             BPCORD_0
+      ,M.STRDAT_0     STRDAT_0
+      ,M.ENDDAT_0     ENDDAT_0
+      ,M.ITMREF_0     ITMREF_0
+      ,M.UOM_0        STU_0
+      ,M.EXTQTY_0
+      ,M.PJT_0
+      ,GETDATE()      CREDATTIM_0
+      ,GETDATE()      UPDDATTIM_
+      ,NEWID()        AUUID_0
+      ,'#LOGIN_USER#' CREUSR_0
+      ,''             UPDUSR_0
+FROM   MFGITM M
+       LEFT JOIN XWSSCHSRC XWS
+              ON XWS.SRCNUM_0 = M.MFGNUM_0
+                 AND XWS.SRCLIN_0 = M.MFGLIN_0
+WHERE  M.MFGNUM_0 = '#工单号#'
+       AND M.MFGLIN_0 = 0#工单行#
+       AND XWS.SRCNUM_0 IS NULL 
+       AND '@选择@'='True'</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>计划单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>截止日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#20</ImageFile>
+  <ListPrint />
+  <MD5HASH>62ece81f45b6e2e324fdfa11bd753fcc</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Standort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Plannummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Plan Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>计划单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Deadline</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Select Work Order</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Select Work Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品编号</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品编号</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品编号</COLNAME>
+      <CAPTION>产品编号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Produktbeschreibung 1</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>Product Description 1</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述1</COLNAME>
+      <CAPTION>产品描述1</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Produktbeschreibung 2</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>Product Description 2</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述2</COLNAME>
+      <CAPTION>产品描述2</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述3</COLNAME>
+      <CAPTION>Produktbeschreibung 3</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述3</COLNAME>
+      <CAPTION>Product Description 3</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>产品描述3</COLNAME>
+      <CAPTION>产品描述3</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>创建时间</COLNAME>
+      <CAPTION>Erstellungszeit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>创建时间</COLNAME>
+      <CAPTION>Creation Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>创建时间</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Einheit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单号</COLNAME>
+      <CAPTION>Arbeitsauftragsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单号</COLNAME>
+      <CAPTION>Work Order Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单号</COLNAME>
+      <CAPTION>工单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单行</COLNAME>
+      <CAPTION>Arbeitsauftragsposition</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单行</COLNAME>
+      <CAPTION>Work Order Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>工单行</COLNAME>
+      <CAPTION>工单行</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>结束日期</COLNAME>
+      <CAPTION>Enddatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>结束日期</COLNAME>
+      <CAPTION>End Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>结束日期</COLNAME>
+      <CAPTION>结束日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>开始日期</COLNAME>
+      <CAPTION>Startdatum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>开始日期</COLNAME>
+      <CAPTION>Start Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>开始日期</COLNAME>
+      <CAPTION>开始日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>类型</COLNAME>
+      <CAPTION>Typ</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>类型</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>类型</COLNAME>
+      <CAPTION>类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>选择</COLNAME>
+      <CAPTION>Auswahl</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>选择</COLNAME>
+      <CAPTION>Select</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH1010X.SOH</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>选择</COLNAME>
+      <CAPTION>选择</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

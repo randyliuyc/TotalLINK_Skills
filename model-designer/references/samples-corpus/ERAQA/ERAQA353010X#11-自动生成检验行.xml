@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA353010X</ModelCode>
+  <ModelNum>11</ModelNum>
+  <ModelDesc>自动生成检验行</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @DOCNUM varchar(30) = REPLACE('{0}',',','-')
+
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+
+-- 获取工单相关信息
+IF (SELECT COUNT(*) FROM QAINSPH WHERE DOCNUM=@DOCNUM)=0
+BEGIN
+DECLARE @MFGNUM varchar(30) =''
+DECLARE @ROUOPE INT =0
+
+SET @MFGNUM=LEFT(@DOCNUM, 
+CHARINDEX('-', @DOCNUM) - 1);
+
+SET @ROUOPE=RIGHT(@DOCNUM,
+LEN(@DOCNUM) - CHARINDEX('-', @DOCNUM));
+
+    DECLARE @CUSCOD VARCHAR(30) = ''
+    DECLARE @INTSPE VARCHAR(30) = ''
+    DECLARE @ITMNO VARCHAR(30) = '' 
+    DECLARE @ROUALT VARCHAR(30) = ''
+    SELECT @ROUALT = H.ROUALT_0
+        , @ITMNO = H.ROUNUM_0
+        , @CUSCOD = I.BPCNUM_0
+        , @INTSPE = I.INTSPE_0
+    FROM MFGHEAD H
+    INNER JOIN MFGITM I
+        ON I.MFGNUM_0 = H.MFGNUM_0
+            AND I.ITMTYP_0 = 1
+    WHERE H.MFGNUM_0 =@MFGNUM;
+
+    -- 拼接产生完整的检验任务单号
+    SET @DOCNUM = CONCAT_WS('-', @MFGNUM, @ROUOPE)
+
+    -- 如果是扫描创建质检任务时，获取工单的ROUALT
+    IF @ROUALT = ''
+        OR @ITMNO = ''
+    BEGIN
+        SELECT @ROUALT = H.ROUALT_0
+            , @ITMNO = H.ROUNUM_0
+        FROM MFGHEAD H
+        WHERE H.MFGNUM_0 = @MFGNUM;
+    END
+
+    -- 拼接形成 ROUCOD
+    DECLARE @ROUCOD VARCHAR(30)
+
+    SET @ROUCOD = CONCAT_WS('-', @ITMNO, @ROUALT, @ROUOPE)
+
+    -- CREATE INSPH
+    INSERT INTO QAINSPH (
+        DOCNUM
+        , DOCDAT
+        , ROUTYP
+        , ITMNO
+        , MFGNUM
+        , ROUALT
+        , ROUOPE
+        , ROUCOD
+        , CUSCOD
+        , INTSPEC
+        , CREUSR
+        , CRETIM
+        )
+    VALUES (
+        @DOCNUM
+        , GETDATE()
+        , 'SFC'
+        , @ITMNO
+        , @MFGNUM
+        , @ROUALT
+        , @ROUOPE
+        , @ROUCOD
+        , @CUSCOD
+        , @INTSPE
+        , @USER --CREUSR
+        , GETDATE() --CRETIM
+        )
+
+    -- CREATE INSPL
+    INSERT INTO QAINSPL (
+        DOCNUM
+        , OPENUM
+        , OPESTD
+        , OPEGRP
+        , OPEUNT
+        , CTLTYP
+        , MEAFRQ
+        , NMIN
+        , NNOR
+        , NMAX
+        , TRXUSER
+        , TRXDAT
+        , CREUSR
+        , CRETIM
+        )
+    SELECT @DOCNUM
+        , L.OPENUM
+        , L.OPESTD
+        , L.OPEGRP
+        , L.OPEUNT
+        , L.CTLTYP
+        , L.MEAFRQ
+        , L.VALMIN
+        , L.VALNOR
+        , L.VALMAX
+        , @USER TRXUSER
+        , GETDATE() TRXDAT
+        , @USER CREUSR
+        , GETDATE() CRETIM
+    FROM QAROULIN L
+    INNER JOIN QAROU R
+        ON R.ROUCOD = L.ROUCOD
+    WHERE R.ROUCOD = @ROUCOD;
+
+    -- 更新 Logic 的控制信息
+    UPDATE L
+    SET L1CHECK = LC.L1CHECK
+        , L2CHECK = LC.L2CHECK
+    FROM QAINSPL L
+    INNER JOIN (
+        SELECT T.OPENUM
+            , MAX(IIF(T.VALLIN = 1
+                    AND T.VALDES &lt;&gt; '', 1, 0)) L1CHECK
+            , MAX(IIF(T.VALLIN = 2
+                    AND T.VALDES &lt;&gt; '', 1, 0)) L2CHECK
+        FROM QAROULINCTL T
+        INNER JOIN QAROULIN L
+            ON L.ROUCOD = T.ROUCOD
+                AND L.OPENUM = T.OPENUM
+        WHERE L.ROUCOD = @ROUCOD
+            AND L.CTLTYP = 'L'
+            AND T.VALTYP = 'L'
+        GROUP BY T.OPENUM
+        ) LC
+        ON LC.OPENUM = L.OPENUM
+    WHERE L.DOCNUM = @DOCNUM
+END
+
+EXECUTE [SP_INSPVAL_LIN] 
+   @DOCNUM
+  ,@USER</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#18</ImageFile>
+  <ListPrint />
+  <MD5HASH>b7856945e96379bf6679a51394e88f08</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

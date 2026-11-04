@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH40</ModelCode>
+  <ModelNum>150</ModelNum>
+  <ModelDesc>监管信息-匹配检查</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @RPTSTR DATE = '{0}';
+DECLARE @RPTEND DATE = '{1}';
+
+WITH CTE_ZOLLPRD
+AS (
+  SELECT ZOLLLOT_0
+    , ITMREF_0
+    , SUM(IIF(IPTDAT_0 &lt; @RPTSTR, 1, 0) * QTYSTU_0) QTY2BEG -- 上期之前有的交易数量
+    , SUM(IIF(IPTDAT_0 BETWEEN @RPTSTR AND @RPTEND
+            , 1
+            , 0)) TRXPRD -- 本期发生的记录数
+    , SUM(IIF(IPTDAT_0 &lt;= @RPTEND, 1, 0) * QTYSTU_0) QTY2END -- 截止到本期末的交易数量
+  FROM YZUPZOLL
+  WHERE IPTDAT_0 &lt;= @RPTEND
+  GROUP BY ZOLLLOT_0
+    , ITMREF_0
+  )
+  , CTE_ZOLLPRD_ZOLLLOT
+AS (
+  -- 
+  SELECT ZOLLLOT_0
+    , SUM(IIF(IPTDAT_0 &lt; @RPTSTR, 1, 0) * QTYSTU_0) QTY2BEG -- 上期之前有的交易数量
+    , SUM(IIF(IPTDAT_0 BETWEEN @RPTSTR AND @RPTEND
+            , 1
+            , 0)) TRXPRD -- 本期发生的记录数
+    , SUM(IIF(IPTDAT_0 &lt;= @RPTEND, 1, 0) * QTYSTU_0) QTY2END -- 截止到本期末的交易数量
+  FROM YZUPZOLL
+  WHERE IPTDAT_0 &lt;= @RPTEND
+  GROUP BY ZOLLLOT_0
+  )
+  , CTE_ZOLLPRD1
+AS (
+  SELECT DISTINCT ZLI.ZOLLLOT_0
+    , ZLI.ITMREF_0
+    , ZLI.QTY2BEG
+    , ZLI.QTY2END
+    , ZLI.TRXPRD
+  -- , ZL.QTY2BEG ZLQTY2BEG
+  -- , ZL.QTY2END ZLQTY2END
+  -- , ZL.TRXPRD ZLTRXPRD
+  FROM CTE_ZOLLPRD ZLI
+  LEFT JOIN CTE_ZOLLPRD_ZOLLLOT ZL
+    ON ZL.ZOLLLOT_0 = ZLI.ZOLLLOT_0
+  WHERE ZLI.QTY2BEG &gt; 0 -- 按监管批次+产品，截止到上期末有库存
+    OR ZLI.TRXPRD &gt; 0 -- 本按监管批次+产品，期有发生交易
+    OR ZL.QTY2BEG &gt; 0 -- 按监管批次，截止到上期末有库存
+    OR ZL.TRXPRD &gt; 0 -- 按监管批次，本期有发生交易
+    -- 只要有一个条件符合，就需要保留下来
+  )
+SELECT Z.ZOLLLOT_0 监管批次
+  , Z.ITMREF_0 产品编码
+  , Z.QTY2BEG 上期末数量
+  , Z.QTY2END 本期末数量
+  , Z.TRXPRD 本期发生的记录数
+  , C.*
+FROM CTE_ZOLLPRD1 Z
+LEFT JOIN YZUPCUI C
+  ON C.MRNPOSNO_0 = Z.ZOLLLOT_0
+    AND C.ITMREF_0 = Z.ITMREF_0
+ORDER BY Z.ZOLLLOT_0
+  , Z.ITMREF_0</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DATSTR</ParaLabel01>
+  <ParaType01>DATEVAL</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>DATEND</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#25</ImageFile>
+  <ListPrint />
+  <MD5HASH>4397d213e0b0b47dca4c3bbe9c3d2535</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

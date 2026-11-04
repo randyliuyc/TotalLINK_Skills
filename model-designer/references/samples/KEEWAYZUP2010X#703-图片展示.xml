@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP2010X</ModelCode>
+  <ModelNum>703</ModelNum>
+  <ModelDesc>图片展示</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT  CAST(N'' AS XML).value(
+    'xs:base64Binary(xs:hexBinary(sql:column("BLOB_0")))', 
+    'VARCHAR(MAX)'
+  ) AS BLOB_0_BASE64 FROM CBLOB WHERE CODBLB_0='ITM' AND IDENT1_0='{0}'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>产品编码</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;div&gt;
+  &lt;div class="linkMediaImages"&gt;
+    &lt;div class="linkMediaImage" index="0"&gt;
+      &lt;div&gt;
+        &lt;img 
+          src="data:image/jpeg;base64,#BLOB_0_BASE64#" 
+          style="cursor:pointer;" 
+          onclick="openZoom(this.src)" 
+        /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id="zoomOverlay" onclick="closeZoom()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;"&gt;
+  &lt;img id="zoomBig" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);max-width:100%;max-height:100vh;pointer-events:none;" /&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>var scale=1, startDist=0;
+
+function closeZoom(){
+  scale=1;
+  document.getElementById("zoomBig").style.transform="translate(-50%,-50%) scale(1)";
+  document.getElementById("zoomOverlay").style.display="none";
+}
+
+function openZoom(src){
+  scale=1;
+  var img=document.getElementById("zoomBig");
+  img.src=src;
+  img.style.transform="translate(-50%,-50%) scale(1)";
+  document.getElementById("zoomOverlay").style.display="block";
+}
+
+// 双指缩放
+document.getElementById("zoomOverlay").addEventListener("touchstart",function(e){
+  if(e.touches.length===2){
+    startDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+  }
+});
+
+document.getElementById("zoomOverlay").addEventListener("touchmove",function(e){
+  if(e.touches.length===2){
+    e.preventDefault();
+    var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    scale*=d/startDist;
+    scale=Math.max(0.5,Math.min(5,scale));
+    startDist=d;
+    document.getElementById("zoomBig").style.transform="translate(-50%,-50%) scale("+scale+")";
+  }
+},{passive:false});</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#71</ImageFile>
+  <ListPrint />
+  <MD5HASH>eaf71905f09b719acec1c587383fd6a4</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X</DMCODE>
+      <DMNUM>703</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Bildanzeige</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X</DMCODE>
+      <DMNUM>703</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Image display</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

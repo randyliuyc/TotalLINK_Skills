@@ -1,0 +1,506 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR07</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>采购提单明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.DOCNUM + Cast(S.DOCLIN AS VARCHAR)          LINKROWID
+       ,S.[DOCTYP]
+       ,S.[DOCNUM]
+       ,S.[DOCLIN]
+       ,S.[FAC]
+       ,F.FACNAM
+       ,S.[ITMNO]
+       ,ITM.ITMNAM --产品描述
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,S.[ITMVER]
+       ,S.[IVATTYP]
+       ,IVATTYP.OPTDES                               IVATTYPDES
+       ,CONVERT(VARCHAR(16), S.REQDAT, 23)           [REQDAT]
+       ,S.UOM                                        UOM
+       ,S.[UOMCOE]
+       ,S.[STU]
+       ,S.[QTY]
+       ,S.[QTYSTU]
+       ,S.CTRQTY
+       ,S.CTRNUM
+       ,S.[PRCQTY]
+       ,S.[PRCQTYSTU]
+       ,S.[PRTQTY]
+       ,S.[PRTQTYSTU]
+       ,POR.CUR                                      PORCUR
+       ,CASE
+          WHEN POR.CUR = H.CUR THEN 1
+          ELSE R.CURRAT
+        END                                          CURRAT
+       --,PDL.[NETPRI]                                 PORNETPRI
+       ,CASE
+          WHEN POR.CUR = H.CUR THEN PDL.NETPRI
+          WHEN R.RATETYPE = 'MUL' THEN Cast(PDL.NETPRI * R.CURRAT AS DECIMAL(18, 6))
+          WHEN R.RATETYPE = 'DIV' THEN Cast(PDL.NETPRI / R.CURRAT AS DECIMAL(18, 6))
+        END                                          AS PORNETPRI
+       ,S.[NETPRI]
+       ,S.[GROPRI]
+       ,S.[TAXRT]
+       ,S.[NETAMT]
+       ,S.[TAXAMT]
+       ,S.[GRPAMT]
+       ,S.[CHAREA]
+       ,S.[REMARK]
+       ,S.[LOT]
+       ,S.[SRCTYP]
+       ,S.[SRCDOC]
+       ,S.[SRCLIN]
+       ,S.[ORITYP]
+       ,S.[ORIDOC]
+       ,S.[ORILIN]
+       ,S.[DOCSTA]
+       ,S.[CLOREA]
+       ,POR.CONTNOE --合同号
+       ,S.CVFCOD
+       ,S.[CREUSR]
+       ,S.[UPDUSR]
+       ,CONVERT(VARCHAR(16), S.[CRETIM], 21)         CRETIM
+       ,CONVERT(VARCHAR(16), S.[UPDTIM], 21)         UPDTIM
+       ,Iif(S.DOCSTA IN( '1', '5' ), '', '1')        LDEBFLG
+       ,Iif(S.DOCSTA IN( '1', '2' ), '', '1')        LCLBFLG
+       ,S.[SRCDOC] + '-'
+        + Cast(S.[SRCLIN] AS VARCHAR)                PORKEY
+       ,S.DOCNUM + '-' + Cast(S.[DOCLIN] AS VARCHAR) AUDKEY
+FROM   [PBOLD] S
+       LEFT JOIN PBOLH H
+              ON H.DOCNUM = S.DOCNUM
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN ENTFAC F
+              ON F.FAC = S.FAC
+       LEFT JOIN LINKOPT IVATTYP
+              ON IVATTYP.OPTID = S.IVATTYP
+                 AND IVATTYP.OPTTYP = 'IVATTYP'
+       LEFT JOIN PORDER POR
+              ON POR.DOCNUM = S.SRCDOC
+       LEFT JOIN PORDLIN PDL
+              ON PDL.DOCNUM = S.SRCDOC
+                 AND PDL.DOCLIN = S.SRCLIN
+       OUTER APPLY (SELECT TOP 1 CURRAT
+                                 ,CASE
+                                    WHEN CUR = POR.CUR
+                                         AND DESCUR = H.CUR THEN 'MUL'
+                                    WHEN CUR = H.CUR
+                                         AND DESCUR = POR.CUR THEN 'DIV'
+                                  END AS RATETYPE
+                    FROM   CURRAT
+                    WHERE  RATDAT &lt;= H.DOCDAT
+                           AND ( ( CUR = POR.CUR
+                                   AND DESCUR = H.CUR )
+                                  OR ( CUR = H.CUR
+                                       AND DESCUR = POR.CUR ) )
+                    ORDER  BY RATDAT DESC
+                              ,CRETIM DESC) R
+WHERE  S.[DOCNUM] = '{0}'
+ORDER  BY S.DOCLIN</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+DECLARE @DOCSTA VARCHAR;
+
+--SELECT @NUM=ISNULL(MAX(D.DOCLIN),0)+10
+--FROM
+--	[PBOLD]  D
+--	INNER JOIN [PBOLH]  H
+--	ON  D.DOCNUM=H.DOCNUM
+--WHERE   D.DOCNUM = N'#DOCNUM#' 
+
+SELECT @NUM = Isnull(Max(D.DOCLIN), 0) + 10
+       ,@DOCSTA = Max(H.DOCSTA)
+FROM   [PBOLH] H
+       LEFT JOIN [PBOLD] D  -- 改为LEFT JOIN
+               ON H.DOCNUM = D.DOCNUM
+WHERE  H.DOCNUM = N'#DOCNUM#'   -- 查询条件放在主表
+
+MERGE
+INTO 
+	[PBOLD] D
+		USING (
+	SELECT
+ N'#DOCNUM#' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'#FAC#' FAC
+,N'#ITMNO#' ITMNO
+,N'#ITMVER#' ITMVER
+,N'#IVATTYP#' IVATTYP
+,N'#REQDAT#' REQDAT
+,N'#UOM#' UOM
+,IIF('#UOMCOE#'='NaN',1, 0#UOMCOE#) UOMCOE
+,N'#STU#' STU
+,0#QTY# QTY
+,0#QTYSTU#   QTYSTU
+,IIF('#UOMCOE#'='NaN',1, 0#UOMCOE#)   CTRQTY
+,0#QTY#   CTRNUM
+,0#NETPRI# NETPRI
+,0#GROPRI# GROPRI
+,0#TAXRT# TAXRT
+,1.00 * 0#NETPRI#*0#QTYSTU# NETAMT  --无税金额
+,0#TAXAMT# TAXAMT
+,1.00 * 0#GROPRI#*0#QTYSTU# GRPAMT  --含税金额
+,N'#CHAREA#' CHAREA
+,N'#REMARK#' REMARK
+,N'#SRCTYP#' SRCTYP
+,N'#SRCDOC#' SRCDOC
+,0#SRCLIN# SRCLIN
+,N'#ORITYP#' ORITYP
+,N'#ORIDOC#' ORIDOC
+,0#ORILIN# ORILIN
+,N'#CLOREA#' CLOREA
+--,N'1' DOCSTA
+,@DOCSTA DOCSTA
+,N'#CVFCOD#' CVFCOD
+,N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+WHERE NOT EXISTS (   -- 增加重复判断：同一DOCNUM下，若SRCDOC和SRCLIN已存在且不是当前自身行，则过滤
+        SELECT 1
+        FROM [PBOLD]
+        WHERE DOCNUM = N'#DOCNUM#'
+          AND SRCDOC = N'#SRCDOC#'
+          AND SRCLIN = 0#SRCLIN#
+          AND (0#DOCLIN# = 0 OR DOCLIN != 0#DOCLIN#)   -- 排除当前行自身（当DOCLIN非0时）
+    )
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET  
+ FAC = S.FAC
+,ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,IVATTYP = S.IVATTYP
+,REQDAT = S.REQDAT
+,UOM = S.UOM
+,UOMCOE = S.UOMCOE
+,STU = S.STU
+,QTY = S.QTY
+,QTYSTU=S.QTYSTU
+,CTRQTY=S.CTRQTY
+,CTRNUM=S.CTRNUM
+,NETPRI = S.NETPRI
+,GROPRI = S.GROPRI
+,TAXRT = S.TAXRT
+,NETAMT = S.NETAMT
+,TAXAMT = S.TAXAMT
+,GRPAMT = S.GRPAMT
+,CHAREA = S.CHAREA
+,REMARK = S.REMARK
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,ORITYP = S.ORITYP
+,ORIDOC = S.ORIDOC
+,ORILIN = S.ORILIN
+,CLOREA = S.CLOREA
+,CVFCOD = S.CVFCOD
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+ DOCNUM
+,DOCLIN
+,FAC
+,ITMNO
+,ITMVER
+,IVATTYP
+,REQDAT
+,UOM
+,UOMCOE
+,STU
+,QTY
+,QTYSTU
+,CTRQTY
+,CTRNUM
+,NETPRI
+,GROPRI
+,TAXRT
+,NETAMT
+,TAXAMT
+,GRPAMT
+,CHAREA
+,REMARK
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,ORITYP
+,ORIDOC
+,ORILIN
+,DOCSTA
+,CLOREA
+,CVFCOD
+,CREUSR
+,CRETIM
+)
+VALUES (
+ S.DOCNUM
+,S.DOCLIN
+,S.FAC
+,S.ITMNO
+,S.ITMVER
+,S.IVATTYP
+,S.REQDAT
+,S.UOM
+,S.UOMCOE
+,S.STU
+,S.QTY
+,S.QTYSTU
+,S.CTRQTY
+,S.CTRNUM
+,S.NETPRI
+,S.GROPRI
+,S.TAXRT
+,S.NETAMT
+,S.TAXAMT
+,S.GRPAMT
+,S.CHAREA
+,S.REMARK
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.ORITYP
+,S.ORIDOC
+,S.ORILIN
+,S.DOCSTA
+,S.CLOREA
+,S.CVFCOD
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	[PBOLD]
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO 
+	[PBOLD] D
+		USING (
+	SELECT
+ N'#DOCNUM#' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'#FAC#' FAC
+,N'#ITMNO#' ITMNO
+,N'#ITMVER#' ITMVER
+,N'#IVATTYP#' IVATTYP
+,N'#REQDAT#' REQDAT
+,N'#UOM#' UOM
+,0#UOMCOE# UOMCOE
+,N'#STU#' STU
+,0#QTY# QTY
+,0#NETPRI# NETPRI
+,0#GROPRI# GROPRI
+,0#TAXRT# TAXRT
+,0#NETPRI#*0#QTYSTU# NETAMT  --无税金额
+,0#TAXAMT# TAXAMT
+,0#GROPRI#*0#QTYSTU# GRPAMT  --含税金额
+,N'#CHAREA#' CHAREA
+,N'#REMARK#' REMARK
+,N'#SRCTYP#' SRCTYP
+,N'#SRCDOC#' SRCDOC
+,0#SRCLIN# SRCLIN
+,N'#ORITYP#' ORITYP
+,N'#ORIDOC#' ORIDOC
+,0#ORILIN# ORILIN
+,N'#CLOREA#' CLOREA
+,N'1' DOCSTA
+,N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET  
+ FAC = S.FAC
+,ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,IVATTYP = S.IVATTYP
+,REQDAT = S.REQDAT
+,UOM = S.UOM
+,UOMCOE = S.UOMCOE
+,STU = S.STU
+,QTY = S.QTY
+,NETPRI = S.NETPRI
+,GROPRI = S.GROPRI
+,TAXRT = S.TAXRT
+,NETAMT = S.NETAMT
+,TAXAMT = S.TAXAMT
+,GRPAMT = S.GRPAMT
+,CHAREA = S.CHAREA
+,REMARK = S.REMARK
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,ORITYP = S.ORITYP
+,ORIDOC = S.ORIDOC
+,ORILIN = S.ORILIN
+,CLOREA = S.CLOREA
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+ DOCNUM
+,DOCLIN
+,FAC
+,ITMNO
+,ITMVER
+,IVATTYP
+,REQDAT
+,UOM
+,UOMCOE
+,STU
+,QTY
+,NETPRI
+,GROPRI
+,TAXRT
+,NETAMT
+,TAXAMT
+,GRPAMT
+,CHAREA
+,REMARK
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,ORITYP
+,ORIDOC
+,ORILIN
+,DOCSTA
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+ S.DOCNUM
+,S.DOCLIN
+,S.FAC
+,S.ITMNO
+,S.ITMVER
+,S.IVATTYP
+,S.REQDAT
+,S.UOM
+,S.UOMCOE
+,S.STU
+,S.QTY
+,S.NETPRI
+,S.GROPRI
+,S.TAXRT
+,S.NETAMT
+,S.TAXAMT
+,S.GRPAMT
+,S.CHAREA
+,S.REMARK
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.ORITYP
+,S.ORIDOC
+,S.ORILIN
+,S.DOCSTA
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLNew>
+  <SQLRemove>DELETE FROM [PBOLD]  WHERE DOCNUM+CAST(DOCLIN AS VARCHAR)='#LINKROWID#'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#79</ImageFile>
+  <ListPrint />
+  <MD5HASH>63e156650953e56cd2b9962d32f03a4c</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết vận đơn mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR07</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết vận đơn mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

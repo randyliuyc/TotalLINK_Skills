@@ -1,0 +1,374 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR10</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>采购发票明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.DOCNUM+CAST(S.DOCLIN AS VARCHAR)        LINKROWID
+,S.DOCNUM               --请求填报单号      
+,S.DOCLIN              --行号
+,S.ITMNO                --产品编码
+,ITM.ITMNAM             --产品描述
+,ITM.ITMNAM1             --产品描述
+,S.ITMVER	        --产品版本
+,S.IVATTYP	        --产品税务类型
+,S.TAXRT	       --税率
+,ITM.TSICOD1            --产品分类
+,ITM.TSICOD2
+,ITM.TSICOD3
+,ITM.TSICOD4
+,ITM.TSICOD5
+,ITM.ITMSPEC
+,ITM.ITMSIZE
+,S.UOM             --单据单位
+,S.UOMCOE          --换算系数
+,S.QTY             --单据单位数量
+,S.STU			   --库存单位
+,S.QTYSTU		   --数量
+,S.NETPRI		   --无税单价
+,S.NETAMT	       --无税金额，QTYPUU*NETPRI
+,S.TAXAMT	       --税额，NETAMT*TAXRT/100
+,S.GRPAMT	       --含税金额，QTYPUU*GROPRI
+,S.REMARK LREMARK        --备注
+,S.SRCTYP                --来源类型
+,S.SRCDOC                --来源单据
+,S.SRCLIN                --来源行号
+,DOCSTA.OPTDES DOCSTA    --单据状态
+,S.CLOREA LCLOREA        --关闭原因
+,S.CREUSR
+,S.UPDUSR
+,CONVERT(VARCHAR(16), S.[CRETIM], 21) CRETIM
+,CONVERT(VARCHAR(16), S.[UPDTIM], 21) UPDTIM
+,IIF(S.DOCSTA='1','','1') LDEBFLG
+,IIF(S.DOCSTA IN('1','2'),'','1') LCLBFLG
+FROM PINVLIN S
+LEFT JOIN ITM ON ITM.ITMNO=S.ITMNO
+LEFT JOIN LINKOPT DOCSTA  ON DOCSTA.OPTID=S.DOCSTA AND DOCSTA.OPTTYP='DOCSTA'
+WHERE  S.DOCNUM = N'{0}'</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	PINVLIN
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO 
+	[PINVLIN] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'PIV' DOCTYP
+,N'@ITMNO@' ITMNO
+,N'@ITMVER@'  ITMVER 
+,N'@IVATTYP@' IVATTYP  --产品税务类型
+,0@TAXRT@   TAXRT	--税率
+,N'@UOM@' UOM
+,0@UOMCOE@ UOMCOE
+,0@QTY@ QTY
+,N'@STU@' STU
+,0@QTYSTU@ QTYSTU
+,0@NETPRI@ NETPRI
+,0@NETAMT@ NETAMT
+,0@TAXAMT@ TAXAMT
+,0@GRPAMT@ GRPAMT
+,N'@LREMARK@' LREMARK
+,N'@PRJNUM@' PRJNUM
+,N'@SRCTYP@' SRCTYP
+,N'@SRCDOC@' SRCDOC
+,0@SRCLIN@ SRCLIN
+,N'1' DOCSTA
+,N'' CLOREA
+,N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,IVATTYP =S.IVATTYP
+,TAXRT  =S.TAXRT
+,UOM = S.UOM
+,UOMCOE = S.UOMCOE
+,QTY = S.QTY
+,STU = S.STU
+,QTYSTU = S.QTYSTU
+,NETPRI = S.NETPRI
+,NETAMT = S.NETAMT
+,TAXAMT = S.TAXAMT
+,GRPAMT = S.GRPAMT
+,REMARK = S.LREMARK
+,PRJNUM = S.PRJNUM
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,DOCSTA = S.DOCSTA
+,CLOREA = S.CLOREA
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+ DOCNUM
+,DOCLIN
+,DOCTYP
+,ITMNO
+,ITMVER
+,IVATTYP
+,TAXRT
+,UOM
+,UOMCOE
+,QTY
+,STU
+,QTYSTU
+,NETPRI
+,NETAMT
+,TAXAMT
+,GRPAMT
+,REMARK
+,PRJNUM
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+ S.DOCNUM
+,S.DOCLIN
+,S.DOCTYP
+,S.ITMNO
+,S.ITMVER
+,S.IVATTYP
+,S.TAXRT
+,S.UOM
+,S.UOMCOE
+,S.QTY
+,S.STU
+,S.QTYSTU
+,S.NETPRI
+,S.NETAMT
+,S.TAXAMT
+,S.GRPAMT
+,S.LREMARK
+,S.PRJNUM
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.DOCSTA
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+SELECT @NUM=ISNULL(MAX(DOCLIN),0)+10 FROM
+	PINVLIN
+WHERE   DOCNUM = N'#DOCNUM#' ;
+MERGE
+INTO 
+	[PINVLIN] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,IIF(0#DOCLIN#=0,@NUM,0#DOCLIN#) DOCLIN
+,N'PIV' DOCTYP
+,N'@ITMNO@' ITMNO
+,N'@ITMVER@'  ITMVER
+,N'@IVATTYP@' IVATTYP
+,0@TAXRT@  TAXRT
+,N'@UOM@' UOM
+,0@UOMCOE@ UOMCOE
+,0@QTY@ QTY
+,N'@STU@' STU
+,0@QTYSTU@ QTYSTU
+,0@NETPRI@ NETPRI
+,0@NETAMT@ NETAMT
+,0@TAXAMT@ TAXAMT
+,0@GRPAMT@ GRPAMT
+,N'@REMARK@' REMARK
+,N'@PRJNUM@' PRJNUM
+,N'@SRCTYP@' SRCTYP
+,N'@SRCDOC@' SRCDOC
+,0@SRCLIN@ SRCLIN
+,N'1' DOCSTA
+,N'' CLOREA
+,N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM] AND S.DOCLIN=D.DOCLIN)
+	WHEN MATCHED THEN
+UPDATE
+SET   ITMNO = S.ITMNO
+,ITMVER = S.ITMVER
+,IVATTYP =S.IVATTYP
+,TAXRT=S.TAXRT
+,UOM = S.UOM
+,UOMCOE = S.UOMCOE
+,QTY = S.QTY
+,STU = S.STU
+,QTYSTU = S.QTYSTU
+,NETPRI = S.NETPRI
+,NETAMT = S.NETAMT
+,TAXAMT = S.TAXAMT
+,GRPAMT = S.GRPAMT
+,REMARK = S.REMARK
+,PRJNUM = S.PRJNUM
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,DOCSTA = S.DOCSTA
+,CLOREA = S.CLOREA
+,[UPDUSR]='#LOGIN_USER#'
+,[UPDTIM]=GETDATE()
+	WHEN NOT MATCHED THEN
+INSERT
+	(
+ DOCNUM
+,DOCLIN
+,DOCTYP
+,ITMNO
+,ITMVER
+,IVATTYP
+,TAXRT
+,UOM
+,UOMCOE
+,QTY
+,STU
+,QTYSTU
+,NETPRI
+,NETAMT
+,TAXAMT
+,GRPAMT
+,REMARK
+,PRJNUM
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,DOCSTA
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+ S.DOCNUM
+,S.DOCLIN
+,S.DOCTYP
+,S.ITMNO
+,S.ITMVER
+,S.IVATTYP
+,S.TAXRT
+,S.UOM
+,S.UOMCOE
+,S.QTY
+,S.STU
+,S.QTYSTU
+,S.NETPRI
+,S.NETAMT
+,S.TAXAMT
+,S.GRPAMT
+,S.REMARK
+,S.PRJNUM
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.DOCSTA
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLNew>
+  <SQLRemove>DELETE FROM [PINVLIN] WHERE DOCNUM+CAST(DOCLIN AS VARCHAR) ='#LINKROWID#'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#79</ImageFile>
+  <ListPrint />
+  <MD5HASH>f0fe318711b750a5210701d0152c66cb</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR10</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết hóa đơn mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR10</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết hóa đơn mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

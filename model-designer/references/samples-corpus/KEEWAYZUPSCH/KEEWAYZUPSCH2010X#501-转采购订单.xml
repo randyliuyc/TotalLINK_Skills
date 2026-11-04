@@ -1,0 +1,326 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH2010X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>转采购订单</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@LINK01:
+DECLARE @SOHNUM VARCHAR(30) = '#销售订单#';
+
+SELECT CASE 
+    -- 检查是否有正在转采购的记录
+    WHEN EXISTS (
+        SELECT TOP 1 1
+        FROM XWSPOH
+        WHERE SOHNUM_0 = @SOHNUM
+          AND STAT_0 = 2
+          AND RPFLG_0 &lt;&gt; 3
+        )
+      THEN 
+        N'LINKPREVENT:lang:{zh:正在转采购订单中，长时间无结果则为ERP接口不通，可点击异常处理，重新转单,en:Purchase order conversion in progress. If no result for a long time, the ERP interface may be unavailable. Click exception handling to retry.,de:Bestellungsumwandlung läuft. Bei langer Wartezeit ist die ERP-Schnittstelle möglicherweise nicht erreichbar. Klicken Sie auf Störungsbehandlung, um den Vorgang zu wiederholen.}'
+    WHEN EXISTS (
+        SELECT TOP 1 1
+        FROM XWSPOH
+        WHERE SOHNUM_0 = @SOHNUM
+          AND RPFLG_0 = 3
+        )
+      THEN 
+        N'LINKPREVENT:lang:{zh:已转采购订单，如需重新转单，可点击异常处理，重新转单,en:Purchase order already converted. To reconvert, click exception handling to retry.,de:Bestellung bereits umgewandelt. Zur erneuten Umwandlung klicken Sie auf Störungsbehandlung, um den Vorgang zu wiederholen.}'
+        -- 检查产品地点是否完整
+    WHEN EXISTS (
+        SELECT TOP 1 1
+        FROM SORDERQ Q
+        INNER JOIN SORDERP P
+          ON Q.SOHNUM_0 = P.SOHNUM_0
+            AND Q.SOPLIN_0 = P.SOPLIN_0
+        LEFT JOIN (
+          SELECT ITMREF_0
+            , ITMREFBPC_0
+          FROM ITMBPC
+          WHERE BPCNUM_0 = 'DE01'
+          ) IC
+          ON IC.ITMREF_0 = Q.ITMREF_0
+        LEFT JOIN ITMFACILIT ITF
+          ON ISNULL(IC.ITMREFBPC_0, Q.ITMREF_0) = ITF.ITMREF_0
+            AND ITF.STOFCY_0 = 'ZUPK'
+        WHERE Q.SOHNUM_0 = @SOHNUM
+          AND P.LINTYP_0 &lt;&gt; 6
+          AND ITF.ITMREF_0 IS NULL
+        )
+      THEN 
+        N'LINKPREVENT:lang:{zh:产品地点不完整，请检查,en:Product Site incomplete. Please check.,de:Produktstandortinformationen unvollständig. Bitte überprüfen.}'
+        -- 两个条件都不满足时确认
+    ELSE 
+      N'LINKCONFIRM:lang:{zh:确认转为采购订单吗？,en:Confirm conversion to purchase order?,de:Umwandlung in Bestellung bestätigen?}'
+    END AS ResultMessage
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @SOHNUM VARCHAR(30) = '#销售订单#';
+DECLARE @POHFCY VARCHAR(30) = 'ZUPK';
+DECLARE @STAT INT;
+
+SELECT @STAT = ISNULL(MAX(STAT_0), 1)
+FROM XWSPOH
+WHERE BATCHID_0 = @SOHNUM
+
+IF NOT EXISTS (
+    SELECT TOP 1 SOHNUM_0
+    FROM PORDERQ
+    WHERE SOHNUM_0 = @SOHNUM
+    )
+  AND @STAT = 1 --状态为1是ERP已经处理完成，且失败
+BEGIN
+  -- 获取订单的发货方式
+  DECLARE @MDL VARCHAR(50);
+
+  SELECT TOP 1 @MDL = MDL_0
+  FROM SORDER
+  WHERE SOHNUM_0 = @SOHNUM;
+
+  --ERP提交失败的记录按整单删除
+  DELETE
+  FROM XWSPOH
+  WHERE BATCHID_0 = @SOHNUM
+    AND STAT_0 = 1;
+
+  INSERT INTO [XWSPOH] (
+    [MACHINEID_0]
+    , [USERID_0]
+    , [VCRTYP_0]
+    , [PK_0]
+    , [BATCHID_0]
+    , [PKORI_0]
+    , [CREDATIM_0]
+    , [STAT_0]
+    , [SUBDATIM_0]
+    , [RPFLG_0]
+    , [RPNUM_0]
+    , [RPLIN_0]
+    , [RPNOTE_0]
+    , [RPDATE_0]
+    , [RPDATIM_0]
+    , [POHNUM_0]
+    , [POHFCY_0]
+    , [ORDDAT_0]
+    , [BPSNUM_0]
+    , [ORDREF_0]
+    , [CUR_0]
+    , [ITMREF_0]
+    , [PRHFCY_0]
+    , [UOM_0]
+    , [QTYUOM_0]
+    , [EXTRCPDAT_0]
+    , [GROPRI_0]
+    , [DISCRGVAL1_0]
+    , [DISCRGVAL2_0]
+    , [DISCRGVAL3_0]
+    , [PJT_0]
+    , [CREDATTIM_0]
+    , [UPDDATTIM_0]
+    , [AUUID_0]
+    , [CREUSR_0]
+    , [UPDUSR_0]
+    , [XMHNUM_0]
+    , [YPLNQTY_0]
+    , [XSPRRAT_0]
+    , [YSPRQTY_0]
+    , [TRSFAM_0]
+    , XSTLNUM_0
+    , YRMK_0
+    , YRMK2_0
+    , YCONDAT_0
+    , SOHNUM_0
+    , SOPLIN_0
+    , SOQSEQ_0
+    )
+  SELECT '#LOGIN_ID#' MACHINEID_0
+    , '#LOGIN_USER#' USERID_0
+    , 14 VCRTYP_0
+    , NEWID() PK_0
+    , Q.SOHNUM_0 BATCHID_0
+    , Q.SOHNUM_0 + CAST(Q.SOPLIN_0 AS VARCHAR) PKORI_0
+    , GETDATE() CREDATIM_0
+    , 2 STAT_0
+    , GETDATE() SUBDATIM_0
+    , 1 RPFLG_0
+    , '' RPNUM_0
+    , 0 RPLIN_0
+    , '' RPNOTE_0
+    , '' RPDATE_0
+    , '' RPDATIM_0
+    , '' POHNUM_0
+    , @POHFCY POHFCY_0
+    , CONVERT(VARCHAR(16), GETDATE(), 23) ORDDAT_0
+    -- , IIF(P.BPCINV_0 = 'CN01', 'BPS00002', P.BPCINV_0) BPSNUM_0 --特殊处理
+    , CASE P.BPCINV_0
+      WHEN 'DE01'
+        THEN 'ZJKC'
+      WHEN 'CN01'
+        THEN 'BPS00002'
+      ELSE P.BPCINV_0
+      END BPSNUM_0
+    , S.CUSORDREF_0 ORDREF_0
+    -- 2026年1月28日，不填写币种，采用X3生成采购订单获取默认币种的规则
+    , '' CUR_0
+    -- 启用 ZUP 海关监管编码对照
+    , ISNULL(IC.ITMREFBPC_0, Q.ITMREF_0) ITMREF_0
+    , @POHFCY PRHFCY_0
+    , P.STU_0 UOM_0
+    , Q.QTY_0 QTYUOM_0
+    -- 2026年1月28日，凯驰销售订单转 ZUP 采购时，根据发货方式确定采购交期
+    -- 1-集装箱海运+50；2-海运+60；3-空运+10；4-快递+5；10-铁路+30
+    -- , DATEADD(DAY, 1, Q.EXTDLVDAT_0) EXTRCPDAT_0
+    -- , Q.EXTDLVDAT_0 SORDERQDLVDAT
+    -- , @MDL MDL
+    , DATEADD(DAY, CASE @MDL
+        WHEN 1
+          THEN 50
+        WHEN 2
+          THEN 60
+        WHEN 3
+          THEN 10
+        WHEN 4
+          THEN 5
+        WHEN 10
+          THEN 30
+        END, Q.EXTDLVDAT_0) EXTRCPDAT_0
+    , 0 GROPRI_0
+    , 0 DISCRGVAL1_0
+    , 0 DISCRGVAL2_0
+    , 0 DISCRGVAL3_0
+    , '' PJT_0
+    , GETDATE() CREDATTIM_0
+    , '' UPDDATTIM_0
+    , NEWID() AUUID_0
+    , 'TTLNK' CREUSR_0
+    , '' UPDUSR_0
+    , '' XMHNUM_0
+    , 0 YPLNQTY_0
+    , 0 XSPRRAT_0
+    , 0 YSPRQTY_0
+    , S.SOHTYP_0 TRSFAM_0
+    , N'' XSTLNUM_0
+    , N'' YRMK_0
+    , N'' YRMK2_0
+    , '' YCONDAT_0
+    , Q.SOHNUM_0 SOHNUM_0
+    , Q.SOPLIN_0 SOPLIN_0
+    , Q.SOQSEQ_0 SOQSEQ_0
+  FROM SORDERQ Q
+  INNER JOIN SORDER S
+    ON Q.SOHNUM_0 = S.SOHNUM_0
+  INNER JOIN SORDERP P
+    ON Q.SOHNUM_0 = P.SOHNUM_0
+      AND Q.SOPLIN_0 = P.SOPLIN_0
+  LEFT JOIN (
+    SELECT ITMREF_0
+      , ITMREFBPC_0
+    FROM ITMBPC
+    WHERE BPCNUM_0 = 'DE01'
+    ) IC
+    ON IC.ITMREF_0 = Q.ITMREF_0
+  WHERE Q.SOHNUM_0 = @SOHNUM
+    AND P.LINTYP_0 &lt;&gt; 6
+  ORDER BY Q.SOPLIN_0
+END</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~X3WEB~RUN~XWSTTLINKU~
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;PARAM&gt;
+ &lt;FLD NAM="XWS_MACHINEID"&gt;#LOGIN_ID#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_USERID"&gt;#LOGIN_USER#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_TRSTYP"&gt;14&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_PK"&gt;&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_BATCHID"&gt;#销售订单#&lt;/FLD&gt;
+&lt;/PARAM&gt;</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#67</ImageFile>
+  <ListPrint />
+  <MD5HASH>52709d8ec407c537125751f6a8d4ee28</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>In Kaufauftrag umwandeln</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH2010X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Convert to Purchase Order</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

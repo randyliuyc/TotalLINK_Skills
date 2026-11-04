@@ -1,0 +1,283 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP50</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>完工入库</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDETAILLIST(KEEWAYZUP5020X,700,{6})
+--LINKMYROWDATA
+DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#';
+DECLARE @LANX3 VARCHAR(30) = (
+    SELECT #LC.X3ERP#GETLANX3(@LAN)
+    );
+DECLARE @FCY VARCHAR(10)='{0}';
+DECLARE @LOC VARCHAR(30)=N'{1}';
+
+SELECT ''                      生产地点
+       ,N'lang:{zh:添加,en:New,de:hinzufügen}' 工单编号
+       ,''                     产品编码
+       ,''                     产品名称
+       ,0                      总数量
+       ,''                     BTNFLG
+       ,'mui-hidden'           HIDFLG
+       ,''                     id
+UNION ALL
+SELECT XWS.MFGFCY_0   生产地点
+       ,XWS.MFGNUM_0  工单编号
+       ,XWS.ITMREF_0  产品编码
+       ,ISNULL(B.ITMDES, ITM.ITMDES1_0) 产品名称
+       ,Count(*)      总数量
+       ,'mui-hidden'  BTNFLG
+       ,''            HIDFLG
+       ,XWS.MFGNUM_0  id
+FROM   XWSMKI XWS
+       INNER JOIN ITMMASTER ITM
+               ON XWS.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN (
+             SELECT 
+                   B.IDENT1_0 AS ITMREF
+                 , STRING_AGG(B.TEXTE_0, '') 
+                     WITHIN GROUP (ORDER BY B.ZONE_0) AS ITMDES
+             FROM ATEXTRA B
+             WHERE B.CODFIC_0 = 'ITMMASTER'
+               AND B.LANGUE_0 = @LANX3
+             GROUP BY 
+                   B.IDENT1_0
+         ) B
+               ON B.ITMREF = ITM.ITMREF_0
+WHERE  XWS.RPFLG_0 &lt;&gt; 3
+       AND XWS.STAT_0 = 9
+       AND XWS.USERID_0 = '#LOGIN_USER#'
+       AND XWS.MFGFCY_0 = @FCY
+GROUP  BY XWS.MFGNUM_0
+          ,XWS.MFGFCY_0
+          ,XWS.ITMREF_0
+          --,ITM.ITMDES1_0
+          ,ISNULL(B.ITMDES, ITM.ITMDES1_0)</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>生产地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>工单编号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>入库库位</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>UPDATE XWS
+SET
+        STAT_0 = 9
+       ,USERID_0='#LOGIN_USER#'
+       ,LOC_0='#入库库位#'
+FROM XWSMKI XWS
+WHERE XWS.RPFLG_0&lt;&gt;3
+   AND XWS.SERNUM_0='#车架码#'
+   AND XWS.STAT_0=1</SQLNew>
+  <SQLRemove>UPDATE XWSMKI SET STAT_0=1 WHERE RPFLG_0&lt;&gt;3 AND MFGNUM_0='#工单编号#'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card linksearch'&gt;
+    &lt;div class='mui-card-header #BTNFLG#'&gt;
+        &lt;h4&gt;#工单编号#&lt;/h4&gt;
+        &lt;button class="mui-btn mui-btn-blue" style="width:100px;height:35px" type="button" id="linknewrecord"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:扫码入库,en:Scan,de:Scannen}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class='mui-card-header #HIDFLG#'&gt;
+        &lt;div class="mui-media-body "&gt;
+            &lt;h4&gt;lang:{zh:产品编码,en:Product,de:Artikel}:#产品编码#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品名称,en:Product Name,de:Bezeichnung}:#产品名称#&lt;/h4&gt;
+            &lt;h4&gt;lang:{zh:总数量,en:Total Qty,de:Gesamtmenge}:#总数量#&lt;/h4&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;ul class='mui-collapse-content #HIDFLG#' style="overflow:auto;padding:0"&gt;
+        &lt;div class="link-table-default" style="margin:0"&gt;
+            &lt;div class="link-table-fixed"&gt;
+                &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:操作,en:Operate,de:Vorgang}&lt;/div&gt;
+                &lt;div style="min-width:50px;background-color:#546E7A;"&gt;lang:{zh:车架码,en:Frame code,de:Seriennummer}&lt;/div&gt;
+                &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:电池码,en:Battery code,de:Batterie-Seriennummer}&lt;/div&gt;
+                &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:电机码,en:Motor code,de:Motor-Seriennummer}&lt;/div&gt;
+                &lt;div style="min-width:30px;background-color:#546E7A;"&gt;lang:{zh:库位,en:Location,de:Lagerplatz}&lt;/div&gt;
+                &lt;div style="min-width:60px;background-color:#546E7A;"&gt;lang:{zh:操作人,en:Operator,de:Mitarbeiter}&lt;/div&gt;
+                &lt;div style="min-width:140px;background-color:#546E7A;"&gt;lang:{zh:操作时间,en:Operating time,de:Zeitpunkt}&lt;/div&gt;
+            &lt;/div&gt;#LINKDETAILLIST#
+        &lt;/div&gt;
+    &lt;/ul&gt;
+    &lt;div class='mui-card-footer #HIDFLG#'&gt;
+        &lt;h4&gt;&lt;/h4&gt;
+        &lt;button type="button" id="linkremove" style="width:80px;height:35px" class="mui-btn mui-btn-danger"&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:删除,en:Delete}&lt;/b&gt;
+        &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec>&lt;div class="mui-input-row mui-hidden "&gt;
+&lt;label&gt;lang:{zh:生产地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="生产地点" paratype="STR" paradm="" value="{0}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:入库库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" not-reset placeholder=""  
+id="入库库位" required  paratype="STR" paradm="" value="{1}" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:车架码,en:Frame code,de:Seriennummerr}&lt;/label&gt;
+&lt;input type="text" placeholder="" readonly="readonly"
+id="车架码" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:电池码,en:Battery code,de:Batterie-Seriennummer}&lt;/label&gt;
+&lt;input type="text" placeholder="" readonly="readonly"
+id="电池码" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:电机码,en:Motor code,de:Motor-Seriennummer}&lt;/label&gt;
+&lt;input type="text" placeholder="" readonly="readonly"
+id="电机码" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row  linkreadonly"&gt;
+&lt;label&gt;lang:{zh:工单编号,en:Work Order,de:Fertigungsauftrag}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder=""  readonly="readonly"
+id="工单编号" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:生产计划号,en:Plan Number}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="生产计划号" paratype="STR" paradm="" value=""  &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品编码" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row  linkreadonly"&gt;
+&lt;label&gt;lang:{zh:产品名称,en:Product Name,de:Bezeichnung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="产品名称" paratype="STR" paradm="" value="" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:数据检查,en:Data check,de:Datenprüfung}&lt;/label&gt;
+&lt;input type="text" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5NewRec>
+  <H5Para>&lt;div class="mui-input-row linkreadonly"&gt;
+&lt;label&gt;lang:{zh:生产地点,en:Site,de:Standort}&lt;/label&gt;
+&lt;input type="button" class="link-pick-btn" not-reset placeholder="" readonly="readonly"
+id="生产地点" paratype="PICKERSTR" required paradm="X3SITE" value="ZUPK"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:入库库位,en:Location,de:Lagerplatz}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="入库库位" required  paratype="STR" paradm="" value="{1}" onkeyup="this.value=this.value.toUpperCase()"  &gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para = function (id, r) {
+    if (id == "linkinput") {
+        scan_impl(id, "#" + r + "#");
+    }
+    else {
+        document.getElementById(id).value = r;
+    }
+};
+
+//扫描后自动保存
+scanAfterAction = function(r) {
+  var dataCheck = $("#数据检查").val();
+  
+  // 数据检查
+  if (dataCheck &amp;&amp; dataCheck.trim() !== "") {
+    alert(dataCheck);
+    keep_focus("linkinput");
+    return;
+  } else {
+    // 数据检查通过，执行自动保存
+    recSave(globleServer, globleDmCode, globleDmNum, dataSumitScriptType, "","autoSave","autoSave");
+  }
+}
+
+afterFunction=function(sta,id){
+  if(id=="autoSave"&amp;&amp;sta=="autoSave")
+    setTimeout(function(){
+      keep_focus("linkinput");
+    },300);   
+};
+
+//删除后自动刷新
+afterFunction=function(id){ 
+    if(id=="linkquick12")
+    reloadModelData()
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#45</ImageFile>
+  <ListPrint />
+  <MD5HASH>a22601d37334e1a56040472d55ecfae7</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP50</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Produktionsrückgabe</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP50</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Production Tracking</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

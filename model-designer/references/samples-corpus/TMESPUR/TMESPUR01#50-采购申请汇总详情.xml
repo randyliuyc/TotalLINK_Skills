@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR01</ModelCode>
+  <ModelNum>50</ModelNum>
+  <ModelDesc>采购申请汇总详情</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT  '{0}'   AS  SITE
+       ,'{1}'   AS  PDEPT
+       ,'{2}'   AS  TCLCOD
+       ,'{3}'   AS  TSICOD1
+       ,'{4}'   AS  TSICOD2
+       ,'{5}'   AS  TSICOD3
+       ,'{6}'   AS  TSICOD4
+       ,'{7}'   AS  ITM
+       ,'{8}'   AS  DOCNUM
+       ,'TSICOD1'                                     FLDTS1S --勿删，产品统计组1传参
+       ,'TSICOD2'                                     FLDTS2S --勿删，产品统计组2传参
+       ,'TSICOD3'                                     FLDTS3S --勿删，产品统计组3传参
+       ,'TSICOD4'                                     FLDTS4S --勿删，产品统计组4传参
+       ,''                                  TCLCODL
+       ,''                                  TSICOD1L
+       ,''                                  TSICOD2L --这几个空值字段，用于选择跳框的参数，不可删除
+       ,''                                  TSICOD3L
+       ,''                                  TSICOD4L
+WHERE '{0}'&lt;&gt;''
+UNION ALL 
+SELECT  'SV'   AS  SITE
+       ,'{1}'   AS  PDEPT
+       ,'{2}'   AS  TCLCOD
+       ,'{3}'   AS  TSICOD1
+       ,'{4}'   AS  TSICOD2
+       ,'{5}'   AS  TSICOD3
+       ,'{6}'   AS  TSICOD4
+       ,'{7}'   AS  ITM
+       ,'{8}'   AS  DOCNUM
+       ,'TSICOD1'                                     FLDTS1S --勿删，产品统计组1传参
+       ,'TSICOD2'                                     FLDTS2S --勿删，产品统计组2传参
+       ,'TSICOD3'                                     FLDTS3S --勿删，产品统计组3传参
+       ,'TSICOD4'                                     FLDTS4S --勿删，产品统计组4传参
+       ,''                                  TCLCODL
+       ,''                                  TSICOD1L
+       ,''                                  TSICOD2L --这几个空值字段，用于选择跳框的参数，不可删除
+       ,''                                  TSICOD3L
+       ,''                                  TSICOD4L
+WHERE '{0}'=''</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#25</ImageFile>
+  <ListPrint />
+  <MD5HASH>5e25621ba062cfcfcab5de7f83f491c3</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR01</DMCODE>
+      <DMNUM>50</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết tóm tắt yêu cầu mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

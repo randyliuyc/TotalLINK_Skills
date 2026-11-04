@@ -1,0 +1,681 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH0510X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>选择BOM产品</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKREFRESH
+--LINKLOADDATAIMMEDIATE
+--LINKDATAMINEOVERVIEW,VERTICAL,50
+DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#';
+DECLARE @LANX3 VARCHAR(30) = (SELECT #LC.X3ERP#GETLANX3(@LAN));
+
+DECLARE @NEWITM VARCHAR(50)='{0}';
+DECLARE @BOMALT VARCHAR(50)=0{1};
+DECLARE @BOMTYP VARCHAR(50)=0{2};
+DECLARE @BOMALTTYP INT =0{3};
+DECLARE @ITMREF VARCHAR(50)='%{4}%';
+DECLARE @CPNITMREF VARCHAR(50)='%{5}%';
+
+IF @BOMALTTYP=4 
+BEGIN
+SELECT TOP 1000 CAST(0 AS BIT ) 选择
+       ,ITF.ITMREF_0   物料编码
+       ,ISNULL(B.ITMDES,ITM.ITMDES1_0) 物料名称
+       ,ITM.STU_0      单位
+FROM ITMFACILIT ITF
+INNER JOIN ITMMASTER ITM
+  ON ITF.ITMREF_0=ITM.ITMREF_0
+	 LEFT JOIN (
+        SELECT
+            B.IDENT1_0 AS ITMREF
+          , B.TEXTE_0 AS ITMDES
+           FROM ATEXTRA B
+      WHERE B.CODFIC_0 = 'ITMMASTER'
+        AND B.LANGUE_0 = @LANX3
+	AND B.IDENT1_0='ITMDES1_0'
+  ) B
+        ON B.ITMREF =ITF.ITMREF_0
+WHERE ITF.STOFCY_0='ZUPK'
+   AND ITF.ITMREF_0 LIKE UPPER(@ITMREF)
+ORDER  BY ITF.ITMREF_0
+END
+ELSE
+BEGIN
+SELECT TOP 1000 CAST(0 AS BIT ) 选择
+               ,D.ITMREF_0   产品编码
+               ,ISNULL(B.ITMDES,HI.ITMDES1_0)    产品名称
+	       ,D.BOMSEQ_0      物料顺序
+               ,D.CPNITMREF_0   物料编码
+               ,ISNULL(B1.ITMDES,DI.ITMDES1_0)    物料名称
+               ,CAST(D.LIKQTY_0 AS REAL) 数量
+               ,D.BOMUOM_0      单位
+FROM   BOMD D
+       INNER JOIN BOM H
+               ON H.ITMREF_0 = D.ITMREF_0
+       INNER JOIN ITMMASTER HI
+               ON HI.ITMREF_0 = D.ITMREF_0
+       INNER JOIN ITMMASTER DI
+               ON DI.ITMREF_0 = D.CPNITMREF_0
+                  AND H.BOMALTTYP_0 = @BOMALTTYP
+                  AND D.ITMREF_0 LIKE @ITMREF
+                  AND D.CPNITMREF_0 LIKE @CPNITMREF
+	 LEFT JOIN (
+      SELECT
+            B.IDENT1_0 AS ITMREF
+          , B.TEXTE_0 AS ITMDES
+      FROM ATEXTRA B
+      WHERE B.CODFIC_0 = 'ITMMASTER'
+        AND B.LANGUE_0 = @LANX3
+	AND B.IDENT1_0='ITMDES1_0'
+  ) B
+        ON B.ITMREF =D.ITMREF_0
+LEFT JOIN (
+          SELECT
+            B.IDENT1_0 AS ITMREF
+          , B.TEXTE_0 AS ITMDES
+      FROM ATEXTRA B
+      WHERE B.CODFIC_0 = 'ITMMASTER'
+        AND B.LANGUE_0 = @LANX3
+	AND B.IDENT1_0='ITMDES1_0'
+  ) B1
+        ON B1.ITMREF = D.CPNITMREF_0
+ORDER  BY D.ITMREF_0
+          ,D.BOMSEQ_0
+END</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NEWITM VARCHAR(50)='{0}';
+DECLARE @BOMALT INT=0{1};
+DECLARE @BOMTYP INT=0{2};
+DECLARE @BOMSEQ INT;
+
+SELECT @BOMSEQ = ISNULL(MAX(BOMSEQ_0), 0) + 5
+FROM XWSBOM 
+WHERE ITMREF_0 = @NEWITM 
+AND BOMALT_0 = @BOMALT;
+
+INSERT INTO [XWSBOM]
+           ([MACHINEID_0]
+           ,[USERID_0]
+           ,[VCRTYP_0]
+           ,[PK_0]
+           ,[BATCHID_0]
+           ,[PKORI_0]
+           ,[CREDATIM_0]
+           ,[STAT_0]
+           ,[SUBDATIM_0]
+           ,[RPFLG_0]
+           ,[RPNUM_0]
+           ,[RPLIN_0]
+           ,[RPNOTE_0]
+           ,[RPDATE_0]
+           ,[RPDATIM_0]
+           ,[XITMREF_0]
+           ,[ITMREF_0]
+           ,[BOMALT_0]
+           ,[CPNITMREF_0]
+           ,[BOMSEQ_0]
+           ,[BOMQTY_0]
+           ,[CREDATTIM_0]
+           ,[UPDDATTIM_0]
+           ,[AUUID_0]
+           ,[CREUSR_0]
+           ,[UPDUSR_0]
+           ,[BOMDES_0]
+           ,[BASQTY_0]
+           ,[USESTA_0]
+           ,[CPNOPE_0]
+           ,[BOMUOM_0]
+           ,[BOMSHO_0])
+     SELECT 
+	   '#LOGIN_ID#'--&lt;MACHINEID_0, nvarchar(50),&gt;
+           ,'#LOGIN_USER#'--&lt;USERID_0, nvarchar(20),&gt;
+           ,103--&lt;VCRTYP_0, smallint,&gt;
+           ,NEWID()--&lt;PK_0, nvarchar(50),&gt;
+           ,''--&lt;BATCHID_0, nvarchar(50),&gt;
+           ,N'#产品编码#'+N'#物料顺序#'--&lt;PKORI_0, nvarchar(50),&gt;
+           ,GETDATE()--&lt;CREDATIM_0, datetime,&gt;
+           ,1--&lt;STAT_0, tinyint,&gt;
+           ,''--&lt;SUBDATIM_0, datetime,&gt;
+           ,1--&lt;RPFLG_0, smallint,&gt;
+           ,''--&lt;RPNUM_0, nvarchar(30),&gt;
+           ,0--&lt;RPLIN_0, int,&gt;
+           ,''--&lt;RPNOTE_0, nvarchar(250),&gt;
+           ,''--&lt;RPDATE_0, datetime,&gt;
+           ,''--&lt;RPDATIM_0, nvarchar(50),&gt;
+           ,N'#产品编码#'--&lt;XITMREF_0, nvarchar(30),&gt;
+           ,@NEWITM--&lt;ITMREF_0, nvarchar(30),&gt;
+           ,@BOMALT--&lt;BOMALT_0, smallint,&gt;
+           ,'#物料编码#'--&lt;CPNITMREF_0, nvarchar(30),&gt;
+           ,@BOMSEQ--&lt;BOMSEQ_0, smallint,&gt;
+           ,0#数量#--&lt;BOMQTY_0, numeric(28,13),&gt;
+           ,GETDATE()--&lt;CREDATTIM_0, datetime,&gt;
+           ,''--&lt;UPDDATTIM_0, datetime,&gt;
+           ,NEWID()--&lt;AUUID_0, binary(16),&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR_0, nvarchar(5),&gt;
+           ,''--&lt;UPDUSR_0, nvarchar(5),&gt;
+           ,''--&lt;BOMDES_0, nvarchar(100),&gt;
+           ,1--&lt;BASQTY_0, numeric(28,13),&gt;
+           ,2--&lt;USESTA_0, tinyint,&gt;
+           ,10--&lt;CPNOPE_0, smallint,&gt;
+           ,'#单位#'--&lt;BOMUOM_0, nvarchar(3),&gt;
+           ,''--&lt;BOMSHO_0, nvarchar(90),&gt;
+        WHERE  '#选择#'='True'</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>BOM编码</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>BOM代码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>BOM类型</ParaLabel03>
+  <ParaType03>DROPDOWN</ParaType03>
+  <ParaSearchCode03>KEEWAYZUPSCH0510X#711</ParaSearchCode03>
+  <ParaDefVal03 />
+  <ParaLabel04>来源类型</ParaLabel04>
+  <ParaType04>DROPDOWN</ParaType04>
+  <ParaSearchCode04>KEEWAYZUPSCH0510X#710</ParaSearchCode04>
+  <ParaDefVal04>1</ParaDefVal04>
+  <ParaLabel05>产品编码</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>物料编码</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#75</ImageFile>
+  <ListPrint />
+  <MD5HASH>9241c041801ca621f852dd2d22265602</MD5HASH>
+  <ModelSetting>{
+    "DataScript": {
+        "UpdateScript": {
+            "EditCols": [
+                "选择"
+            ]
+        }
+    }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>BOM-Code</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>BOM Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>BOM编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>BOM-Code</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>BOM Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>BOM代码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>BOM-Typ</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>BOM Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>BOM类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Quelltyp</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Source Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>来源类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Materialcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>Material Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION>物料编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Select BOM Product</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Select BOM Product</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>产品编码</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Produktname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>Product Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>产品名称</COLNAME>
+      <CAPTION>产品名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Einheit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>单位</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>数量</COLNAME>
+      <CAPTION>数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料编码</COLNAME>
+      <CAPTION>Materialcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料编码</COLNAME>
+      <CAPTION>Material Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料编码</COLNAME>
+      <CAPTION>物料编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料名称</COLNAME>
+      <CAPTION>Materialname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料名称</COLNAME>
+      <CAPTION>Material Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料名称</COLNAME>
+      <CAPTION>物料名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料顺序</COLNAME>
+      <CAPTION>Materialreihenfolge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料顺序</COLNAME>
+      <CAPTION>Material Sequence</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>物料顺序</COLNAME>
+      <CAPTION>物料顺序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>选择</COLNAME>
+      <CAPTION>Auswahl</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>选择</COLNAME>
+      <CAPTION>Select</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH0510X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>选择</COLNAME>
+      <CAPTION>选择</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

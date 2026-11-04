@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP60</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>产品标签</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @LANX3 VARCHAR(30) = '#LINKFUNC.GETLANX3#';
+DECLARE @ITMREF NVARCHAR(100)=N'%{1}%';
+DECLARE @ITMDES VARCHAR(30)='%{2}%';
+SELECT TOP 500
+I.ITMREF_0                           AS 产品编码
+,ISNULL(L1.ITMDES, I.ITMDES1_0)      AS 产品描述1
+,ISNULL(L2.ITMDES, I.ITMDES2_0)      AS 产品描述2
+,I.YMDDES_0                          AS 产品备注 
+,I.EANCOD_0 
+FROM  ITMMASTER I
+       LEFT JOIN ITMLAN1 L1
+              ON L1.ITMREF = I.ITMREF_0
+                 AND L1.LANX3 = @LANX3
+       LEFT JOIN ITMLAN2 L2
+              ON L2.ITMREF = I.ITMREF_0
+                 AND L2.LANX3 = @LANX3
+WHERE   I.ITMREF_0 LIKE UPPER(@ITMREF)
+       AND ISNULL(L1.ITMDES, I.ITMDES1_0)
+           + ISNULL(L2.ITMDES, I.ITMDES2_0) LIKE @ITMDES</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>序列号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编码</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品名称</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>打印机</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>打印机编码</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card linksearch' style="color: black;"&gt;
+&lt;p class='linkcheck' data="#产品编码#" hidden&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/p&gt;
+    &lt;div class="mui-card-body mui-table-view-cell H02"&gt;
+        &lt;a &gt;
+            &lt;h4&gt;lang:{zh:产品编码,en:Product,de:Artikel}: #产品编码#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述1,en:Product Name1,de:Bezeichnung1}:#产品描述1#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品描述2,en:Product Name2,de:Bezeichnung2}:#产品描述2#&lt;/h4&gt;
+            &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品备注,en:Product Remarks,de:Produktbemerkungen}: #产品备注#&lt;/h4&gt;
+        &lt;/a&gt;  
+    &lt;/div&gt;
+
+    &lt;div class="mui-card-footer "&gt;
+       &lt;h4&gt;&lt;/h4&gt;
+       &lt;button class="mui-btn mui-btn-blue" style="padding:0 20px;height:35px;" 
+        type="button" linkquick="8" btnid="503" linkrefresh="1" linkparafill="1" linktitle="lang:{zh:标签打印,en:Label Printing,de:Etikettendrucken}" &gt;
+       &lt;b style="font-size:16px"&gt;lang:{zh:标签打印,en:Label Printing,de:Etikettendrucken}&lt;/b&gt;
+       &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:序列号,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" reload placeholder="lang:{zh:扫码或输入序列号,en:Fuzzy search for product code,de:Unschärfesuche Produktcode}" 
+id="序列号" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品编码,en:Product,de:Artikel}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:产品编码模糊搜索,en:Fuzzy search for product code,de:Unschärfesuche Produktcode}" 
+id="产品编码" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品名称,en:Product Name,de:Bezeichnung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:产品名称模糊搜索,en:Fuzzy search for product name,de:Unschärfesuche Produktname}" 
+id="产品名称" paratype="STR" paradm="" value="" onkeyup="this.value=this.value.toUpperCase()" &gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:打印机,en:Printer,de:Drucker}&lt;/label&gt;
+&lt;input type="button" class="link-pick-btn mui-input-clear" placeholder="" 
+id="打印机" paratype="PICKERSTR" code="KEEWAYZUPSCH30" num="20"   para="ZUPK"  text-value="XPRTNAM_0-XPRTCOD_0"  automatch='{"打印机编码":"XPRTCOD_0","打印机":"XPRTNAM_0"}' reload value="{3}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+&lt;label&gt;lang:{zh:打印机,en:Printer,de:Drucker}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="打印机编码" paratype="STR" paradm="" value="{4}"&gt;
+&lt;/div&gt;
+
+
+&lt;div align="center" &gt;
+&lt;a  class="mui-btn mui-btn-blue" type="button"   linkquick="12" code="KEEWAYZUP60" num="20" para="" api="3" script="504"   style="padding:0 20px;height:35px;"  id="打印1" "value="已打印" linklocation="0"&gt;&lt;b style="font-size:16px"&gt;lang:{zh:序列号打印,en:Serial number printing,de:Seriennummer drucken}&lt;/b&gt;&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row linkreadonly mui-hidden"&gt;  
+&lt;label&gt;lang:{zh:数据检查,en:data check,de:Datenprüfung}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" readonly="readonly"
+id="数据检查" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para = function(id, r) {
+	if (id == "linkinput") {
+		scan_impl(id, "#" + r + "#");
+	} else {
+		document.getElementById(id)
+			.value = r;
+	}
+};
+
+scanAfterAction = function(id) {
+
+	if ($("#数据检查")
+		.val() != "") {
+		alert($("#数据检查")
+			.val())
+	}
+};
+
+beforeFunction = function (sta, id) {
+    if ($("#数据检查").val() != "" &amp;&amp; sta == "linkquick12"){
+        alert($("#数据检查").val())
+        return true;
+    } else {
+        return false;
+    }
+};
+
+
+afterFunction = function(sta) {
+	if (sta == "linkquick12") {
+		$("#序列号,#数据检查,#产品编码")
+			.val("");
+		mui.toast("lang:{zh:打印成功,en:Print successful,de:Erfolgreich ausgedruckt}");
+	}
+	setTimeout(function() {
+		keep_focus("linkinput");
+	}, 300);
+};</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#89</ImageFile>
+  <ListPrint />
+  <MD5HASH>0e4670e1b75adb7cc288202c776534eb</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Produktkennzeichnung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP60</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Product label</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA352010X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>选择收货单</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.VCRNUM_0     CODE
+      ,'Receipt No:'+S.VCRNUM_0+'&lt;br&gt;'
+       +'Heat No:'+S.LOT_0+'&lt;br&gt;'
+	   +'TV No:'+LEFT(SLO_0, 4)+'&lt;br&gt;'
+           +'Routing:'+ISNULL(S.ITMREF_0,'')+'&lt;br&gt;'
+	   +'Quantity/Coil Num:'+CAST(CAST(SUM(S.QTYSTU_0) AS REAL) AS VARCHAR)+'/'+CAST(COUNT(*) AS VARCHAR) DESP
+      ,S.ITMREF_0                              ITMNO
+      ,ITM.ZGRADENO_0                          GRADENO
+      ,LOT_0                                   LOT
+      ,LEFT(SLO_0, 4)                          TV
+      ,ISNULL(H.DOCNUM,CONCAT_WS('-',S.VCRNUM_0,S.LOT_0, LEFT(SLO_0, 4))) DOCNUM
+      ,COUNT(*)                                QTY
+      ,CAST(SUM(S.QTYSTU_0) AS DECIMAL(18, 2)) QTYSTU
+      ,S.PCU_0
+      ,S.BPRNUM_0                              BPSNUM
+      ,S.VCRNUM_0     VCRNUM
+      ,S.CREDAT_0   CREDAT     
+      ,U.ROUCOD ROUCODCK
+FROM #LC.X3DATA#STOJOU S
+       INNER JOIN #LC.X3DATA#ITMMASTER ITM
+               ON S.ITMREF_0 = ITM.ITMREF_0
+       LEFT JOIN QAINSPH H
+              ON H.LOT #LC.X3COLLATE# = S.LOT_0
+                 AND H.TV #LC.X3COLLATE# = LEFT(SLO_0, 4)
+                 AND H.MFGNUM #LC.X3COLLATE# =S.VCRNUM_0
+       LEFT JOIN QAROU U
+              ON U.ROUCOD #LC.X3COLLATE# = S.ITMREF_0
+WHERE  S.VCRTYP_0 = 6
+       AND ITM.TCLCOD_0 IN ('RAW','FPP','MFL')
+       AND S.CREDAT_0 &gt; '#LINKDATE(-1,0,0,yyyy-MM-dd)#'
+GROUP  BY S.ITMREF_0
+          ,ITM.ZGRADENO_0
+          ,LOT_0
+          ,LEFT(SLO_0, 4)
+          ,H.DOCNUM
+          ,S.PCU_0
+          ,S.BPRNUM_0
+	  ,S.VCRNUM_0
+          ,S.CREDAT_0 
+          ,U.ROUCOD
+ORDER BY S.CREDAT_0 DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#21</ImageFile>
+  <ListPrint />
+  <MD5HASH>4a03a2b2a604b6323c69c821872b80a0</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

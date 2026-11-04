@@ -1,0 +1,490 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X</ModelCode>
+  <ModelNum>711</ModelNum>
+  <ModelDesc>检测结果记录-数字控制</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKREFRESH
+--LINKLOADDATAIMMEDIATE
+DECLARE @DOCNUM varchar(30) = '{0}'
+DECLARE @OPENUM varchar(30) = '{1}'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+
+EXECUTE [SP_INSPVAL_N] 
+   @DOCNUM
+  ,@OPENUM
+  ,@USER</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKADDNEWROWS
+--LINKSAVEONENTERKEY
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @DOCNUM VARCHAR(30) = '{0}';
+DECLARE @OPENUM VARCHAR(30) = '{1}';
+DECLARE @VALLIN INT = 0#LINKROWIDVALLIN#;
+DECLARE @TRXLIN INT = 0#TRXLIN#;
+
+UPDATE QAINSPVAL
+SET N1 = 0#N1#
+    , N2 = 0#N2#
+    , N3 = 0#N3#
+    , N4 = 0#N4#
+    , N5 = 0#N5#
+    , N6 = 0#N6#
+    , N7 = 0#N7#
+    , N8 = 0#N8#
+    , SPOOL = '#SPOOL#'
+    , COIL = '#COIL#'
+    , SAMP = '#SAMP#'
+    , REMARK=N'#REMARK#'
+    , UPDUSR = N'#LOGIN_USER#'
+    , UPDTIM = GETDATE()
+WHERE DOCNUM = @DOCNUM
+  AND OPENUM = @OPENUM
+  AND VALLIN = @VALLIN
+  AND TRXLIN = @TRXLIN
+
+-- 行计算值
+EXECUTE [SP_INSPVAL_NCHECK] 
+   @DOCNUM
+  ,@OPENUM
+  ,@VALLIN
+  ,@TRXLIN;</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>DOCNUM</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>OPENUM</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @DOCNUM VARCHAR(30) = '{0}';
+DECLARE @OPENUM VARCHAR(30) = '{1}';
+
+-- 生成行号
+DECLARE @VALLIN INT
+
+SELECT @VALLIN = ISNULL(MAX(VALLIN), 0) + 10
+FROM QAINSPVAL
+WHERE DOCNUM = @DOCNUM
+    AND OPENUM = @OPENUM
+
+INSERT INTO QAINSPVAL (
+    DOCNUM
+    , OPENUM
+    , VALLIN
+    , TRXLIN
+    , SPOOL
+    , COIL
+    , SAMP
+    , N1
+    , N2
+    , N3
+    , N4
+    , N5
+    , N6
+    , N7
+    , N8
+    , CREUSR
+    , CRETIM
+    )
+VALUES (
+    @DOCNUM --DOCNUM
+    , @OPENUM --OPENUM
+    , @VALLIN --VALLIN
+    , 0 --TRXLIN
+    , '#SPOOL#'
+    , '#COIL#'
+    , '#SAMP#'
+    , 0#N1# --N1
+    , 0#N2# --N2
+    , 0#N3# --N3
+    , 0#N4# --N4
+    , 0#N5# --N5
+    , 0#N6# --N6
+    , 0#N7# --N7
+    , 0#N8# --N8
+    , N'#LOGIN_USER#' --CREUSR
+    , getdate() --CRETIM
+    );
+
+-- 行计算值
+EXECUTE [SP_INSPVAL_NCHECK] 
+   @DOCNUM
+  ,@OPENUM
+  ,@VALLIN
+  ,0;</SQLNew>
+  <SQLRemove>DECLARE @DOCNUM VARCHAR(30) = '{0}';
+DECLARE @OPENUM VARCHAR(30) = '{1}';
+
+DELETE
+FROM QAINSPVAL
+WHERE ID = 0#LINKROWID#
+
+-- 自动处理当前检验行
+EXECUTE [SP_INSPL_CHECK] @DOCNUM
+    , @OPENUM
+
+-- 自动处理当前检验任务
+EXECUTE [SP_INSPH_CHECK] @DOCNUM</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#92</ImageFile>
+  <ListPrint />
+  <MD5HASH>546cbbe5b763cc3e2cda889663d4269b</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5",
+        "N6",
+        "N7",
+        "N8",
+        "SPOOL",
+        "COIL",
+        "SAMP",
+        "REMARK",
+        "USERCHECK"
+      ]
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>Coil</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>COIL</COLNAME>
+      <CAPTION>段</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>NCTYP</COLNAME>
+      <CAPTION>NC Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>NCTYP</COLNAME>
+      <CAPTION>NC 类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>Remark</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION>备注</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>SAMP</COLNAME>
+      <CAPTION>Samping</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>SAMP</COLNAME>
+      <CAPTION>样品</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>Spool</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>SPOOL</COLNAME>
+      <CAPTION>轴</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>Status</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION>状态</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>TRXLIN</COLNAME>
+      <CAPTION>Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>TRXLIN</COLNAME>
+      <CAPTION>行</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>USERCHECK</COLNAME>
+      <CAPTION>User Check</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>USERCHECK</COLNAME>
+      <CAPTION>用户确认</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>VALAVG</COLNAME>
+      <CAPTION>Average</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>VALAVG</COLNAME>
+      <CAPTION>平均值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>Max</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>VALMAX</COLNAME>
+      <CAPTION>最大值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>Min</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQATSK10X</DMCODE>
+      <DMNUM>711</DMNUM>
+      <COLNAME>VALMIN</COLNAME>
+      <CAPTION>最小值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

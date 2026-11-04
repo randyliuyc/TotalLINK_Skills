@@ -1,0 +1,757 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA3530</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>外观</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKAPPMENUHIDE
+DECLARE @DOCNUM VARCHAR(30)='MFG24100102-65';
+DECLARE @OPENUM INT=0130;
+DECLARE @INSTCOD VARCHAR(30)='';
+
+DECLARE @ROUCOD VARCHAR(30);
+
+SELECT @ROUCOD = ROUCOD
+FROM QAINSPH
+WHERE DOCNUM = @DOCNUM;;
+
+UPDATE QAINSPL
+SET INSTCOD = @INSTCOD
+WHERE DOCNUM = @DOCNUM
+    AND OPENUM = @OPENUM;
+
+IF OBJECT_ID(N'tempdb..#TCC') IS NOT NULL
+    DROP TABLE #TCC;
+
+WITH CTE_TC
+AS (
+    SELECT CONCAT (
+            'T'
+            , VALTYP
+            , VALLIN
+            ) TC
+        , VALDES
+    FROM QAROULINCTL
+    WHERE ROUCOD = @ROUCOD
+        AND OPENUM = @OPENUM
+        AND VALTYP IN ('L', 'N')
+    
+    UNION ALL
+    
+    SELECT CONCAT (
+            'F'
+            , VALTYP
+            , VALLIN
+            ) TC
+        , IIF(VALDES = '', 'mui-hidden', '') VALDES
+    FROM QAROULINCTL
+    WHERE ROUCOD = @ROUCOD
+        AND OPENUM = @OPENUM
+        AND VALTYP IN ('L', 'N')
+    )
+SELECT *
+INTO #TCC
+FROM (
+    SELECT *
+    FROM CTE_TC
+    ) AS SourceTable
+PIVOT(MAX(VALDES) FOR TC IN (
+            TN1, TN2, TN3, TN4, TN5, TN6, TN7, TN8, TL1, TL2, --
+            FN1, FN2, FN3, FN4, FN5, FN6, FN7, FN8, FL1, FL2
+            )) AS PivotTable;
+
+SELECT CASE WHEN D.OPEDES2 = '自行车 / 外观' THEN 'lang:{zh:自行车 / 外观,de:Fahrrad / Aussehen}' END OPEDES2
+    , L.MEAFRQ
+    , L.CTLTYP
+    , L.INSTCOD
+    , CASE WHEN S.SPOOL + S.COIL + S.SAMP = '包装箱破损' THEN 'lang:{zh:包装箱破损,de:Verpackungskarton beschädigt}' 
+           WHEN S.SPOOL + S.COIL + S.SAMP = '撞击痕迹' THEN 'lang:{zh:撞击痕迹,de:Aufprallspuren}' 
+           WHEN S.SPOOL + S.COIL + S.SAMP = '是否改装' THEN 'lang:{zh:是否改装,de:Umbau vorhanden}' 
+           WHEN S.SPOOL + S.COIL + S.SAMP = '拆箱外观检验' THEN 'lang:{zh:拆箱外观检验,de:Sichtprüfung nach Auspacken}' 
+           END QAITM
+    , CAST(S.N1 AS DECIMAL(18, 3)) N1
+    , CAST(S.N2 AS DECIMAL(18, 3)) N2
+    , CAST(S.N3 AS DECIMAL(18, 3)) N3
+    , CAST(S.N4 AS DECIMAL(18, 3)) N4
+    , CAST(S.N5 AS DECIMAL(18, 3)) N5
+    , CAST(S.N6 AS DECIMAL(18, 3)) N6
+    , CAST(S.N7 AS DECIMAL(18, 3)) N7
+    , CAST(S.N8 AS DECIMAL(18, 3)) N8
+    , IIF(S.L1=1,'True','False') L1
+    , IIF(S.L2=1,'True','False') L2
+    , S.REMARK
+    , CASE 
+        WHEN L.CTLTYP = 'N'
+            THEN REPLACE(CONCAT_WS('/', CAST(S.N1 AS DECIMAL(18, 3)), CAST(S.N2 AS DECIMAL(18, 3)), --
+                        CAST(S.N3 AS DECIMAL(18, 3)), CAST(S.N4 AS DECIMAL(18, 3)), --
+                        CAST(S.N5 AS DECIMAL(18, 3)), CAST(S.N6 AS DECIMAL(18, 3)), --
+                        CAST(S.N7 AS DECIMAL(18, 3)), CAST(S.N8 AS DECIMAL(18, 3))), '/0.000', '')
+        ELSE (
+                IIF(S.L1 = 1, 'OK', 'NOK') + CASE 
+                    WHEN L.L2CHECK = 1
+                        AND S.L2 = 1
+                        THEN '/OK'
+                    WHEN L.L2CHECK = 1
+                        AND S.L2 = 0
+                        THEN '/NOK'
+                    ELSE ''
+                    END
+                )
+        END QAVAL
+    , S.ID QAID
+    , IIF(L.CTLTYP = 'N', '501', '502') QABUT
+    , S.DOCNUM
+    , S.OPENUM
+    , S.VALLIN
+    , IIF(L.CTLTYP = 'N', CAST(CAST(L.NMIN AS DECIMAL(18, 3)) AS VARCHAR) + '~' --
+        + CAST(CAST(L.NMAX AS DECIMAL(18, 3)) AS VARCHAR), '') MINMAX
+    , C.*
+    , CASE 
+        WHEN S.STA = 1
+            THEN 'H03'
+        WHEN S.STA = 0
+            AND S.N1 + CAST(S.L1 AS INT) &lt;&gt; 0
+            THEN 'D03'
+        ELSE 'C02'
+        END LINKAPPRROW
+    ,S.STA
+    ,IIF(S.SPOOL + S.COIL + S.SAMP IN ('检查人','检查日期','客户姓名','工单编号','退货单号','车架号','车型','整车编码','行驶里程') ,'','mui-hidden') WBHIDFLG
+    ,IIF(S.SPOOL + S.COIL + S.SAMP NOT IN ('检查人','检查日期','客户姓名','工单编号','退货单号','车架号','车型','整车编码','行驶里程') ,'','mui-hidden') TPHIDFLG
+FROM QAINSPVAL S
+INNER JOIN QAINSPL L
+    ON S.DOCNUM = L.DOCNUM
+        AND S.OPENUM = L.OPENUM
+INNER JOIN QAINSPH H
+    ON H.DOCNUM = S.DOCNUM
+INNER JOIN QAOPESTD D
+    ON L.OPESTD = D.OPESTD
+INNER JOIN #TCC C
+    ON 1 = 1
+WHERE S.DOCNUM = @DOCNUM
+    AND S.OPENUM = @OPENUM
+    AND S.VALLIN IN (30,40,50,60)
+
+IF OBJECT_ID(N'tempdb..#TCC') IS NOT NULL
+    DROP TABLE #TCC;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+ &lt;div class='mui-card-footer #LINKAPPRROW# '&gt;   
+ &lt;h4&gt;#QAITM#&lt;/h4&gt;
+&lt;button class="mui-btn mui-btn-blue" style="width:80px;height:35px"   linkquick="8" btnid="#QABUT#" linkrefresh="1" linkparafill="1" linktitle="检验"  linklocation="0" linkimage="0"&gt;
+&lt;b style="font-size:16px"&gt;lang:{zh:检验,de:prüfen}&lt;/b&gt;&lt;/button&gt;
+ &lt;/div&gt;
+ &lt;div class='mui-card-content'&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;#QAITM#:&lt;/h4&gt;
+ &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:备注:,de:Bemerkung:}#REMARK#&lt;/h4&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#44</ImageFile>
+  <ListPrint />
+  <MD5HASH>9a15d9f905db19a95025f6e24dd69741</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>CTLTYP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FL1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FL2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN6</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN7</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>FN8</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>L2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKAPPRROW</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Aussehen</CAPTION>
+      <COLTYPE>de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Aussehen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>MEAFRQ</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>MINMAX</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N6</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N7</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>N8</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>OPENUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>QABUT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>QAID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>QAITM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>QAVAL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TL1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TL2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN2</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN3</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN4</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN5</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN6</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN7</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TN8</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>TPHIDFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>VALLIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA3530</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>WBHIDFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

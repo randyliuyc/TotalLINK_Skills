@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQATSK10X742X</ModelCode>
+  <ModelNum>21</ModelNum>
+  <ModelDesc>同步质检结果</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@DATAQA:
+DECLARE @DOCNUM VARCHAR(30) = '{0}';
+DECLARE @MFGNUM VARCHAR(30);
+DECLARE @ROUOPE INT;
+DECLARE @LINKMSG NVARCHAR(500) = '';
+
+SELECT @MFGNUM = MFGNUM
+    , @ROUOPE = ROUOPE
+FROM QAINSPH H
+WHERE H.DOCNUM = @DOCNUM;
+
+IF EXISTS (SELECT TOP 1 1 FROM x3v12sql.ERASTEEL.XWSMKOES 
+	WHERE MFGNUM_0 = @MFGNUM
+		AND OPENUM_0 = @ROUOPE)
+BEGIN 
+	SELECT N'LINKPREVENT:已经存在报工记录，不可重复同步。' LINKMESSAGE
+END
+ELSE 
+BEGIN 
+	SELECT CASE 
+			WHEN STA = 0
+				THEN N'LINKPREVENT:检验未完成，不可同步。'
+			WHEN STA = 1
+				THEN N'LINKCONFIRM:有不合格记录，是否确认同步？'
+			ELSE ''
+			END LINKMESSAGE
+	FROM QAINSPH
+	WHERE DOCNUM = @DOCNUM;
+END
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>DECLARE @DOCNUM VARCHAR(30) = '{0}';
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#';
+-- 
+DECLARE @MFGNUM VARCHAR(30);
+DECLARE @OPENUM INT;
+
+SELECT @MFGNUM = MFGNUM
+    , @OPENUM = ROUOPE
+FROM QAINSPH
+WHERE DOCNUM = @DOCNUM;
+
+UPDATE #LC.X3DATA#MFGOPE
+SET XESMMTRKSTA_0 = 5
+WHERE MFGNUM_0 = @MFGNUM
+    AND OPENUM_0 = @OPENUM;
+
+UPDATE #LC.X3DATA#MFGOPE  
+SET XESMMTRKSTA_0 = 3 
+WHERE  MFGNUM_0 + CONVERT(VARCHAR(10), OPENUM_0) = 
+	(SELECT TOP 1 MFGNUM_0 + CONVERT(VARCHAR(10), O.OPENUM_0) 
+		FROM #LC.X3DATA#MFGOPE O 
+		WHERE MFGNUM_0 = @MFGNUM AND OPENUM_0 &gt; @OPENUM ORDER BY OPENUM_0);
+
+UPDATE QAINSPH
+SET CLOSTA = 1
+    , CLOTIM = GETDATE()
+    , CLOUSR = @USER
+WHERE DOCNUM = @DOCNUM;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#08</ImageFile>
+  <ListPrint />
+  <MD5HASH>dcf0fc45110395b40f4043e05e119b55</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

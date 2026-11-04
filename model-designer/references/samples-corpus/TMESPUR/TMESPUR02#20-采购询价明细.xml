@@ -1,0 +1,225 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR02</ModelCode>
+  <ModelNum>20</ModelNum>
+  <ModelDesc>采购询价明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT L.DOCNUM --询价单号
+       ,L.DOCLIN --询价行号
+       ,dbo.Optdes('DOCSTA', L.DOCSTA)                                                      DOCSTA
+       ,L.ITMNO --产品编码
+       ,ITM.ITMNAM
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,L.FAC
+       ,T1.OPTDES                                                                           OPTDES1
+       ,T2.OPTDES                                                                           OPTDES2
+       ,L.ITMVER --产品版本
+       ,L.STU --库存单位
+       ,L.UOM --采购单位
+       ,L.UOMCOE
+       ,L.QTY --采购单位数量
+       ,L.QTYSTU
+       ,CONVERT(VARCHAR(16), L.REQDAT, 23)                                                  REQDAT
+       ,L.BPSNO
+       ,BPS.BPSNAM
+       ,L.NETPRI
+       ,L.CUR
+       ,L.QTY * L.NETPRI                                                                    AMT
+       ,Iif(L.DOCSTA = '1', '', '1')                                                        LDEBFLG
+       ,L.DOCNUM + Cast(L.DOCLIN AS VARCHAR)                                                LINKROWID
+       ,L.DOCNUM                                                                            pid--询价单号
+       ,L.REMARK                                                                            LREMARK
+       ,String_agg(Concat(S.BPSNO, ' : ', Format(S.NETPRI, '0.######'), ' ', S.CUR), ';  ') AS SUPPLIERS -- 合并供应商报价
+       ,LSP.BPSNAM + ' : '
+        + Format(LSP.GROPRI, '0.######') + ' ' + LSP.CUR                                    LATEST
+       ,(SELECT Sum(QTY)
+         FROM   PREQUL QUL
+         WHERE  L.ITMNO = QUL.ITMNO
+                AND L.ITMVER = QUL.ITMVER
+                AND L.STU = QUL.STU
+                AND L.UOM = QUL.UOM
+                AND L.UOMCOE = QUL.UOMCOE
+                AND L.DOCNUM = QUL.PINNUM)                                                  SUMQULQTY
+FROM   PINQUL L
+       LEFT JOIN ITM
+              ON ITM.ITMNO = L.ITMNO
+       LEFT JOIN BPSUP BPS
+              ON BPS.BPSNO = L.BPSNO
+       LEFT JOIN LINKOPT T1
+              ON ITM.TSICOD1 = T1.OPTID
+                 AND T1.OPTTYP = 'TSICOD1'
+       LEFT JOIN LINKOPT T2
+              ON ITM.TSICOD2 = T2.OPTID
+                 AND T2.OPTTYP = 'TSICOD2'
+       LEFT JOIN PINQUS S
+              ON L.DOCNUM = S.DOCNUM
+                 AND L.DOCLIN = S.DOCLIN
+       LEFT JOIN BPSUP BPS1
+              ON BPS1.BPSNO = S.BPSNO
+       LEFT JOIN(SELECT TOP 1 L.ITMNO
+                              ,H.BPSNO
+                              ,H.CUR
+                              ,BPS2.BPSNAM
+                              ,GROPRI
+                 FROM   PORDLIN L
+                        LEFT JOIN PORDER H
+                               ON H.DOCNUM = L.DOCNUM
+                        LEFT JOIN BPSUP BPS2
+                               ON H.BPSNO = BPS2.BPSNO
+                 WHERE  L.DOCSTA = 2
+                 ORDER  BY L.CRETIM DESC) LSP
+              ON LSP.ITMNO = L.ITMNO
+WHERE  L.DOCNUM = '{0}'
+GROUP  BY L.DOCNUM
+          ,L.DOCLIN
+          ,L.ITMNO
+          ,ITM.ITMNAM
+          ,ITM.ITMNAM1
+          ,ITM.ITMNAM2
+          ,ITM.ITMSPEC
+          ,ITM.ITMSIZE
+          ,L.ITMVER
+          ,L.STU
+          ,L.UOM
+          ,L.UOMCOE
+          ,L.QTY
+          ,L.QTYSTU
+          ,L.REQDAT
+          ,L.BPSNO
+          ,BPS.BPSNAM
+          ,L.NETPRI
+          ,L.CUR
+          ,L.DOCSTA
+          ,L.REMARK
+          ,T1.OPTDES
+          ,T2.OPTDES
+          ,L.FAC
+          ,LSP.BPSNAM
+          ,LSP.GROPRI
+          ,LSP.CUR</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+
+UPDATE PINQUL
+SET    QTY = 0#QTY#
+       ,QTYSTU = 0#QTY# * 0#UOMCOE#
+       ,REMARK = N'#LREMARK#'
+       ,UPDUSR = '#LOGIN_USER#'
+       ,UPDTIM = Getdate()
+WHERE  DOCNUM = N'#DOCNUM#'
+       AND DOCLIN = 0#DOCLIN#;</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>单据编号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>UPDATE PREQUL
+SET    PINNUM = ''
+WHERE  PINNUM = '#DOCNUM#'
+       AND ITMNO = '#ITMNO#'
+       AND ITMVER = '#ITMVER#'; 
+
+DELETE FROM PINQUL
+WHERE  DOCNUM + Cast(DOCLIN AS VARCHAR) = '#LINKROWID#';
+
+DELETE FROM PINQUS
+WHERE  DOCNUM + Cast(DOCLIN AS VARCHAR) = '#LINKROWID#';</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div style="font-size: 20px;"&gt;#DOCLIN#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNO#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNAM#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMVER#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSPEC#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSIZE#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#QTY#[#UOM#]&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#REQDAT#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#LREMARK#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#82</ImageFile>
+  <ListPrint />
+  <MD5HASH>ee20ec3d23310129adae58836fb85beb</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR02</DMCODE>
+      <DMNUM>20</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

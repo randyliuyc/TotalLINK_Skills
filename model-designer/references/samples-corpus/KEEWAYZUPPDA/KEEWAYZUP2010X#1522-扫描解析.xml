@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP2010X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫描解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>-- 使用参数化变量
+DECLARE 
+    @ITMREF VARCHAR(30) = '#产品编码#',
+    @FCY VARCHAR(30) = '#地点#',
+    @NEWLOC VARCHAR(30) = '#新库位#',
+    @TAG VARCHAR(100) = '{0}';
+
+DECLARE @StockCount INT;
+SELECT 
+    @StockCount = COUNT(*)
+FROM STOCK
+WHERE (ITMREF_0+LOT_0=@TAG OR SERNUM_0 = @TAG OR ZSTOFLD3_0=@TAG)
+    AND STOFCY_0 = @FCY 
+	--AND ITMREF_0=@ITMREF-- 添加地点条件，减少数据量
+    AND LOC_0&lt;&gt;@NEWLOC;
+
+IF @StockCount = 0
+    SELECT N'lang:{zh:扫描产品错误或无库存:,en:Scan product error or no stock:,de:Scan-Fehler oder kein Bestand:} ' + @TAG AS 数据检查;
+ELSE IF @StockCount &gt; 1
+    SELECT N'lang:{zh:多个存库行，请选择,en:Multiple stock rows, please select,de:Mehrere Bestandszeilen, bitte wählen}' AS 数据检查;
+ELSE
+BEGIN
+    -- 3. 优化主查询，使用CTE提高可读性
+    WITH XWSSummary AS (
+        SELECT 
+            STOCOU_0,
+            SUM(QTYSTU_0) AS QTY
+        FROM XWSSCS
+        WHERE RPFLG_0 &lt;&gt; 3
+        GROUP BY STOCOU_0
+    ),
+    StockData AS (
+        SELECT 
+            K.ITMREF_0,
+            K.SERNUM_0,
+            K.LOT_0,
+            K.QTYSTU_0,
+            K.CUMALLQTY_0,
+            K.LOC_0,
+            K.STA_0,
+            K.PALNUM_0,
+            K.STOCOU_0,
+            K.ZSTOFLD3_0,
+            -- 计算可用数量
+            K.QTYSTU_0 - ISNULL(XWS.QTY, 0) - K.CUMALLQTY_0 AS AvailableQty
+        FROM STOCK K
+        LEFT JOIN XWSSummary XWS 
+            ON XWS.STOCOU_0 = K.STOCOU_0 
+        WHERE K.STOFCY_0 = @FCY
+            AND K.LOC_0&lt;&gt;@NEWLOC
+			--AND K.ITMREF_0=@ITMREF
+            AND (K.ITMREF_0+K.LOT_0 = @TAG OR K.SERNUM_0 = @TAG  OR K.ZSTOFLD3_0=@TAG)
+    )
+    -- 4. 最终结果
+    SELECT 
+        ITMREF_0 AS 产品编码,
+        CAST(
+            CASE 
+                WHEN SERNUM_0 &lt;&gt; '' THEN 1
+                ELSE AvailableQty
+            END AS REAL
+        ) AS 数量,
+        LOC_0 AS 原库位,
+       ISNULL(NULLIF(SERNUM_0, ''), ZSTOFLD3_0) AS 序列号,
+        LOT_0    AS 批次,
+        CASE 
+            WHEN AvailableQty = 0 THEN N'lang:{zh:可用库存为0,en:Available stock is 0,de:Verfügbarer Bestand ist 0}'
+            ELSE ''
+        END AS 数据检查,
+        STOCOU_0 AS STOCOU
+    FROM StockData;
+END;</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#36</ImageFile>
+  <ListPrint />
+  <MD5HASH>c7d13f1a0062346c63e53c78744d2cb2</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP2010X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Scan Parse</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

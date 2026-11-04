@@ -1,0 +1,531 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR03</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>采购订单详情</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKAPPMENUHIDE
+--LINKMYROWDATA
+--LINKDETAILLIST(TMESPUR03,20,{0})
+SELECT S.ID                                   LINKROWID
+       ,S.DOCTYP
+       ,S.DOCNUM
+       ,S.DOCNUM                              id
+       ,S.DOCGRP
+       ,S.DOCSTA
+       ,DOCSTA.OPTDES                         DOCSTADES
+       ,CONVERT(VARCHAR(10), S.DOCDAT, 23)    DOCDAT
+       ,S.WFLSTA
+       ,WFLSTA.OPTDES                         WFLSTADES
+       ,S.DOCDES
+       ,S.SITE
+       ,SIT.SITENAM
+       ,S.SITETRA       --贸易地点
+       --,SITRA.SITENAM       SITETRANAM
+       ,SITETRABPS.BPSNAM SITETRANAM
+       ,SIT.CUR                               SITECUR
+       ,S.FAC
+       ,S.DEPT
+       ,S.GRP
+       ,S.RESNO
+       ,RES.RESNAM
+       ,S.PRJNUM
+       ,S.BPSNO
+       ,BPS.BPSNAM
+       ,S.CUR
+       ,S.CURRAT
+       ,S.BVATTYP
+       ,BVATTYP.OPTDES                        BVATTYPDES
+       ,S.SRCTYP
+       ,S.SRCDOC
+       ,S.SRCLIN
+       ,S.REMARK
+       ,S.CLOREA
+       ,S.PRNCNT
+       ,S.CONTNOI
+       ,S.CONTNOE
+       ,S.POD
+       ,S.CONTDAT
+       ,S.CONTDES
+       ,S.COTTONLEN
+       ,S.COTTONMIC
+       ,S.COTTONSTR
+       ,S.LSD
+       ,S.LCNO
+       ,S.LCBANK
+       ,CONVERT(VARCHAR(10), S.LCDATE, 23)    LCDATE
+       ,S.AGENT
+       ,S.AGENTREF
+       ,S.CLAIM
+       ,S.CONTMEMO
+       ,S.CONTSPEC
+       ,S.APPREASON
+       ,S.PAYMETHOD
+       ,S.GOODDESC
+       ,S.OTHERTERMS
+       ,ISNULL(S.PRITERM,'') PRITERM --价格条款
+       ,S.CREUSR
+       ,S.UPDUSR
+       ,CONVERT(VARCHAR(16), S.[CRETIM], 21)  CRETIM
+       ,CONVERT(VARCHAR(16), S.[UPDTIM], 21)  UPDTIM
+       ,Iif(S.DOCSTA = '1', '', '1')          SABFLG
+       ,Iif(S.DOCSTA = '1', '', '1')          DEBFLG
+       ,Iif(S.DOCSTA = '1', '', '1')          SUBFLG
+       ,Iif(S.DOCSTA = '3', '', '1')          REBFLG
+       ,Iif(S.DOCSTA IN( '1', '2' ), '', '1') CLBFLG
+       ,Iif(S.DOCSTA IN( '1', '2' ), '', '1') COPFLG
+       ,'POSTD'                               PRINTS
+       ,(SELECT Cast(Sum(GRPAMT) AS REAL)
+         FROM   PORDLIN
+         WHERE  DOCNUM = S.DOCNUM)            AMT
+       ,'{1}'                                 SIGNLISTID
+       ,N''                                   PITMNO
+       ,N''                                   PITMVER
+       ,N''                                   PELSE
+       ,N''                                   PPINNUM
+       ,S.BPSNO                                   PBPSNO
+       ,S.TAXRT
+FROM   PORDER S
+       LEFT JOIN BPSUP BPS
+              ON S.BPSNO = BPS.BPSNO
+       LEFT JOIN BPSUP SITETRABPS
+              ON S.SITETRA = SITETRABPS.BPSNO
+       LEFT JOIN ENTSITE SIT
+              ON S.SITE = SIT.SITE
+       LEFT JOIN ENTSITE SITRA
+              ON S.SITETRA = SITRA.SITE
+       LEFT JOIN ENTRES RES
+              ON RES.RESNO = S.RESNO
+       LEFT JOIN LINKOPT WFLSTA
+              ON WFLSTA.OPTID = S.WFLSTA
+                 AND WFLSTA.OPTTYP = 'WFLSTA'
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT BVATTYP
+              ON BVATTYP.OPTID = S.BVATTYP
+WHERE  S.DOCNUM = '{0}'
+UNION ALL
+SELECT 0                                    LINKROWID
+       ,N'POR'                              DOCTYP
+       ,N'#LINKDOCNUM({0},POR)#'            DOCNUM
+       ,N'#LINKDOCNUM({0},POR)#'            id
+       ,N''                                 DOCGRP
+       ,N''                                 DOCSTA
+       ,N''                                 DOCSTADES
+       ,CONVERT(VARCHAR(10), Getdate(), 23) DOCDAT
+       ,''                                  WFLSTA
+       ,''                                  WFLSTADES
+       ,N''                                  DOCDES
+       ,N'SV'                               SITE
+       ,N'百隆越南'                         SITENAM
+       ,N''                                 SITETRA       --贸易地点
+       ,N''                                 SITETRANAM
+       ,N'VND'                              SITECUR
+       ,N''                                 FAC
+       ,N''                                 DEPT
+       ,N''                                 GRP
+       ,N''                                 RESNO
+       ,N''                                 RESNAM
+       ,N''                                 PRJNUM
+       ,N''                                 BPSNO
+       ,N''                                 BPSNAM
+       ,N''                                 CUR
+       ,0                                   CURRAT
+       ,N''                                 BVATTYP
+       ,N''                                 BVATTYPDES
+       ,N''                                 SRCTYP
+       ,N''                                 SRCDOC
+       ,0                                   SRCLIN
+       ,N''                                 REMARK
+       ,N''                                 CLOREA
+       ,N''                                 PRNCNT
+       ,N''                                 CONTNOI
+       ,N''                                 CONTNOE
+       ,N''                                 POD
+       ,CONVERT(VARCHAR(10), Getdate(), 23)   CONTDAT
+       ,N''                                 CONTDES
+       ,N''                                 COTTONLEN
+       ,N''                                 COTTONMIC
+       ,N''                                 COTTONSTR
+       ,N''                                 LSD
+       ,N''                                 LCNO
+       ,N''                                 LCBANK
+       ,CONVERT(VARCHAR(10), Getdate(), 23) LCDATE
+       ,N''                                 AGENT
+       ,N''                                 AGENTREF
+       ,N''                                 CLAIM
+       ,N''                                 CONTMEMO
+       ,N''                                 CONTSPEC
+       ,N''                                 APPREASON
+       ,N''                                 PAYMETHOD
+       ,N''                                 GOODDESC
+       ,N''                                 OTHERTERMS
+       ,N''                                 PRITERM 
+       ,N'#LOGIN_USER#'                     CREUSR
+       ,N''                                 UPDUSR
+       ,CONVERT(VARCHAR(16), Getdate(), 21) CRETIM
+       ,''                                  UPDTIM
+       ,''                                  SABFLG
+       ,'1'                                 DEBFLG
+       ,'1'                                 SUBFLG
+       ,'1'                                 REBFLG
+       ,'1'                                 CLBFLG
+       ,'1'                                 COPFLG
+       ,'POSTD'                             PRINTS
+       ,0                                   AMT
+       ,''                                  SIGNLISTID
+       ,N''                                 PITMNO
+       ,N''                                 PITMVER
+       ,N''                                 PELSE
+       ,N''                                 PPINNUM
+       ,N''                                   PBPSNO
+       ,0                                   TAXRT
+WHERE  N'{0}' = ''</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE
+INTO
+[PORDER] D
+		USING (
+	SELECT
+ N'#DOCNUM#' DOCNUM
+,N'#DOCGRP#' DOCGRP
+,N'1' DOCSTA
+,N'#DOCDAT#' DOCDAT
+,N'SAVED' WFLSTA
+,N'#DOCDES#' DOCDES
+,N'#SITE#' SITE
+,N'#SITETRA#'  SITETRA
+,N'#FAC#' FAC
+,N'#DEPT#' DEPT
+,N'#GRP#' GRP
+,N'#RESNO#' RESNO
+,N'#PRJNUM#' PRJNUM
+,N'#BPSNO#' BPSNO
+,N'#CUR#' CUR
+,0#CURRAT# CURRAT
+,N'#BVATTYP#' BVATTYP
+,N'#SRCTYP#' SRCTYP
+,N'#SRCDOC#' SRCDOC
+,0#SRCLIN# SRCLIN
+,N'#REMARK#' REMARK
+,N'#CLOREA#' CLOREA
+,0#PRNCNT# PRNCNT
+,N'#CONTNOI#' CONTNOI
+,N'#CONTNOE#' CONTNOE
+,N'#POD#' POD
+,N'#CONTDAT#' CONTDAT
+,N'#CONTDES#' CONTDES
+,N'#COTTONLEN#' COTTONLEN
+,N'#COTTONMIC#' COTTONMIC
+,N'#COTTONSTR#' COTTONSTR
+,N'#LSD#' LSD
+,N'#LCNO#' LCNO
+,N'#LCBANK#' LCBANK
+,N'#LCDATE#' LCDATE
+,N'#AGENT#' AGENT
+,N'#AGENTREF#' AGENTREF
+,N'#CLAIM#' CLAIM
+,N'#CONTMEMO#' CONTMEMO
+,N'#CONTSPEC#' CONTSPEC
+,N'#APPREASON#' APPREASON
+,N'#PAYMETHOD#' PAYMETHOD
+,N'#GOODDESC#' GOODDESC
+,N'#OTHERTERMS#' OTHERTERMS
+,N'#PRITERM#'  PRITERM 
+,N'#LOGIN_USER#' CREUSR
+,GETDATE() CRETIM
+,0#TAXRT# TAXRT
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM])
+	WHEN MATCHED THEN
+UPDATE
+SET 
+ DOCGRP = S.DOCGRP
+,DOCDAT = S.DOCDAT
+,DOCDES = S.DOCDES
+,SITE = S.SITE
+,SITETRA = S.SITETRA
+,FAC = S.FAC
+,DEPT = S.DEPT
+,GRP = S.GRP
+,RESNO = S.RESNO
+,PRJNUM = S.PRJNUM
+,BPSNO = S.BPSNO
+,CUR = S.CUR
+,CURRAT = S.CURRAT
+,BVATTYP = S.BVATTYP
+,SRCTYP = S.SRCTYP
+,SRCDOC = S.SRCDOC
+,SRCLIN = S.SRCLIN
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,PRNCNT = S.PRNCNT
+,CONTNOI = S.CONTNOI
+,CONTNOE = S.CONTNOE
+,POD = S.POD
+,CONTDAT = S.CONTDAT
+,CONTDES = S.CONTDES
+,COTTONLEN = S.COTTONLEN
+,COTTONMIC = S.COTTONMIC
+,COTTONSTR = S.COTTONSTR
+,LSD = S.LSD
+,LCNO = S.LCNO
+,LCBANK = S.LCBANK
+,LCDATE = S.LCDATE
+,AGENT = S.AGENT
+,AGENTREF = S.AGENTREF
+,CLAIM = S.CLAIM
+,CONTMEMO = S.CONTMEMO
+,CONTSPEC = S.CONTSPEC
+,APPREASON = S.APPREASON
+,PAYMETHOD = S.PAYMETHOD
+,GOODDESC = S.GOODDESC
+,OTHERTERMS = S.OTHERTERMS
+,PRITERM = S.PRITERM
+,UPDUSR='#LOGIN_USER#'
+,UPDTIM=GETDATE()
+,TAXRT=S.TAXRT
+WHEN NOT MATCHED THEN
+INSERT
+(DOCNUM
+,DOCGRP
+,DOCSTA
+,DOCDAT
+,WFLSTA
+,DOCDES
+,SITE
+,SITETRA
+,FAC
+,DEPT
+,GRP
+,RESNO
+,PRJNUM
+,BPSNO
+,CUR
+,CURRAT
+,BVATTYP
+,SRCTYP
+,SRCDOC
+,SRCLIN
+,REMARK
+,CLOREA
+,PRNCNT
+,CONTNOI
+,CONTNOE
+,POD
+,CONTDAT
+,CONTDES
+,COTTONLEN
+,COTTONMIC
+,COTTONSTR
+,LSD
+,LCNO
+,LCBANK
+,LCDATE
+,AGENT
+,AGENTREF
+,CLAIM
+,CONTMEMO
+,CONTSPEC
+,APPREASON
+,PAYMETHOD
+,GOODDESC
+,OTHERTERMS
+,PRITERM
+,CREUSR
+,CRETIM
+,TAXRT
+)
+VALUES (
+ S.DOCNUM
+,S.DOCGRP
+,S.DOCSTA
+,S.DOCDAT
+,S.WFLSTA
+,S.DOCDES
+,S.SITE
+,S.SITETRA
+,S.FAC
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.PRJNUM
+,S.BPSNO
+,S.CUR
+,S.CURRAT
+,S.BVATTYP
+,S.SRCTYP
+,S.SRCDOC
+,S.SRCLIN
+,S.REMARK
+,S.CLOREA
+,S.PRNCNT
+,S.CONTNOI
+,S.CONTNOE
+,S.POD
+,S.CONTDAT
+,S.CONTDES
+,S.COTTONLEN
+,S.COTTONMIC
+,S.COTTONSTR
+,S.LSD
+,S.LCNO
+,S.LCBANK
+,S.LCDATE
+,S.AGENT
+,S.AGENTREF
+,S.CLAIM
+,S.CONTMEMO
+,S.CONTSPEC
+,S.APPREASON
+,S.PAYMETHOD
+,S.GOODDESC
+,S.OTHERTERMS
+,S.PRITERM
+,S.CREUSR
+,S.CRETIM
+,S.TAXRT
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>订单号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>SIGNLISTID</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM [PORDER] WHERE ID=0#LINKROWID# AND DOCSTA = '1';</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+&lt;div class='mui-card-header'&gt;
+   &lt;div class="mui-media-body "&gt;
+         单据号:#DOCNUM#&lt;/br&gt;
+         订单日期:#DOCDAT#&lt;/br&gt;
+         订单描述:#DOCDES#&lt;/br&gt;
+         地点:#SITENAM#&lt;/br&gt;
+         供应商:#BPSNO#-#BPSNAM#&lt;/br&gt;
+	 含税金额:#AMT#【#CUR#】&lt;/br&gt;
+         项目编号:#PRJNUM#&lt;/br&gt; 
+         备注:#REMARK# 
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;ul class='mui-collapse-content' style="overflow: auto;padding:0"&gt;
+
+&lt;div class="link-table-default" &gt; 
+&lt;div class="link-table-fixed" &gt; 
+&lt;div style="min-width:10px;background-color:#546E7A;"&gt;行&lt;/div&gt;
+&lt;div style="min-width:110px;background-color:#546E7A;"&gt;产品&lt;/div&gt;
+&lt;div style="min-width:100px;background-color:#546E7A;"&gt;品名&lt;/div&gt;
+&lt;div style="min-width:60px;background-color:#546E7A;"&gt;数量[单位]&lt;/div&gt;
+&lt;div style="min-width:50px;background-color:#546E7A;"&gt;含税单价&lt;/div&gt;
+&lt;div style="min-width:60px;background-color:#546E7A;"&gt;税额&lt;/div&gt;
+&lt;div style="min-width:60px;background-color:#546E7A;"&gt;含税金额&lt;/div&gt;
+&lt;div style="min-width:100px;background-color:#546E7A;"&gt;需求日期&lt;/div&gt;
+&lt;/div&gt;#LINKDETAILLIST#&lt;/div&gt;
+&lt;/ul&gt;
+ &lt;div class='mui-card-footer'&gt;   
+&lt;button type="button" class="mui-btn mui-btn-danger" linkquick="8" btnid="502" linkrefresh="1" linkparafill="1" linklocatino="0" linktitle="驳回"&gt;驳回&lt;/button&gt;
+&lt;button type="button" class="mui-btn mui-btn-primary" linkquick="8" btnid="501" linkparafill="1" linkrefresh="1" linklocatino="0" linktitle="同意"&gt;同意&lt;/button&gt; 
+ &lt;/div&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>contextTap=function(contextid, linktitle, linkrefresh, linkparafill, cRDs) {
+	var globleDmCode="LINKWFTASKPR";
+	var globleDmNum="10";
+	var AttachDmCode = globleDmCode + globleDmNum + 'X';
+	localStorage.setItem("AttachDmCode", AttachDmCode);
+	localStorage.setItem("AttachDmNum", contextid);
+	localStorage.setItem("AttachDmTitle", linktitle);
+	//附加参数功能允许用户补充必要的参数，确认后执行附加功能并返回
+	showAttachModelPara(LinkID, globleServer, globleDmCode, globleDmNum, contextid, cRDs, linkrefresh);
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#45</ImageFile>
+  <ListPrint />
+  <MD5HASH>4ddc1cc6f146dccdef07bb2eb2b70d06</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase order details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết đơn đặt hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR03</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết đặt hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

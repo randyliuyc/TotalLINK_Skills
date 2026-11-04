@@ -1,0 +1,888 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUPSCH40</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>监管信息</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @BAT VARCHAR(50) = '{0}'
+
+SELECT YZUPILIN_0
+  , YZUPIDAT_0
+  , MRNPOSNO_0
+  , INVNUM_0
+  , IIF(INVDAT_0 = '1900-01-01', NULL, INVDAT_0) INVDAT_0
+  , LOT_0
+  , KNCODE_0
+  , ITMDES_0
+  , ITMREF_0
+  , CAST(IMPQTY_0 AS INT) IMPQTY_0
+  , IIF(FINDAT_0 = '', NULL, FINDAT_0) FINDAT_0
+  , CAST(MERGQ_0 AS INT) MERGQ_0
+  , ZOLLWERT_0
+  , ADRAT_0
+  , SPRAT_0
+  , ATSNO_0
+  , SDHNUM_0
+  , SDDLIN_0
+  , ROWID LINKROWID
+FROM YZUPCUI
+WHERE YZUPIBAT_0 = @BAT
+ORDER BY YZUPILIN_0</SQLScript>
+  <SQLUpdateScript>--LINKEDITMODE
+--LINKSAVEONENTERKEY
+UPDATE YZUPCUI 
+SET 
+  YZUPILIN_0 = 0#YZUPILIN_0#
+  ,YZUPIDAT_0 = '#YZUPIDAT_0#'
+  ,MRNPOSNO_0 = '#MRNPOSNO_0#'
+  ,INVNUM_0 = N'#INVNUM_0#'
+  ,INVDAT_0 = '#INVDAT_0#'
+  ,LOT_0 = N'#LOT_0#'
+  ,KNCODE_0 = N'#KNCODE_0#'
+  ,ITMDES_0 = N'#ITMDES_0#'
+  ,ITMREF_0 = N'#ITMREF_0#'
+  ,IMPQTY_0 = 0#IMPQTY_0#
+  ,FINDAT_0 = '#FINDAT_0#'
+  ,MERGQ_0 = 0#MERGQ_0#
+  ,ZOLLWERT_0 = 0#ZOLLWERT_0#
+  ,SDHNUM_0 = '#SDHNUM_0#'
+  ,SDDLIN_0 = 0#SDDLIN_0#
+  ,ADRAT_0 = 0#ADRAT_0#
+  ,SPRAT_0 = 0#SPRAT_0#
+  ,ATSNO_0 = '#ATSNO_0#'
+  ,UPDDATTIM_0 = GETDATE()
+  ,UPDUSR_0 = N'#LOGIN_USER#'
+WHERE ROWID = 0#LINKROWID#</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>BATCH</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+DECLARE @BAT VARCHAR(50) = '{0}';
+
+INSERT INTO YZUPCUI (
+  YZUPIBAT_0
+  , MRNPOSNO_0
+  , YZUPILIN_0
+  , YZUPIDAT_0
+  , INVNUM_0
+  , INVDAT_0
+  , LOT_0
+  , KNCODE_0
+  , ITMDES_0
+  , ITMREF_0
+  , IMPQTY_0
+  , FINDAT_0
+  , MERGQ_0
+  , ZOLLWERT_0
+  , SDHNUM_0
+  , SDDLIN_0
+  , ADRAT_0
+  , SPRAT_0
+  , ATSNO_0
+  , CREDATTIM_0
+  , UPDDATTIM_0
+  , AUUID_0
+  , CREUSR_0
+  , UPDUSR_0
+  )
+VALUES (
+    @BAT
+  , '#MRNPOSNO_0#' --MRNPOSNO_0
+  , 0#YZUPILIN_0# --YZUPILIN_0
+  , '#YZUPIDAT_0#' --YZUPIDAT_0
+  , N'#INVNUM_0#' --INVNUM_0
+  , '#INVDAT_0#' --INVDAT_0
+  , N'#LOT_0#' --LOT_0
+  , N'#KNCODE_0#' --KNCODE_0
+  , N'#ITMDES_0#' --ITMDES_0
+  , N'#ITMREF_0#' --ITMREF_0
+  , 0#IMPQTY_0# --IMPQTY_0
+  , '#FINDAT_0#' --FINDAT_0
+  , 0#MERGQ_0# --MERGQ_0
+  , 0#ZOLLWERT_0# --ZOLLWERT_0
+  , N'#SDHNUM_0#'
+  , 0#SDDLIN_0#
+  , 0#ADRAT_0#
+  , 0#SPRAT_0#
+  , N'#ATSNO_0#'
+  , GETDATE() --CREDATTIM_0
+  , '' --UPDDATTIM_0
+  , NEWID() --AUUID_0
+  , N'#LOGIN_USER#' --CREUSR_0
+  , N'' --UPDUSR_0
+  )</SQLNew>
+  <SQLRemove>DELETE FROM YZUPCUI WHERE ROWID = 0#LINKROWID#</SQLRemove>
+  <SQLClear>DELETE FROM YZUPCUI WHERE ROWID = 0#LINKROWID#</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle>DATA CLEAR</AllDataTreatTitle>
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#43</ImageFile>
+  <ListPrint />
+  <MD5HASH>5c77fd8fb038ba3203ab6652724c6592</MD5HASH>
+  <ModelSetting>{"DataScript": 
+  {"UpdateScript": 
+    {"EditCols":
+      [ "MRNPOSNO_0"
+        , "YZUPILIN_0"
+        , "YZUPIDAT_0"
+        , "INVNUM_0"
+        , "INVDAT_0"
+        , "LOT_0"
+        , "KNCODE_0"
+        , "ITMDES_0"
+        , "ITMREF_0"
+        , "IMPQTY_0"
+        , "FINDAT_0"
+        , "MERGQ_0"
+        , "SDHNUM_0"
+        , "SDDLIN_0"
+        , "ADRAT_0"
+        , "SPRAT_0"
+        , "ATSNO_0"
+        , "ZOLLWERT_0"
+      ]
+    } 
+  } 
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ADRAT_0</COLNAME>
+      <CAPTION />
+      <COLTYPE>COLFORMAT</COLTYPE>
+      <COLFORMAT>p</COLFORMAT>
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ADRAT_0</COLNAME>
+      <CAPTION>Antidumpingzollbefreiung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ADRAT_0</COLNAME>
+      <CAPTION>Anti-dumping Duty Exemption</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ADRAT_0</COLNAME>
+      <CAPTION>反倾销税豁免</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ATSNO_0</COLNAME>
+      <CAPTION>ATS</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ATSNO_0</COLNAME>
+      <CAPTION>ATS Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ATSNO_0</COLNAME>
+      <CAPTION>ATS</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FINDAT_0</COLNAME>
+      <CAPTION>Erledigungs-frist</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FINDAT_0</COLNAME>
+      <CAPTION>Processing Deadline</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FINDAT_0</COLNAME>
+      <CAPTION>处理期限</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>IMPQTY_0</COLNAME>
+      <CAPTION>Importierte Menge Laut Rechnung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>IMPQTY_0</COLNAME>
+      <CAPTION>Invoice Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>IMPQTY_0</COLNAME>
+      <CAPTION>发票数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVDAT_0</COLNAME>
+      <CAPTION>Rechnungs-datum</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVDAT_0</COLNAME>
+      <CAPTION>Invoice Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVDAT_0</COLNAME>
+      <CAPTION>发票日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVNUM_0</COLNAME>
+      <CAPTION>Rechnungsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVNUM_0</COLNAME>
+      <CAPTION>Invoice Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INVNUM_0</COLNAME>
+      <CAPTION>发票号码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMDES_0</COLNAME>
+      <CAPTION>Artikelname</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMDES_0</COLNAME>
+      <CAPTION>Product Name</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMDES_0</COLNAME>
+      <CAPTION>产品名称</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>Artikelnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMREF_0</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>KNCODE_0</COLNAME>
+      <CAPTION>KN CODE</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>KNCODE_0</COLNAME>
+      <CAPTION>HS Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>KNCODE_0</COLNAME>
+      <CAPTION>海关编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>MRNNO</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Receipt Batch</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>收货批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Regulierungsinformationen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Regulatory Information</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>Chargen-Nr.</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>Batch Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LOT_0</COLNAME>
+      <CAPTION>批次编号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MERGQ_0</COLNAME>
+      <CAPTION>gemeldete Menge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MERGQ_0</COLNAME>
+      <CAPTION>Declared Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MERGQ_0</COLNAME>
+      <CAPTION>申报数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MRNNO_0</COLNAME>
+      <CAPTION>Zollabfertigungsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MRNNO_0</COLNAME>
+      <CAPTION>Customs Clearance Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MRNNO_0</COLNAME>
+      <CAPTION>清关单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MRNPOSNO_0</COLNAME>
+      <CAPTION>Zollabfertigungslos</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MRNPOSNO_0</COLNAME>
+      <CAPTION>Customs Clearance Batch</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MRNPOSNO_0</COLNAME>
+      <CAPTION>清关批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>POSITION_0</COLNAME>
+      <CAPTION>Position</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>POSITION_0</COLNAME>
+      <CAPTION>Location</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>POSITION_0</COLNAME>
+      <CAPTION>位置</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SDDLIN_0</COLNAME>
+      <CAPTION>Lieferschein-Zeilennummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SDDLIN_0</COLNAME>
+      <CAPTION>Delivery Line Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SDDLIN_0</COLNAME>
+      <CAPTION>发货行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SDHNUM_0</COLNAME>
+      <CAPTION>Lieferscheinnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SDHNUM_0</COLNAME>
+      <CAPTION>Shipping Document Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SDHNUM_0</COLNAME>
+      <CAPTION>发货单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SPRAT_0</COLNAME>
+      <CAPTION />
+      <COLTYPE>COLFORMAT</COLTYPE>
+      <COLFORMAT>p</COLFORMAT>
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SPRAT_0</COLNAME>
+      <CAPTION>Zollbefreiung</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SPRAT_0</COLNAME>
+      <CAPTION>Tariff Exemption</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SPRAT_0</COLNAME>
+      <CAPTION>关税豁免</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>YZUPIDAT_0</COLNAME>
+      <CAPTION>DatumZoll-bescheid</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>YZUPIDAT_0</COLNAME>
+      <CAPTION>Customs Notice Date</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>YZUPIDAT_0</COLNAME>
+      <CAPTION>海关通知日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>YZUPILIN_0</COLNAME>
+      <CAPTION>Line No</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>YZUPILIN_0</COLNAME>
+      <CAPTION>Line Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>YZUPILIN_0</COLNAME>
+      <CAPTION>行号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ZOLLWERT_0</COLNAME>
+      <CAPTION>Zollwert</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ZOLLWERT_0</COLNAME>
+      <CAPTION>Customs Value</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUPSCH40</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ZOLLWERT_0</COLNAME>
+      <CAPTION>海关价值</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

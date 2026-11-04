@@ -1,0 +1,566 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP605X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>APP发货明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKNOGROUP
+DECLARE @STOFCY VARCHAR(50)='{0}'
+DECLARE @X3HNUM VARCHAR(50)='{1}';
+DECLARE @X3DLIN BIGINT=0{2};
+
+
+SELECT S.PK_0                                 LINKROWID
+      ,S.SERNUM_0                             序列号
+      ,S.PKORI_0                              工单序号
+      ,CAST(S.QTY_0 AS REAL)                  发货数量
+      ,S.LOC_0                                发货库位
+      ,S.LOT_0                                批次
+      ,CASE
+	      WHEN S.STAT_0=2 AND S.RPFLG_0=3 AND ISNULL(Y.SDHNUM_0,'')='' THEN N'lang:{zh:ERP删除发货单，请删除该条数据,en:Delete delivery note, please delete this record,de:Lieferschein löschen, bitte Datensatz löschen}'
+		  ELSE S.RPNUM_0     END                         发货单号
+     ,Y.YZUPLGCNO_0                           物流单号
+      ,CONVERT(VARCHAR(16), S.CREDATTIM_0, 21) 操作时间
+      ,S.USERID_0                             操作人员
+      ,'{3}'  打印机
+      ,S.STOFCY_0 地点
+      ,CASE
+          WHEN S.STAT_0=2 AND S.RPFLG_0=3 AND ISNULL(Y.SDHNUM_0,'')='' THEN N''
+          WHEN ISNULL(S.RPFLG_0, 3) = 3 THEN 'mui-hidden'
+          ELSE ''
+        END                                   LINKROWIDBTNFLG
+	  ,CASE 
+	     WHEN  S.STAT_0=2 AND S.RPFLG_0=3 AND ISNULL(Y.SDHNUM_0,'')='' OR S.RPFLG_0 IN(1,2) THEN 'E02'
+		 ELSE '' END AS       ROW_BACKCOLOR
+FROM   XWSSDH S
+LEFT JOIN SDELIVERY Y
+ON S.RPNUM_0=Y.SDHNUM_0 
+WHERE  S.STOFCY_0 = @STOFCY
+       AND S.X3HNUM_0 = @X3HNUM
+       AND S.X3DLIN_0 = @X3DLIN
+ORDER  BY S.CREDATIM_0 DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>通知单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>行</ParaLabel03>
+  <ParaType03>DEC</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>--DELETE FROM XWSSDH WHERE PK_0='{0}'AND RPFLG_0&lt;&gt;3 AND USERID_0='#LOGIN_USER#'
+DELETE FROM XWSSDH 
+WHERE USERID_0 = '#LOGIN_USER#'AND
+ PK_0 = '{0}'
+  AND (
+      (RPFLG_0 &lt;&gt; 3 )
+      OR 
+      (
+          RPFLG_0 = 3 
+          AND NOT EXISTS (
+              SELECT 1 
+              FROM SDELIVERYD Y
+			  WHERE Y.SDHNUM_0 = XWSSDH.RPNUM_0
+                AND Y.SDDLIN_0 = XWSSDH.RPLIN_0
+          )
+      )
+  )</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+	&lt;div&gt;
+		&lt;button type="button" linkquick="12" linklocation="0" api="2" code="KEEWAYZUP605X" num="700" para="#LINKROWID#"
+			script="3" confirm="lang:{zh:确认删除,en:confirm delete,de:Löschung bestätigen}?" 
+			class="mui-btn mui-btn-danger #LINKROWIDBTNFLG#"&gt;
+			&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/button&gt;
+	   		&lt;button type="button" id="print"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP605X" num="700"  linkparafill="1" para="#LINKROWID#,#打印机#" 
+			script="502" class="mui-btn mui-btn-warning mui-hidden"&gt;
+                        &lt;span class="mui-icon mui-icon-paperplane"&gt;&lt;/span&gt;&lt;/button&gt;
+			&lt;button type="button" id="print"  linkquick="12" linklocation="0" api="3" code="KEEWAYZUP605X" num="700"  linkparafill="1" para="#LINKROWID#,#打印机#" 
+			script="505" class="mui-btn mui-btn-blue"&gt;
+			&lt;span class="mui-icon mui-icon-paperplane"&gt;&lt;/span&gt;&lt;/button&gt;
+	&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#序列号#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#工单序号#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#发货数量#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#发货库位#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#操作人员#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#操作时间#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#发货单号#&lt;/div&gt;
+	&lt;div class='#ROW_BACKCOLOR#' style="font-size: 16px;"&gt;#物流单号#&lt;/div&gt;
+	&lt;div class='mui-hidden' style="font-size: 16px;"&gt;#LINKROWID#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle>批量删除</AllDataTreatTitle>
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>scan_para=function(id, r){
+  if(id=="linkinput"){
+    scan_impl(id, "#"+r+"#");}
+  else{
+   document.getElementById(id).value=r;
+    }
+};
+
+function openFileMethod(r){
+var file=r.data.retData[0]
+if(file)
+openFile(file.FILEURL)
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#50</ImageFile>
+  <ListPrint />
+  <MD5HASH>921e9b1ac4c0509fc79ef196bd866f65</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Standort</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Site</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Benachrichtigungsnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Notification Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>通知单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Zeile</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>Line</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION>行</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Produktcode</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>Product Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>APP Shipping Details</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>APP Shipping Details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKROWIDBTNFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>ROW_BACKCOLOR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>操作人员</COLNAME>
+      <CAPTION>Bedienpersonal</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>操作人员</COLNAME>
+      <CAPTION>Operator</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>操作人员</COLNAME>
+      <CAPTION>操作人员</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>操作时间</COLNAME>
+      <CAPTION>Bedienzeit</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>操作时间</COLNAME>
+      <CAPTION>Operation Time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>操作时间</COLNAME>
+      <CAPTION>操作时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货单号</COLNAME>
+      <CAPTION>Lieferscheinnummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货单号</COLNAME>
+      <CAPTION>Shipping Document Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货单号</COLNAME>
+      <CAPTION>发货单号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货库位</COLNAME>
+      <CAPTION>Versandlagerplatz</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货库位</COLNAME>
+      <CAPTION>Shipping Location</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货库位</COLNAME>
+      <CAPTION>发货库位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货数量</COLNAME>
+      <CAPTION>Versandmenge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货数量</COLNAME>
+      <CAPTION>Shipping Quantity</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>发货数量</COLNAME>
+      <CAPTION>发货数量</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>工单序号</COLNAME>
+      <CAPTION>Arbeitsauftragsfolgenummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>工单序号</COLNAME>
+      <CAPTION>Work Order Sequence Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>工单序号</COLNAME>
+      <CAPTION>工单序号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>批次</COLNAME>
+      <CAPTION>Charge</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>批次</COLNAME>
+      <CAPTION>Batch</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>批次</COLNAME>
+      <CAPTION>批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>序列号</COLNAME>
+      <CAPTION>Seriennummer</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>序列号</COLNAME>
+      <CAPTION>Serial Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP605X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>序列号</COLNAME>
+      <CAPTION>序列号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

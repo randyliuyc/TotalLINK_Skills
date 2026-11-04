@@ -1,0 +1,222 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQAROU10X710X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>Routing Copy</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>P1</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01>{0}</ParaDefVal01>
+  <ParaLabel02>P2</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02>ERAQAROU10X710X#700</ParaSearchCode02>
+  <ParaDefVal02>?</ParaDefVal02>
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+DECLARE @ROUCOD VARCHAR(30) = '{0}';
+DECLARE @COPYROUCOD VARCHAR(30) = '{1}';
+
+UPDATE [QAROU] SET COPYROU=@COPYROUCOD 
+WHERE ROUCOD=@ROUCOD 
+
+DELETE FROM  [QAROULIN]  WHERE [ROUCOD]=@ROUCOD
+INSERT INTO [QAROULIN]
+           ([ROUCOD]
+           ,[OPENUM]
+           ,[OPESTD]
+           ,[OPEGRP]
+           ,[OPEUNT]
+           ,[CTLTYP]
+           ,[MEAFRQ]
+           ,[INSTCAT]
+           ,[INSTCOD]
+           ,[VALNOR]
+           ,[VALMIN]
+           ,[VALMAX]
+           ,[USERFLG]
+           ,[DATEFLG]
+           ,[INSTFLG]
+           ,[QTYOKFLG]
+           ,[QTYSCFLG]
+           ,[REASCFLG]
+           ,[CREUSR]
+           ,[CRETIM]
+)
+SELECT      @ROUCOD  [ROUCOD]
+           ,S.[OPENUM]
+           ,S.[OPESTD]
+           ,S.[OPEGRP]
+           ,S.[OPEUNT]
+           ,S.[CTLTYP]
+           ,S.[MEAFRQ]
+           ,S.[INSTCAT]
+           ,S.[INSTCOD]
+           ,S.[VALNOR]
+           ,S.[VALMIN]
+           ,S.[VALMAX]
+           ,S.[USERFLG]
+           ,S.[DATEFLG]
+           ,S.[INSTFLG]
+           ,S.[QTYOKFLG]
+           ,S.[QTYSCFLG]
+           ,S.[REASCFLG]
+           ,N'#LOGIN_USER#'  [CREUSR]
+           ,GETDATE()        [CRETIM]
+FROM  [QAROULIN]  S
+WHERE S.[ROUCOD]=@COPYROUCOD
+
+DELETE FROM  [QAROULINCTL]  WHERE [ROUCOD]=@ROUCOD
+INSERT INTO [QAROULINCTL]
+           ([ROUCOD]
+           ,[OPENUM]
+           ,[VALTYP]
+           ,[VALLIN]
+           ,[VALDES]
+           ,[VALCTL]
+           ,[CREUSR]
+           ,[CRETIM])
+SELECT      @ROUCOD  [ROUCOD]
+           ,[OPENUM]
+           ,[VALTYP]
+           ,[VALLIN]
+           ,[VALDES]
+           ,[VALCTL]
+           ,N'#LOGIN_USER#'  [CREUSR]
+           ,GETDATE()        [CRETIM]
+FROM [QAROULINCTL]  S
+WHERE S.[ROUCOD]=@COPYROUCOD</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#59</ImageFile>
+  <ListPrint />
+  <MD5HASH>c839d8c1288aefcba74bc886aeda7a96</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Rounting Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>新工艺</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Copy Rounting</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>复制工艺</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Routing Copy</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQAROU10X710X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>复制工艺</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

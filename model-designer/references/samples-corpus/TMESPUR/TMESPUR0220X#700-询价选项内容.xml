@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR0220X</ModelCode>
+  <ModelNum>700</ModelNum>
+  <ModelDesc>询价选项内容</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT L.DOCNUM + '-'
+       + Cast(L.DOCLIN AS VARCHAR(16))     ITMKEY
+       ,ITM.ITMNO
+       ,ITM.ITMNAM
+       ,ITM.ITMNAM1
+       ,ITM.ITMNAM2
+       ,ITM.ITMSPEC
+       ,ITM.ITMSIZE
+       ,L.ITMVER --品名
+       ,H.SITE --产品地点
+       ,H.FAC
+       ,H.DEPT --部门
+       ,F.FACNAM                           FACDES
+       ,H.[DEPT]
+       ,D.DEPTNAM                          DEPTDES
+       ,ITM.IVATTYP
+       ,CONVERT(VARCHAR(16), L.REQDAT, 23) REQDAT
+       ,L.STU --库存单位
+       ,L.UOM --采购单位
+       ,L.UOMCOE --采购单位系数
+       ,L.QTY                              SUMQTY --总采购数量
+       ,L.QTY - Isnull(PIN.QTY, 0)         QTY --采购数量
+       ,Isnull(PIN.QTY, 0)                 PINQTY --已询价数量
+       ,L.QTYSTU --库存单位数量
+       ,'PRE'                              SRCTYP --来源类型
+       ,L.DOCNUM                           SRCDOC--来源单据
+       ,L.DOCLIN                           SRCLIN--来源行号
+FROM   PREQUL L
+       LEFT JOIN ITM
+              ON ITM.ITMNO = L.ITMNO --产品 
+       LEFT JOIN PREQUH H
+              ON H.DOCNUM = L.DOCNUM
+       LEFT JOIN [ENTDEPT] D
+              ON H.[DEPT] = D.DEPT
+       LEFT JOIN ENTFAC F
+              ON F.FAC = H.FAC
+       LEFT JOIN (SELECT ITMNO
+                         ,SRCDOC
+                         ,SRCLIN
+                         ,Sum(QTY) QTY
+                  FROM   PINQUL
+                  WHERE  DOCLIN &lt;&gt; 4
+                  GROUP  BY ITMNO
+                            ,SRCDOC
+                            ,SRCLIN) PIN
+              ON PIN.ITMNO = L.ITMNO
+                 AND PIN.SRCDOC = L .DOCNUM
+                 AND PIN.SRCLIN = L.DOCLIN
+WHERE  H.DOCSTA = 2
+       AND L.DOCSTA = 2
+       AND L.QTY - Isnull(PIN.QTY, 0) &gt; 0
+       AND H.SITE = '{0}'
+       AND L.ITMNO LIKE N'%{1}%' --产品编号
+       AND L.ITMVER LIKE N'%{2}%' --品名
+       AND ITM.TCLCOD LIKE N'%{3}%' --产品种类
+       AND ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMNAM2 + L.ITMVER
+           + L.DOCNUM LIKE N'%{4}%'
+--ORDER BY REQDAT DESC</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>表头地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>产品编号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>品名</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>产品种类</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>模糊查询</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#42</ImageFile>
+  <ListPrint />
+  <MD5HASH>237d945a00a4a676e893e965021be84b</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0220X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Nội dung tùy chọn truy vấn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR0220X</DMCODE>
+      <DMNUM>700</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Nội dung tùy chọn yêu cầu</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

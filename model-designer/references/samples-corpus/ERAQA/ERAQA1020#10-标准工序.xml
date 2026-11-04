@@ -1,0 +1,786 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>ERAQA1020</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>Standard operation</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>--LINKDATAMINEOVERVIEW,VERTICAL,60,AUTOREFRESH
+DECLARE @OPESTD VARCHAR(30)='%{0}%';
+DECLARE @OPEDES VARCHAR(100)='%{1}%';
+
+SELECT S.OPESTD
+      ,S.OPEDES1
+      ,S.OPEDES2
+      ,S.MATTYP
+      ,S.RPTGRP1
+      ,S.RPTTTL1
+      ,S.RPTGRP2
+      ,S.RPTTTL2
+      ,S.INSTRUCTION
+      ,S.OPEUNT
+      ,S.CTLTYP LINKDROPVALIDCTLTYP
+      ,S.NTYP   LINKDROPVALIDNTYP
+      ,S.MEAFRQ LINKDROPVALIDMEAFRQ
+      ,S.INSTCOD
+      ,S.INSTCAT LINKDROPVALIDINSTCAT
+      ,S.CREUSR
+      ,S.UPDUSR
+      ,CONVERT(VARCHAR(16), S.CRETIM, 21) CRETIM
+      ,CONVERT(VARCHAR(16), S.UPDTIM, 21) UPDTIM
+      ,S.ID                               LINKROWID
+FROM   QAOPESTD S
+WHERE  S.OPESTD LIKE @OPESTD
+       AND S.OPEDES1 + S.OPEDES2 LIKE @OPEDES
+ORDER  BY S.OPESTD</SQLScript>
+  <SQLUpdateScript>--LINKSAVEONENTERKEY
+--LINKEDITMODE
+UPDATE QAOPESTD SET
+  OPEDES1 = N'#OPEDES1#'
+, OPEDES2 = N'#OPEDES2#'
+, MATTYP=N'#MATTYP#'
+, RPTGRP1=N'#RPTGRP1#'
+, RPTTTL1=N'#RPTTTL1#'
+, RPTGRP2=N'#RPTGRP2#' 
+, RPTTTL2=N'#RPTTTL2#'
+, INSTRUCTION = N'#INSTRUCTION#'
+, OPEUNT = N'#OPEUNT#'
+, CTLTYP = N'#LINKDROPVALIDCTLTYP#'
+, NTYP=N'#LINKDROPVALIDNTYP#'
+, MEAFRQ = N'#LINKDROPVALIDMEAFRQ#'
+, INSTCOD=N'#INSTCOD#'
+, INSTCAT=N'#LINKDROPVALIDINSTCAT#'
+, UPDUSR = N'#LOGIN_USER#'
+, UPDTIM = GETDATE()
+WHERE ID=0#LINKROWID#</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>DATAQA</ConnString>
+  <ModuleCode />
+  <ParaLabel01>OPESTD</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>OPEDES</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+INSERT INTO QAOPESTD 
+           ([OPESTD]
+           ,[OPEDES1]
+           ,[OPEDES2]
+           ,[MATTYP]
+           ,[RPTGRP1]
+           ,[RPTTTL1]
+           ,[RPTGRP2]
+           ,[RPTTTL2]
+           ,[INSTRUCTION]
+           ,[OPEUNT]
+           ,[CTLTYP]
+           ,[NTYP]
+           ,[MEAFRQ]
+           ,[INSTCOD]
+           ,[INSTCAT]
+           ,[CREUSR]
+           ,[UPDUSR]
+           ,[CRETIM]
+           ,[UPDTIM])
+     VALUES
+           (
+            '#OPESTD#'--&lt;OPESTD, varchar(30),&gt;
+           ,'#OPEDES1#'--&lt;OPEDES1, nvarchar(100),&gt;
+           ,'#OPEDES2#'--&lt;OPEDES2, nvarchar(100),&gt;
+           ,'#MATTYP#'
+           ,'#RPTGRP1#'
+           ,'#RPTTTL1#'
+           ,'#RPTGRP2#'
+           ,'#RPTTTL2#'
+           ,'#INSTRUCTION#'--&lt;INSTRUCTION, nvarchar(100),&gt;
+           ,'#OPEUNT#'--&lt;OPEUNT, varchar(30),&gt;
+           ,'#LINKDROPVALIDCTLTYP#'--&lt;CTLTYP, varchar(30),&gt;
+           ,'#LINKDROPVALIDNTYP#'
+           ,'#LINKDROPVALIDMEAFRQ#'--&lt;MEAFRQ, varchar(30),&gt;
+           ,'#INSTCOD#'--&lt;INSTCOD, varchar(30),&gt;
+           ,'#LINKDROPVALIDINSTCAT#'--&lt;INSTCAT, varchar(30),&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,''--&lt;UPDUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+           ,''--&lt;UPDTIM, datetime,&gt;
+		   );
+INSERT INTO QAOPESTDCTL 
+           ([OPESTD]
+           ,[VALTYP]
+           ,[VALLIN]
+           ,[VALDES]
+           ,[VALCTL]
+           ,[CREUSR]
+           ,[UPDUSR]
+           ,[CRETIM]
+           ,[UPDTIM])
+     SELECT 
+	    '#OPESTD#'--&lt;OPESTD, varchar(30),&gt;
+           ,S.VALTYP--&lt;VALTYP, varchar(30),&gt;
+           ,S.VALLIN--&lt;VALLIN, int,&gt;
+           ,S.VALDES--&lt;VALDES, nvarchar(100),&gt;
+           ,S.VALCTL--&lt;VALCTL, varchar(1),&gt;
+           ,'#LOGIN_USER#'--&lt;CREUSR, varchar(30),&gt;
+           ,''--&lt;UPDUSR, varchar(30),&gt;
+           ,GETDATE()--&lt;CRETIM, datetime,&gt;
+           ,''--&lt;UPDTIM, datetime,&gt;
+	FROM QAOPESTDCTL  S WHERE OPESTD='60010'
+     ORDER BY S.ID</SQLNew>
+  <SQLRemove>DELETE FROM QAOPESTD WHERE OPESTD='#OPESTD#';
+DELETE FROM QAOPESTDCTL WHERE OPESTD='#OPESTD#';</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#69</ImageFile>
+  <ListPrint />
+  <MD5HASH>7cab04f8915e574d8915e9231c5eda30</MD5HASH>
+  <ModelSetting>{
+  "DataScript": {
+    "UpdateScript": {
+      "EditCols": [
+        "OPESTD",
+        "OPEDES1",
+        "OPEDES2",
+        "MATTYP",
+        "RPTGRP1",
+        "RPTTTL1",
+        "RPTGRP2",
+        "RPTTTL2",
+        "INSTRUCTION",
+	"OPEUNT",
+        "LINKDROPVALIDMEAFRQ",
+	"LINKDROPVALIDCTLTYP",
+        "LINKDROPVALIDNTYP",
+	"INSTCOD",
+        "LINKDROPVALIDINSTCAT"
+      ],
+      "EditValueList": {
+        "LINKDROPVALIDCTLTYP": "ERAQACTLTYP#10",
+        "LINKDROPVALIDNTYP":"ERAQANTYP#10",
+        "LINKDROPVALIDMEAFRQ": "ERAQAMEAFRQ#10",
+        "LINKDROPVALIDINSTCAT":"ERAQA2010#10",
+        "INSTCOD":"ERAQA202010X#700"
+      }
+    }
+  }
+}</ModelSetting>
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>Create time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION>创建时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>Create user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CTLTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCAT</COLNAME>
+      <CAPTION>Instrument Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>Instrument Code</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTCOD</COLNAME>
+      <CAPTION>工具</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>Instruction</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTRUCTION</COLNAME>
+      <CAPTION>指导说明</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>INSTRUMENT</COLNAME>
+      <CAPTION>Instrument</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDCTLTYP</COLNAME>
+      <CAPTION>Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDCTLTYP</COLNAME>
+      <CAPTION>控制类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDINSTCAT</COLNAME>
+      <CAPTION>Instrument Category</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDINSTCAT</COLNAME>
+      <CAPTION>工具分类</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDMEAFRQ</COLNAME>
+      <CAPTION>Measurement frequency</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDMEAFRQ</COLNAME>
+      <CAPTION>检验频率</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDNTYP</COLNAME>
+      <CAPTION>Output Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKDROPVALIDNTYP</COLNAME>
+      <CAPTION>值类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>标准工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>Description</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Standard operation</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>标准工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MATTYP</COLNAME>
+      <CAPTION>Operation Type</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MATTYP</COLNAME>
+      <CAPTION>产品类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>MEAFRQ</COLNAME>
+      <CAPTION>Measurement frequency</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA>X</FORMULA>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>Description in English</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES1</COLNAME>
+      <CAPTION>英文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>Description in Chinese</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEDES2</COLNAME>
+      <CAPTION>中文描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>Number</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPESTD</COLNAME>
+      <CAPTION>标准工序</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>Unit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>OPEUNT</COLNAME>
+      <CAPTION>单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTGRP1</COLNAME>
+      <CAPTION>Report Group-ENG</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTGRP1</COLNAME>
+      <CAPTION>报告分组-英文</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTGRP2</COLNAME>
+      <CAPTION>Report Group-CHI</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTGRP2</COLNAME>
+      <CAPTION>报告分组-中文</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTTTL1</COLNAME>
+      <CAPTION>Report Title-ENG</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTTTL1</COLNAME>
+      <CAPTION>报告标题-英文</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTTTL2</COLNAME>
+      <CAPTION>Report Title-CHI</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RPTTTL2</COLNAME>
+      <CAPTION>报告标题-中文</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>Update time</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION>修改时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>Update user</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION>修改用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+  <DMUsage>
+    <DMUsage>
+      <DMCODE>ERAQA1020</DMCODE>
+      <DMNUM>10</DMNUM>
+      <SCRIPT>0</SCRIPT>
+      <DMUSAGE>查询标准工序定义
+- 有准确工序代码时用代码查询
+- 无准确工序代码时，用关键字查询
+
+params: ["工序代码(可空)","描述关键字(可空)"]</DMUSAGE>
+    </DMUsage>
+  </DMUsage>
+</SysDataModelXML>

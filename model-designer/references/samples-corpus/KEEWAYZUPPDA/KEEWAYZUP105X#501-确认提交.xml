@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>KEEWAYZUP105X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>确认提交</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>#LINKSCRIPTGET@LINK01:
+DECLARE @SDHNUM VARCHAR(30)='{1}';
+SELECT CASE
+         WHEN EXISTS(SELECT TOP 1 ITMREF_0
+                     FROM   XWSPTH 
+                     WHERE  SDHNUM_0=@SDHNUM AND RPFLG_0&lt;&gt;3 AND POHNUM_0='' ) THEN N'LINKPREVENT:lang:{zh:订单匹配不完整,en:Order matching incomplete,de:Auftragszuordnung unvollständig}'
+         WHEN EXISTS(SELECT TOP 1 ITMREF_0
+                     FROM   XWSPTH 
+                     WHERE  SDHNUM_0=@SDHNUM AND RPFLG_0&lt;&gt;3 AND LOC_0='' ) THEN N'LINKPREVENT:lang:{zh:库位不完整,en:Location incomplete,de:Lagerplatz unvollständig}'
+         WHEN EXISTS(SELECT TOP 1 XWS.ITMREF_0
+                     FROM   XWSPTH XWS
+                            INNER JOIN ITMMASTER ITM
+                            ON XWS.ITMREF_0=ITM.ITMREF_0
+                            INNER JOIN ITMFACILIT ITF 
+                            ON XWS.ITMREF_0=ITF.ITMREF_0 AND XWS.PRHFCY_0=ITF.STOFCY_0
+                     WHERE  XWS.SDHNUM_0=@SDHNUM AND XWS.RPFLG_0&lt;&gt;3  AND ITM.LOTMGTCOD_0=3 AND ITF.YLOTCAN_0&lt;&gt;2
+                             ) THEN N'LINKPREVENT:lang:{zh:批次不完整,en:Batch incomplete,de:Charge unvollständig}'
+         WHEN EXISTS(SELECT TOP 1 ITMREF_0
+                     FROM   XWSPTH 
+                     WHERE  SDHNUM_0=@SDHNUM AND RPFLG_0&lt;&gt;3 AND STAT_0=2) THEN N'LINKPREVENT:lang:{zh:提交生成ERP收货单中,en:Submitting to generate ERP receipt,de:ERP-Wareneingang wird erstellt}'
+         WHEN EXISTS(SELECT TOP 1 ITMREF_0
+                     FROM   XWSPTH 
+                     WHERE  SDHNUM_0=@SDHNUM AND RPFLG_0=3) THEN N'LINKPREVENT:lang:{zh:该发货单已生成收货记录,en:This delivery note already has receipt record,de:Lieferschein hat bereits Wareneingang}'
+         ELSE N'LINKCONFIRM:lang:{zh:确认整单提交吗？,en:Confirm submit entire order?,de:Kompletten Auftrag übermitteln?}'
+       END
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+
+DECLARE @RCPDAT VARCHAR(30)='{0}';
+DECLARE @SDHNUM VARCHAR(30)='{1}';
+
+UPDATE XWSPTH
+SET     BATCHID_0 = '#LINKID_ACTION#'
+       ,RCPDAT_0 = @RCPDAT
+       ,STAT_0=2
+       ,USERID_0 = '#LOGIN_USER#'
+WHERE  RPFLG_0 &lt;&gt; 3
+       AND SDHNUM_0 = @SDHNUM
+       AND STAT_0 =1 --未提交</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~X3WEB~RUN~XWSTTLINKU~
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;PARAM&gt;
+ &lt;FLD NAM="XWS_MACHINEID"&gt;#LOGIN_ID#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_USERID"&gt;#LOGIN_USER#&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_TRSTYP"&gt;6&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_PK"&gt;&lt;/FLD&gt;
+ &lt;FLD NAM="XWS_BATCHID"&gt;#LINKID_ACTION#&lt;/FLD&gt;
+&lt;/PARAM&gt;
+~{"codeLang":"#LINKFUNC.GETLANX3#"}</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#78</ImageFile>
+  <ListPrint />
+  <MD5HASH>165c200a05e928589398da65a02cfcc3</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP105X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>einreichen</CAPTION>
+      <COLTYPE>LANGUAGE-de</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>KEEWAYZUP105X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Submit</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

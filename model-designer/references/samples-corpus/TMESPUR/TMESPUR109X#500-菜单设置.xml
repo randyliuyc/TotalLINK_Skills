@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR109X</ModelCode>
+  <ModelNum>500</ModelNum>
+  <ModelDesc>菜单设置</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>{
+    "title": "#MENUTITLE#",
+    "path": "/#PARENTNO#/#DMCODE##DMNUM#",
+    "code": "#DMCODE#",
+    "num": "#DMNUM#",
+    "icon": "#MENUICON#",
+  "column":[
+        {
+            "text":"lang:{zh:采购发票,en:Invoice number,vie:Hóa đơn mua hàng}",
+            "value":"DOCNUM",
+            "width":150,
+            "fix":true
+        },
+        {
+            "text":"lang:{zh:地点,en:place,vie:Địa điểm}",
+            "value":"SITEDES",
+            "width":150,
+            "fix":true
+        },
+        {
+            "text":"lang:{zh:单据日期,en:Document date,vie:Ngày tài liệu}",
+            "value":"DOCDAT",
+            "width":150
+        },
+        {
+            "text":"lang:{zh:供应商编码,en:Supplier code,vie:Mã hóa nhà cung cấp}",
+            "value":"BPSNO",
+            "width":150
+        },
+          {
+            "text":"lang:{zh:供应商名称,en:Supplier name,vie:Tên nhà cung cấp}",
+            "value":"BPSNAM",
+            "width":250
+        },
+        {
+            "text":"lang:{zh:单据描述,en:Document Description,vie:Mô tả tài liệu}",
+            "value":"DOCDES",
+            "width":150
+        },
+  {
+            "text":"lang:{zh:发票类型,en:Invoice Type,vie:Hóa đơn mua hàng}",
+            "value":"DOCGRP",
+            "width":150
+        },
+        {
+            "text":"lang:{zh:单据状态,en:Document Status ,vie:Tình trạng tài liệu}",
+            "value":"DOCSTA",
+            "width":200
+        },
+        {
+            "text":"lang:{zh:项目编号,en:Project number,vie:Số mặt hàng}",
+            "value":"PRJNUM",
+            "width":150
+        },
+        {
+            "text":"lang:{zh:备注,en:Remarks,vie:Ghi chú}",
+            "value":" REMARK",
+            "width":250
+        },
+        {
+            "text":"lang:{zh:创建用户,en:Create User,vie:Tạo User}",
+            "value":"CREUSR",
+            "width":150
+        },
+        {
+            "text":"lang:{zh:修改用户,en:Modify Users,vie:Thay đổi người dùng}",
+            "value":"UPDUSR",
+            "width":150
+        },
+        {
+            "text":"lang:{zh:创建时间,en:Creation time,vie:Thời gian tạo}",
+            "value":"CRETIM",
+            "width":180
+        },
+        {
+            "text":"lang:{zh:修改时间,en:Modification time,vie:Thời gian sửa đổi}",
+            "value":"UPDTIM",
+            "width":180
+        },
+        {
+            "text":"lang:{zh:关闭原因,en:Reason for closure,vie:Lý do đóng cửa}",
+            "value":"CLOREA",
+            "width":150
+        }
+    ],
+    "href": "DOCNUM",
+    "addBtn": false,
+    "hidden": false,
+    "redirect": "",
+    "para": "{搜索内容,开始日期,结束日期}",
+    "attach": "",
+    "paraData": {
+        "搜索内容": "",
+        "开始日期": "#LINKDATE(0,-1,0,yyyy-MM-dd)#",
+        "结束日期": "#LINKDATE(0,0,0,yyyy-MM-dd)#"
+    },
+    "paraCustom": [
+        {
+            "data": [],
+            "type": "date",
+            "width": "10%",
+            "tip": "lang:{zh:开始日期,en:Start date,vie:Ngày bắt đầu}",
+            "value": "开始日期"
+        },
+        {
+            "data": [],
+            "type": "date",
+            "width": "10%",
+            "tip": "lang:{zh:结束日期,en:End date,vie:Ngày kết thúc}",
+            "value": "结束日期"
+        },
+        {
+            "data": [],
+            "type": "input",
+            "width": "30%",
+            "tip": "lang:{zh:可通过发票单号、单据描述、项目编号进行搜索,en:Search can be done through invoice number, document description, and project number,vie:Tìm kiếm có thể được thực hiện bằng cách yêu cầu số đơn, mô tả tài liệu, số mục}",
+            "value": "搜索内容"
+        },
+
+        {
+            "width": "100px",
+            "height": "40px",
+            "type": "button",
+            "btnType": "search",
+            "color": "default",
+            "text": "lang:{zh:搜索,en:search,vie:Tìm kiếm}",
+            "icon": "search"
+        },
+        {
+            "width":"100px",
+            "height":"40px",
+            "type":"button",
+            "btnType":"open",
+            "color":"primary",
+            "text":"lang:{zh:添加,en:Add,vie:Thêm}",
+            "icon":"edit",
+            "code":"TMESPUR10",
+            "num":"10",
+            "para":"{X}"
+        },
+        {
+            "width":"auto",
+            "height":"40px",
+            "type":"button",
+            "btnType":"open",
+            "para":"{X}",
+            "code":"TMESPUR10",
+            "num":"110",
+            "text":"lang:{zh:明细查询,en:Details Query,vie:Thông tin chi tiết}",
+            "color":"success",
+            "padding":"7px 16px"
+        }
+    ]
+}</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINKMENUITEM</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#87</ImageFile>
+  <ListPrint />
+  <MD5HASH>e1007304635592384fb755c85d597222</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR109X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Cài đặt thực đơn</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR109X</DMCODE>
+      <DMNUM>500</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Thiết lập trình đơn</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

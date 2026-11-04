@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPUR04</ModelCode>
+  <ModelNum>120</ModelNum>
+  <ModelDesc>采购收货明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.DOCNUM
+      ,DOCGRP.OPTDES                        DOCGRP
+      ,DOCSTA.OPTDES                        DOCSTA
+      ,CONVERT(VARCHAR(16), S.DOCDAT, 23)   DOCDAT
+      ,S.BPSNO
+      ,BPS.BPSNAM
+      ,S.PRJNUM
+      ,S.SITE
+      ,S.DOCLIN
+      ,S.ITMNO
+      ,ITM.ITMNAM
+      ,ITM.ITMNAM1
+      ,ITM.ITMSPEC
+      ,ITM.ITMSIZE
+      ,S.ITMVER
+      ,S.QTYSTU
+      ,S.STU
+      ,S.QTY
+      ,S.UOM
+      ,S.UOMCOE
+      ,S.REMARK                             LREMARK
+      ,S.PRJNUM                             LPRJNUM
+      ,SUBSTA.OPTDES                        SUBSTA
+      ,CONVERT(VARCHAR(16), S.[SUBTIM], 21) SUBTIM
+      ,S.BATCHID
+      ,S.SRCTYP
+      ,S.SRCDOC
+      ,S.SRCLIN
+      ,S.CREUSR
+      ,S.UPDUSR
+      ,CONVERT(VARCHAR(16), S.CRETIM, 21)   CRETIM
+      ,CONVERT(VARCHAR(16), S.UPDTIM, 21)   UPDTIM
+FROM   PRECLIN S
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.ITMNO
+       LEFT JOIN BPSUP BPS
+              ON BPS.BPSNO = S.BPSNO
+       LEFT JOIN LINKOPT DOCSTA
+              ON DOCSTA.OPTID = S.DOCSTA
+                 AND DOCSTA.OPTTYP = 'DOCSTA'
+       LEFT JOIN LINKOPT SUBSTA
+              ON SUBSTA.OPTID = S.SUBSTA
+                 AND SUBSTA.OPTTYP = 'SUBSTA'
+       LEFT JOIN LINKOPT DOCGRP
+              ON DOCGRP.OPTID = S.DOCGRP
+                 AND DOCGRP.OPTTYP = 'DOCGRP'
+WHERE  S.SITE LIKE '%{0}%'
+       AND S.DOCNUM LIKE '%{1}%'
+       AND S.ITMNO + ITM.ITMNAM LIKE '%{2}%'
+       AND S.DOCDAT BETWEEN '{3}' AND '{4}'
+       AND ITM.TCLCOD LIKE '%{5}%'
+ORDER  BY S.DOCNUM DESC
+          ,S.DOCLIN</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>申请单号</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>产品信息</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>开始日期</ParaLabel04>
+  <ParaType04>DATEVAL</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04>#LINKDATE(0,-1,0,yyyy-MM-dd)#</ParaDefVal04>
+  <ParaLabel05>结束日期</ParaLabel05>
+  <ParaType05>DATEVAL</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05>#LINK_TODAY#</ParaDefVal05>
+  <ParaLabel06>产品类型</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#72</ImageFile>
+  <ListPrint />
+  <MD5HASH>d817acf3cf399d52ee0538fb754291a4</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR04</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase receipt details query</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR04</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Truy vấn chi tiết biên nhận mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPUR04</DMCODE>
+      <DMNUM>120</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

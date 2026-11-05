@@ -1,0 +1,891 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESEXC05</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>领料申请</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT '领料申请'</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+MERGE
+INTO
+[PREQUH] D
+		USING (
+	SELECT
+ N'@DOCNUM@' DOCNUM
+,N'@DOCGRP@' DOCGRP
+,N'1' DOCSTA
+,N'SAVED' WFLSTA
+,N'@WFRULE@' WFRULE
+,N'@DOCDAT@' DOCDAT
+,N'@DOCDES@' DOCDES
+,N'@PRJNUM@' PRJNUM
+,N'@SITE@' SITE
+,N'@FAC@' FAC
+,N'@DEPT@' DEPT
+,N'@GRP@' GRP
+,N'@RESNO@' RESNO
+,N'@REMARK@' REMARK
+,N'@CLOREA@' CLOREA
+, N'#LOGIN_USER#' CREUSR
+, GETDATE() CRETIM
+	  ) S ON
+	(S.[DOCNUM] = D.[DOCNUM])
+	WHEN MATCHED THEN
+UPDATE
+SET 
+ DOCNUM = S.DOCNUM
+,DOCGRP = S.DOCGRP
+,DOCDAT = S.DOCDAT
+,DOCDES = S.DOCDES
+,PRJNUM = S.PRJNUM
+,SITE = S.SITE
+,FAC = S.FAC
+,DEPT = S.DEPT
+,GRP = S.GRP
+,RESNO = S.RESNO
+,REMARK = S.REMARK
+,CLOREA = S.CLOREA
+,WFRULE = S.WFRULE
+,UPDUSR='#LOGIN_USER#'
+,UPDTIM=GETDATE()
+WHEN NOT MATCHED THEN
+INSERT
+(DOCNUM
+,DOCGRP
+,DOCSTA
+,WFLSTA
+,DOCDAT
+,DOCDES
+,PRJNUM
+,SITE
+,FAC
+,DEPT
+,GRP
+,RESNO
+,REMARK
+,WFRULE
+,CLOREA
+,CREUSR
+,CRETIM
+)
+VALUES (
+S.DOCNUM
+,S.DOCGRP
+,S.DOCSTA
+,S.WFLSTA
+,S.DOCDAT
+,S.DOCDES
+,S.PRJNUM
+,S.SITE
+,S.FAC
+,S.DEPT
+,S.GRP
+,S.RESNO
+,S.REMARK
+,S.WFRULE
+,S.CLOREA
+,S.CREUSR
+,S.CRETIM
+);</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>UPDATE PREQAL
+SET    PRQNUM = ''
+       ,PRQQTY = A.QTY
+       ,PRQQTYSTU = A.QTYSTU
+FROM   PREQAL A
+       INNER JOIN PREQUL D
+               ON D.ITMNO = A.ITMNO
+                  AND D.ITMVER = A.ITMVER
+                  AND A.PRQNUM = D.DOCNUM
+WHERE  D.DOCNUM = '#DOCNUM#'
+       AND D.DOCSTA = '1';
+
+DELETE FROM PREQUH
+WHERE  DOCNUM = '#DOCNUM#'
+       AND DOCSTA = '1';</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-card' &gt;
+ &lt;div class='mui-card-header C01'&gt;
+    &lt;button type="button" class="mui-btn mui-btn-danger" linkquick="8" btnid="502" linkrefresh="1" linkparafill="1" linklocatino="0" linktitle="驳回" style="width:80px;height:35px;font-size:16px"&gt;驳回&lt;/button&gt;
+   &lt;button type="button" class="mui-btn mui-btn-primary" linkquick="8" btnid="501" linkparafill="1" linkrefresh="1" linklocatino="0" linktitle="同意" style="width:80px;height:35px;font-size:16px"&gt;同意&lt;/button&gt;
+   &lt;/div&gt;
+ &lt;div class='mui-card-content '&gt;
+         &lt;H4&gt;单据号:#DOCNUM#&lt;/H4&gt;
+         &lt;H4&gt;请求日期:#DOCDAT#&lt;/H4&gt;
+         &lt;H4&gt;请求描述:#DOCDES#&lt;/H4&gt;
+         &lt;H4&gt;申请部门:#DEPTDES#&lt;/H4&gt;
+         &lt;H4&gt;备注:#REMARK#&lt;/H4&gt;
+         &lt;H4&gt;状态:#WFLSTA#&lt;/H4&gt;
+         &lt;div style="overflow: auto;padding:0"&gt;
+    &lt;div class="link-table-default" style="margin-bottom:0px"&gt; 
+    &lt;div class="link-table-fixed" &gt; 
+    &lt;div style="min-width:10px;background-color:#546E7A;font-size:18px"&gt;行&lt;/div&gt;
+    &lt;div style="min-width:25px;background-color:#546E7A;font-size:18px"&gt;产品编码&lt;/div&gt;
+    &lt;div style="min-width:230px;background-color:#546E7A;font-size:18px"&gt;中文名称&lt;/div&gt;
+    &lt;div style="min-width:160px;background-color:#546E7A;font-size:18px"&gt;品名&lt;/div&gt;
+    &lt;div style="min-width:160px;background-color:#546E7A;font-size:18px"&gt;型号/件号&lt;/div&gt;
+    &lt;div style="min-width:160px;background-color:#546E7A;font-size:18px"&gt;尺寸规格&lt;/div&gt;
+    &lt;div style="min-width:100px;background-color:#546E7A;font-size:18px"&gt;数量[单位]&lt;/div&gt;
+    &lt;div style="min-width:160px;background-color:#546E7A;font-size:18px"&gt;需求日期&lt;/div&gt;
+    &lt;div style="min-width:160px;background-color:#546E7A;font-size:18px"&gt;行备注&lt;/div&gt;
+    &lt;/div&gt;#LINKDETAILLIST#&lt;/div&gt;
+   &lt;/div&gt;
+  &lt;/a&gt;
+ &lt;/div&gt;
+   
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>contextTap = function(contextid, linktitle, linkrefresh, linkparafill, cRDs) {
+	var globleDmCode = "LINKWFTASKPR";
+	var globleDmNum = "10";
+	var AttachDmCode = globleDmCode + globleDmNum + 'X';
+	localStorage.setItem("AttachDmCode", AttachDmCode);
+	localStorage.setItem("AttachDmNum", contextid);
+	localStorage.setItem("AttachDmTitle", linktitle);
+	//附加参数功能允许用户补充必要的参数，确认后执行附加功能并返回
+	showAttachModelPara(LinkID, globleServer, globleDmCode, globleDmNum, contextid, cRDs, linkrefresh);
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#02</ImageFile>
+  <ListPrint />
+  <MD5HASH>e710d0bc1622fe770a038d2fc2365437</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>true</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLBFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CLOREA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEBFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEPT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DEPTDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCDAT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCGRP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCGRPDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>DOCSTADE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FACNAM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FLDTS1S</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FLDTS2S</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FLDTS3S</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>FLDTS4S</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>GRPDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>id</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITML</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMSIZEL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMSPECL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>ITMVERL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase request details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PITMNO</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PITMVER</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PLOT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PMSDETAIL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PRJNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PRNCNT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>PRTFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REBFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RESNO</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>RESNODES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SABFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SIGNLISTID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SITEDES</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>SUBFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TASKID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TCLCODL</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TSICOD1L</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TSICOD2L</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TSICOD3L</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>TSICOD4L</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>WFLFLG</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>WFLSTA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC05</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>WFRULE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

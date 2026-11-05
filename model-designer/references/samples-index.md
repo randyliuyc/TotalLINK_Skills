@@ -1,9 +1,10 @@
 # 样例结构特征索引（samples-index）
 
 > 用途：问卷命中「界面形态」后，从这里找模板克隆来源（只替换 `#列名#` 与列名，不从零手写 HTML/JSON）。
-> 状态：**已填（2026-11-04）**——基于 `samples/` 43 个精选样例 + `samples-corpus/` 640 个全量语料（四个项目）盘点。
+> 状态：**已填（2026-11-04，2026-11-05 增补 TAMPER 两组）**——基于 `samples/` 43 个精选样例 + `samples-corpus/` 全量语料（六个项目：ERAQA / KEEWAYZUPSCH / KEEWAYZUPPDA / TMESPUR / TAMPERAPP / TAMPERFB）盘点。
 > 分隔符注意：全部语料 0 处 `~<!>~`（旧 `~` 只出现在 CallFunction/SQLClear 动作语法里）；读样例容忍旧写法，**产出必须 `~<!>~`**。
-> **SQL 列名风格注意（2026-11-04 定）**：语料 SQL 普遍使用中文显示别名——这是早期设计风格，**不作新模型推荐**。克隆模板时 H5 模板骨架照抄（改占位符），SQL 列名改写为表列名 + CubeSetting CAPTION 翻译（见 `datasearch-windows.md`、`fields.md` CubeSetting 节）。
+> **SQL 列名风格注意（2026-11-04 定）**：语料 SQL 普遍使用中文显示别名——这是早期设计风格，**不作新模型推荐**。克隆模板时 H5 模板骨架照抄（改占位符），SQL 列名改写为表列名 + CubeSetting CAPTION 翻译（见 `datasearch-windows.md`、`fields.md` CubeSetting 节）。**例外**：无界面服务型模型的消息列可用中文别名（TAMPERAPP#1521 `提示`）。
+> **TAMPER 语料（2026-11-05，用户认定的标杆样例）**：全量在 `samples-corpus/TAMPERAPP|TAMPERFB/`，索引条目直接引用 corpus 路径。
 
 ## 归类维度
 
@@ -46,6 +47,33 @@
 | FB | 复杂查询/报表 | 附加 #120 | SQLScript/SQLUpdateScript/ParaDefVal | `TMESPUR01#120-申请明细查询.xml` | CTE 多源 JOIN + 可回写 MERGE + `#LINKDATE(0,-1,0,yyyy-MM-dd)#` 默认值 |
 | FB | 表单定义 | 附加 #500 | H5PARA(formSetting)+SQLScript | `TMESPUR0110X#500-表单设置.xml` | formSetting 标准：`formtemplate`（MOD220500008 形态）+ `"#FORMDATA#"` 字面量 + tableData（保留名 LINKDOCLIST/LINKSIGNLIST）；SQLScript=字段映照 JSON。**formtemplate 指向的骨架需新建时用 `formbuilder-json-generator` skill** |
 | FB | 菜单/列表注册 | 附加 #500 | SQLScript | `TMESPUR029X#500-List.xml` | **独立链路 ConnString=LINKMENUITEM**：列表页配置 JSON（title/path/column/paraData/paraCustom 全控件类型）；FB 查询区 UI 由这里的 paraCustom 定义，不在 H5PARA |
+
+### APP（TAMPERAPP，坦伯 PDA 领料出库——2026-11-05 标杆语料，全量 corpus）
+
+| 环境 | 形态 | 模型族角色 | 模板字段 | 样例文件 | 备注 |
+|------|------|-----------|---------|----------|------|
+| APP | 卡片列表+扫码全链 | 主模型 #10 | H5List/H5Edit/H5NewRec/H5Para/JavaScript | `corpus/TAMPERAPP/TMESPDA130#10-领料出库.xml` | **PDA 扫码标杆**：linkquick=8 弹窗 502、link-append 内嵌 #701 明细、开窗 automatch（704/706）、scan 链钩子全套（`js-hooks.md`）、空骨架行保列结构、`ROW_BACKCOLOR` 条件样式列 |
+| APP | 查询列表页 | 同码 #110 | H5Para+H5List | `corpus/TAMPERAPP/TMESPDA130#110-领料出库查询.xml` | **#110 查询形态**：DATEVAL 参数 + `LIKE N'%{n}%'` + `#LINKDATE(0,0,-7,...)#`/`#LINK_TODAY#` 默认值（编号语义见 `discovery.md`） |
+| APP | 扫码校验服务 | 附加 #1521 | SQLScript | `corpus/TAMPERAPP/TMESPDA13010X#1521-扫描解析-参数.xml` | 无界面服务模型：校验单据状态逐条 RETURN，返回 `提示`=OK/错误文案；SQLClear 做 `LIKE '%{0}%'` 候选提示；**消息列中文别名是合法例外** |
+| APP | 二维码拆解服务 | 附加 #1522 | SQLScript | `corpus/TAMPERAPP/TMESPDA13010X#1522-扫描解析.xml` | 按 `;` 拆 QR（ITMNO;LOT;SUBLOT;BPSLOT）+ `'#DOCNUM#'` 接收 1521 结果集列 + 按库存行数分支结果集 |
+| APP | 提交（存储过程） | 附加 #21 | SQLClear | `corpus/TAMPERAPP/TMESPDA13010X#21-提交.xml` | `--LINKREFRESH`+`--LINKEXECOUTPUT` 双标记；`#LINKID_ACTION#` 作 BATCHID；EXEC 存储过程 OUTPUT 回传 RPTSTA/RPTMSG；SQLScript 用 `#LINKSCRIPTGET@LINK01:` + LINKPREVENT 防超领 |
+| APP | 动作可用性控制 | 附加 #301 | SQLScript | `corpus/TAMPERAPP/TMESPDA13010X#301-按钮控制.xml` | `SELECT '.PREPROCESS.501' AS LINKFUNCTIONLIST`（MyRowData 段的 APP 用法，见 `link-flags.md`） |
+| APP | 开窗数据源（automatch 型） | 附加 #704/#705/#706 | SQLScript | `corpus/TAMPERAPP/TMESPDA13010X#704-….xml` 等 | **不配业务列 CubeSetting**，列匹配靠调用按钮 automatch（`datasearch-windows.md` §2a）；可领数量 CASE 算进输出列；`ITM1` 显示列拼 `lang:{}` 令牌 |
+| APP | 卡片内嵌明细+行删 | 附加 #701 | SQLScript/SQLRemove | `corpus/TAMPERAPP/TMESPDA13010X#701-领料出库明细查询.xml` | link-append 目标模型；删除按钮 `para="#PK#" script="3"` → `WHERE PK='{0}' AND CREUSR='#LOGIN_USER#'` |
+
+### FB（TAMPERFB，坦伯领料申请——2026-11-05 标杆语料，全量 corpus）
+
+| 环境 | 形态 | 模型族角色 | 模板字段 | 样例文件 | 备注 |
+|------|------|-----------|---------|----------|------|
+| FB | 页面族组织（.A/.B×.H/.L） | 四族 #10 | 全套 | `corpus/TAMPERFB/TMESEXC0510X.AH/.AL/.BH/.BL #10` | **双层族命名标杆**：列表页参数/数据 + 详情页表头/明细；详情 #10 SQLUpdateScript=MERGE INTO（`fb-page-families.md` §1） |
+| FB | 菜单注册 | 根族 #500 | SQLScript | `corpus/TAMPERFB/TMESEXC0510X#500-List.xml` | LINKMENUITEM JSON 指向 `.AH#10`、`para:"{X}"`、`showType:"detail"`（`fb-page-families.md` §3） |
+| FB | 查询区 formSetting | AH10X #500-Para | H5Para+SQLScript | `corpus/TAMPERFB/TMESEXC0510X.AH10X#500-Para.xml` | formtemplate MOD260300003 + tableData.TABLE_1→AL#10（Para 数组=行级 `#P列#`） |
+| FB | 行→详情传参映射 | AL10X #500-Document | SQLScript | `corpus/TAMPERFB/TMESEXC0510X.AL10X#500-Document.xml` | 列表全部输出列→`#列名#` 映射 JSON，无 H5Para（五种 500 形态之一） |
+| FB | 表头 formSetting | BH10X #500-表单设置 | H5Para+SQLScript | `corpus/TAMPERFB/TMESEXC0510X.BH10X#500-表单设置.xml` | formtemplate MOD260300002 + TABLE_1→BL#10(`#DOCNUM#`) + 保留名 LINKDOCLIST→LINKFLOW#25 |
+| FB | 确认/关闭动作 | BH10X #501/#502 | SQLClear | `corpus/TAMPERFB/TMESEXC0510X.BH10X#501-确认.xml` | **UPDATE 写在 SQLClear**（SQLScript/SQLUpdateScript 全空）；头行状态联动更新 |
+| FB | 单据打印 | BH10X #503 | CallFunction | `corpus/TAMPERFB/TMESEXC0510X.BH10X#503-单据打印.xml` | `CALLFUNCTION~FILEEXPORT~` + rdlx 报表（`#LINKREPORTPATH#`/`#LINKCONN.码#`/`#DOCNUM#`） |
+| FB | 外部接口调用 | 10X #501 | CallFunction | `corpus/TAMPERFB/TMESEXC0510X#501-材料出库创建接口调用.xml` | `CALLFUNCTION~LINKRESTAPI~` + `#LINKJSONVALUE:$.message#`；密钥不得硬编码 |
+| FB | 按钮防呆 | BH10X/BL10X #700/#701 | SQLScript | `corpus/TAMPERFB/TMESEXC0510X.BH10X#700-删除_关闭按钮控制.xml` | `#LINKSCRIPTGET@LINK01:` + LINKPREVENT；对照 `X.AH10X#700-单据状态`（同号不同义：数据源下拉） |
 
 ### 运行器增量（ERAQA 埃赫曼 / KEEWAYZUPSCH 凯途计划）
 

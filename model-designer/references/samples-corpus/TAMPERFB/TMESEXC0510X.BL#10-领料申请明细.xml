@@ -1,0 +1,293 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESEXC0510X.BL</ModelCode>
+  <ModelNum>10</ModelNum>
+  <ModelDesc>领料申请明细</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT S.DOCNUM + CAST(S.DOCLIN AS VARCHAR)  AS LINKROWID
+       ,S.[DOCTYP]
+       ,S.[DOCNUM]
+       ,S.[DOCLIN]
+       ,S.[CPNITMNO]
+       ,ITM.ITMNAM
+	   ,ITM.ITMSPEC
+       ,S.[CPNITMVER]
+       ,S.[QTY]
+       ,S.[UOM]
+       ,S.[UOMCOE]
+       ,S.[QTYSTU]
+       ,
+       -- 根据不同SRCTYP取对应库存
+       CASE
+          WHEN S.[SRCTYP] = 'UOM' THEN STK_UOM.STKQTY -- UOM类型的库存
+          WHEN S.[SRCTYP] = 'STU' THEN STK_STU.STKQTYSTU -- STU类型的库存
+          ELSE 0
+        END                                  AS STKQTY
+       ,LY.LYQTY
+       ,S.[LOC]
+       ,DBO.Optdes('DOCSTA', S.DOCSTA)       [LDOCSTA]
+       ,S.[REMARK]  [LREMARK]
+       ,S.[SRCTYP]
+       ,S.[CREUSR]
+       ,S.[UPDUSR]
+       ,CONVERT(VARCHAR(16), S.[CRETIM], 21) AS CRETIM
+       ,CASE
+          WHEN CONVERT(VARCHAR(16), S.UPDTIM, 21) = '1900-01-01 00:00' THEN ''
+          ELSE CONVERT(VARCHAR(16), S.UPDTIM, 21)
+        END                                  AS UPDTIM
+       ,S.[CLOREA]                           AS [LCLOREA]
+       ,IIF(S.CLOSTA = 1, '是', '否')          LCLOSTA
+       ,S.[CLOUSR]
+       , CONVERT(VARCHAR(16),S.[CLOTIM], 21)    [CLOTIM]
+       ,CASE
+          WHEN S.DOCSTA = '1'AND S.CLOSTA = 0 THEN ''
+          ELSE '1'
+        END                                  AS LDEBFLG
+       ,CASE
+          WHEN S.DOCSTA IN ( '1', '2' ) AND S.CLOSTA = 0 THEN ''
+          ELSE '1'
+        END                                  AS LCLBFLG
+FROM   [MFGPKL] S
+       INNER JOIN ITM
+               ON ITM.ITMNO = S.CPNITMNO
+       -- 分别关联不同类型的库存
+       LEFT JOIN (SELECT S.ITMNO
+                         ,SUM(S.QTY) AS STKQTY
+                  FROM   [STK] S
+                         INNER JOIN ITM I
+                                 ON S.ITMNO = I.ITMNO
+                  WHERE  S.UOM &lt;&gt; 'KG' -- UOM类型排除KG
+                         AND I.TCLCOD = 'RW'
+                  GROUP  BY S.ITMNO) STK_UOM
+              ON STK_UOM.ITMNO = S.CPNITMNO
+                 AND S.[SRCTYP] = 'UOM'
+       LEFT JOIN (SELECT S.ITMNO
+                         ,SUM(S.QTYSTU) AS STKQTYSTU
+                  FROM   [STK] S
+                         INNER JOIN ITM I
+                                 ON S.ITMNO = I.ITMNO
+                  WHERE  I.TCLCOD = 'RW'
+                  GROUP  BY S.ITMNO) STK_STU
+              ON STK_STU.ITMNO = S.CPNITMNO
+                 AND S.[SRCTYP] = 'STU'
+       LEFT JOIN (SELECT SRCDOC
+                         ,SRCLIN
+                         ,SUM(QTY) LYQTY
+                  FROM   STKCHG
+                  WHERE  SUBSTA = 3
+                         AND DOCGRP = 'MPM'
+                         AND SRCDOC = '{0}'
+                  GROUP  BY SRCDOC
+                            ,SRCLIN) LY
+              ON S.DOCNUM = LY.SRCDOC
+                 AND S.DOCLIN = LY.SRCLIN
+WHERE  S.[DOCNUM] = '{0}'
+ORDER  BY S.DOCLIN;</SQLScript>
+  <SQLUpdateScript>--LINKADDNEWROWS
+--LINKAUTOREPLACEEMPTYCOLUMNS
+DECLARE @NUM INT;
+
+SELECT @NUM = Isnull(Max(DOCLIN), 0) + 10
+FROM   [MFGPKL]
+WHERE  DOCNUM = N'#DOCNUM#';
+
+MERGE INTO [MFGPKL] D
+USING (SELECT N'@DOCNUM@'      DOCNUM
+              ,Iif(0#DOCLIN# = 0, @NUM, 0#DOCLIN#)     DOCLIN
+              ,'MPH'   DOCTYP
+              ,N'#CPNITMNO#'   CPNITMNO
+              ,N'#CPNITMVER#'  CPNITMVER
+              ,N'#CPNLOT#'     CPNLOT
+              ,N'#CPNSUBLOT#'  CPNSUBLOT
+              ,0#QTY# QTY
+              ,N'#UOM#'        UOM
+              ,01 UOMCOE
+              ,0#QTY# QTYSTU
+              ,N'#LREMARK#'     REMARK
+              ,N'#SRCTYP#'     SRCTYP
+              ,N'#SRCDOC#'     SRCDOC
+              ,0#SRCLIN# SRCLIN
+              ,0#SRCSEQ# SRCSEQ
+              ,N'#CLOREA#'     CLOREA
+              ,N'1'            DOCSTA
+              ,N'#LOGIN_USER#' CREUSR
+              ,Getdate()       CRETIM) S
+ON ( S.[DOCNUM] = D.[DOCNUM]
+     AND S.DOCLIN = D.DOCLIN )
+WHEN MATCHED THEN
+  UPDATE SET  CPNITMNO = S.CPNITMNO
+             ,CPNITMVER = S.CPNITMVER
+             ,CPNLOT = S.CPNLOT
+             ,CPNSUBLOT = S.CPNSUBLOT
+             ,QTY = S.QTY
+             ,UOM = S.UOM
+             ,UOMCOE = S.UOMCOE
+             ,QTYSTU = S.QTYSTU
+             ,DOCSTA = S.DOCSTA
+             ,REMARK = S.REMARK
+             ,SRCTYP = S.SRCTYP
+             ,SRCDOC = S.SRCDOC
+             ,SRCLIN = S.SRCLIN
+             ,SRCSEQ = S.SRCSEQ
+             ,UPDUSR = '#LOGIN_USER#'
+             ,UPDTIM = Getdate()
+WHEN NOT MATCHED THEN
+  INSERT (DOCTYP
+          ,DOCNUM
+          ,DOCLIN
+          ,CPNITMNO
+          ,CPNITMVER
+          ,CPNLOT
+          ,CPNSUBLOT
+          ,QTY
+          ,UOM
+          ,UOMCOE
+          ,QTYSTU
+          ,DOCSTA
+          ,REMARK
+          ,SRCTYP
+          ,SRCDOC
+          ,SRCLIN
+          ,SRCSEQ
+          ,CREUSR
+          ,CRETIM )
+  VALUES ( S.DOCTYP
+           ,S.DOCNUM
+           ,S.DOCLIN
+           ,S.CPNITMNO
+           ,S.CPNITMVER
+           ,S.CPNLOT
+           ,S.CPNSUBLOT
+           ,S.QTY
+           ,S.UOM
+           ,S.UOMCOE
+           ,S.QTYSTU
+           ,S.DOCSTA
+           ,S.REMARK
+           ,S.SRCTYP
+           ,S.SRCDOC
+           ,S.SRCLIN
+           ,S.SRCSEQ
+           ,S.CREUSR
+           ,S.CRETIM );</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>采购请求单</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM [MFGPKL] 
+WHERE  DOCNUM + Cast(DOCLIN AS VARCHAR) = '#LINKROWID#'
+       AND DOCSTA = '1'</SQLRemove>
+  <SQLClear />
+  <H5List>&lt;div&gt;
+&lt;div style="font-size: 20px;"&gt;#DOCLIN#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNO#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMNAM#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMVER#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSPEC#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#ITMSIZE#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#QTY#[#UOM#]&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#REQDAT#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#LREMARK#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#59</ImageFile>
+  <ListPrint />
+  <MD5HASH>f0777a81c1da384e8c2f2afbda30516a</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC0510X.BL</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Purchase request details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC0510X.BL</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESEXC0510X.BL</DMCODE>
+      <DMNUM>10</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết yêu cầu mua hàng</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

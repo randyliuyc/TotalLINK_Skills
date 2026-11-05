@@ -50,8 +50,9 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
    - 目标环境含 APP/FB：`H5PARA`、`H5LIST`（或 `H5GRIDHDR`+`H5GRIDDTL`）、`H5EDIT`、`H5NEWREC` 等**必须显式设计，从样例/存量模型克隆**——不依赖服务端兜底（新服务端兜底已删除，模板为空就是空）；
    - 以存量模型为模板时保持原值。
 6. **`MD5HASH` 留空**：导入时由服务端重算。它不是文档哈希，不能用它判断两个 XML 是否同源。
-7. **不臆造**：列名只准从 `model dict` 的列清单选；不认识的字段、标记、action，先查 `references/`；文档没有的问用户。
-8. **模型是模型族**：动主模型时检查附加模型族（`{代码}{编号}X`）是否需要同步调整；FB 表单必须有 500 伴生模型。
+7. **`CUSCODE` 统一留空**（2026-11-05 定）：客户归属由服务端按登录环境决定；`model export` 导出的参考模型可能带 CUSCODE 值，生成/克隆时一律清空（validate 报 `CUSCODE_NONEMPTY`）。
+8. **不臆造**：列名只准从 `model dict` 的列清单选；不认识的字段、标记、action，先查 `references/`；文档没有的问用户。
+9. **模型是模型族**：动主模型时检查附加模型族（`{代码}{编号}X`）是否需要同步调整；FB 表单按页面族组织（`.AH/.AL/.BH/.BL` 四族 + 各族 500 伴生模型，见 `references/fb-page-families.md`）。
 
 ## 工作流
 
@@ -131,7 +132,8 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | APP/FB 模板克隆来源 | `references/samples-index.md` |
 | APP 按钮怎么写（新建/动作/删除，`linkquick`/`btnid`/`para`/`script`、APP 与 Client 传参模式区别） | `references/app-buttons.md`（属性级细节见 `../totallink-app-help/references/linkquick.md`、`attributes.md`） |
 | 开窗选择窗（linkdatasearch 数据源模型，列表空白的排查） | `references/datasearch-windows.md` |
-| FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `../formbuilder-json-generator/`（布局/控件/按钮/表达式规则） |
+| FB 页面组怎么组织（.A/.B×.H/.L 族、五种 500 形态、菜单 JSON、动作模型） | `references/fb-page-families.md` |
+| FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `../formbuilder-json-generator/`（布局/控件/按钮/表达式规则；模板查询/落库走 AI 工具 `SYSINFOMATION/300`，契约见其「模板落库」节，按环境开放、缺工具时提示用户在服务端开放） |
 | APP 模型要写前端脚本（扫码/校验/刷新钩子） | `references/js-hooks.md` |
 | APP H5 模板的控件 class、link- 属性、取值/提交链路等客户端约定 | `../totallink-app-help/references/`（h5-guide / classes-ids / attributes / methods） |
 | 拿不准某字段影响哪个环境 | `references/environments.md`、`references/endpoints.md` |
@@ -142,8 +144,8 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 - 根元素 `<SysDataModelXML>`，字段全集与取值规范见 `references/fields.md`。
 - 两套参数占位符（勿混）：模型参数 `{N}`（0 基，`{0}` = 参数 01）；网格行级值 `#列名#`（数字列写 `0#列名#` 防 NULL/空串）。详见 `references/placeholders.md`。
 - **APP 按钮删除传参走 `{0}`**（`para="#LINKROWID#" script="3"` 把行 ID 当模型参数传入）；`#LINKROWID#` 行级令牌只在 Client/运行器行编辑上下文生效——见 `references/app-buttons.md` §0。
-- **SQL 列名风格（2026-11-04 定）**：新模型 SELECT 不为显示目的写中文别名（早期样例风格），直接用表列名；标题走 CubeSetting CAPTION（运行器）/ H5 模板内联 label（APP）；聚合列才用英文别名。validate 对中文别名报 `SQL_ALIAS_LEGACY`（info）。
-- 开窗选择窗契约：CubeSetting `COLNAME` 必须等于结果集列名，`text-value` 引用实际列名，对不上即 APP 列表「有行但空白」——见 `references/datasearch-windows.md`。
+- **SQL 列名风格（2026-11-04 定）**：新模型 SELECT 不为显示目的写中文别名（早期样例风格），直接用表列名；标题走 CubeSetting CAPTION（运行器）/ H5 模板内联 label（APP）；聚合列才用英文别名。validate 对中文别名报 `SQL_ALIAS_LEGACY`（info）。**例外**：无界面服务型模型的消息列可用中文别名（TAMPERAPP#1521 `提示`）。
+- 开窗选择窗契约：列表/开窗数据源模型 CubeSetting `COLNAME` 必须等于结果集列名，`text-value` 引用实际列名，对不上即 APP 列表「有行但空白」；**APP PDA 开窗走按钮 `automatch` 不配业务列 CubeSetting**——适用范围与排查见 `references/datasearch-windows.md` §2/2a/2b。
 - 参数四件套：`ParaLabel01~10` / `ParaType01~10` / `ParaSearchCode01~10` / `ParaDefVal01~10`，最多 10 个，存在 SYSSEARCH 表；`ParaDefVal` 写 `?` 表示必填（同时决定附加模型是否需人工补参）。
 - 恒填字段：`ImageFile = #LINKRES#数字`（数字取 0~99）；`MD5HASH` 留空。
 - 脚本注释标记（`--LINKEDITMODE`、`--LINKREQUIRED:` 等）见 `references/link-flags.md`。

@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPDA13010X</ModelCode>
+  <ModelNum>701</ModelNum>
+  <ModelDesc>领料出库明细查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SITE VARCHAR(30)='{0}';
+DECLARE @SRCDOC VARCHAR(30)='{1}';
+DECLARE @SRCLIN INT='{2}';
+
+SELECT Row_number()
+         OVER (
+           PARTITION BY S.SRCDOC, S.SRCLIN
+           ORDER BY S.UPDTIM )               SEQ
+       ,S.TAGNO
+       ,Cast(S.QTY AS REAL)               QTY
+       ,S.UOM
+       ,S.PK
+       ,S.WH
+       ,S.LOC
+       ,S.CRETIM
+       ,S.CREUSR
+       ,Iif(S.DOCSTA = 2, 'mui-hidden', '')  DELFLG
+FROM   STKCHG S
+WHERE  S.SITE = @SITE
+       AND S.SRCDOC = @SRCDOC
+       AND SRCLIN = @SRCLIN</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>SITE</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>SRCDOC</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>SRCLIN</ParaLabel03>
+  <ParaType03>DEC</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove>DELETE FROM STKCHG WHERE PK='{0}' AND CREUSR = '#LOGIN_USER#'</SQLRemove>
+  <SQLClear>--LINKREFRESH</SQLClear>
+  <H5List>&lt;div&gt;
+&lt;div&gt;&lt;button type="button" class="mui-btn mui-btn-danger #DELFLG#"  linkquick="12" linklocation="0" api="2" code="TMESPDA13010X" num="701" para="#PK#" script="3" confirm="lang:{zh:确认删除,vie:xác nhận xóa}?"  style="width:30px;height:25px"&gt;&lt;span class="mui-icon mui-icon-trash"&gt;&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#SEQ#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#QTY##UOM#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#TAGNO#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#WH#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#LOC#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#CREUSR#&lt;/div&gt;
+&lt;div style="font-size: 20px;"&gt;#CRETIM#&lt;/div&gt;
+&lt;/div&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#86</ImageFile>
+  <ListPrint />
+  <MD5HASH>0889ef3868342f8c650fb742c48580d3</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Kiểm tra chi tiết vật liệu sản xuất</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>701</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết sản xuất</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

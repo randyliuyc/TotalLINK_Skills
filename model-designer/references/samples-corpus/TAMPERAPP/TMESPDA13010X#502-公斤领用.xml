@@ -1,0 +1,327 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPDA13010X</ModelCode>
+  <ModelNum>502</ModelNum>
+  <ModelDesc>公斤领用</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>INSERT INTO STKCHG
+            ([DOCNUM]
+             ,[DOCLIN]
+             ,[DOCTYP]
+             ,[DOCGRP]
+             ,DOCDAT
+             ,SITE
+             ,[ITMNO]
+             ,ITMVER
+             ,[WH]
+             ,[LOC]
+             ,[PAL]
+             ,[CTR]
+             ,[LOT]
+             ,[SUBLOT]
+             ,[BPSLOT]
+             ,[SER]
+             ,[STA]
+             ,[STU]
+             ,[UOM]
+             ,[UOMCOE]
+             ,[TAGTYP]
+             ,[TAGNO]
+             ,CTRNUM
+             ,CTRQTY
+             ,[QTYSTU]
+             ,[QTY]
+             ,[ITMNO1]
+             ,[ITMVER1]
+             ,[WH1]
+             ,[LOC1]
+             ,[PAL1]
+             ,[CTR1]
+             ,[LOT1]
+             ,[SUBLOT1]
+             ,[BPSLOT1]
+             ,[PRJNUM1]
+             ,[SER1]
+             ,[STA1]
+             ,[STU1]
+             ,[QTYSTU1]
+             ,[UOM1]
+             ,[QTY1]
+             ,[UOMCOE1]
+             ,[REMARK]
+             ,[PRJNUM]
+             ,[SUBSTA]
+             ,[SUBTIM]
+             ,[PK]
+             ,XWSPK
+             ,[BATCHID]
+             ,[SRCTYP]
+             ,[SRCDOC]
+             ,[SRCLIN]
+             ,[ORITYP]
+             ,[ORIDOC]
+             ,[ORILIN]
+             ,[DOCSTA]
+             ,[CREUSR]
+             ,[UPDUSR]
+             ,[CRETIM]
+             ,[UPDTIM]
+             ,[CLOREA])
+SELECT ''              AS DOCNUM
+       ,1              AS DOCLIN
+       ,'CHG'          AS DOCTYP
+       ,'MPM'          AS DOCGRP --库位变动
+       ,Getdate()      AS DOCDAT
+       ,H.SITE         AS SITE
+       ,L.CPNITMNO     AS ITMNO
+       ,L.CPNITMVER    AS ITMVER
+       ,STK.WH         AS WH
+       ,STK.LOC        AS LOC
+       ,STK.PAL        AS PAL
+       ,STK.CTR        AS CTR
+       ,STK.LOT        AS LOT
+       ,STK.SUBLOT     AS SUBLOT
+       ,STK.BPSLOT     AS BPSLOT
+       ,STK.SER        AS SER
+       ,STK.STA        AS STA
+       ,STK.STU        AS STU
+       ,STK.STU        AS UOM
+       ,1              AS UOMCOE
+       ,''             AS TAGTYP
+       ,''             AS TAGNO
+       ,STK.CTRNUM     AS CTRNUM
+       ,STK.CTRQTY     AS CTRQTY
+       ,0#QTYSTU#      AS QTYSTU
+       ,0#QTYSTU#      AS QTY
+       ,STK.ITMNO      AS ITMNO1
+       ,STK.ITMVER     AS ITMVER1
+       ,H.DESTWH       AS WH
+       ,H.DESTLOC      AS LOC1
+       ,STK.PAL        AS PAL1
+       ,STK.CTR        AS CTR1
+       ,STK.LOT        AS LOT1
+       ,STK.SUBLOT     AS SUBLOT1
+       ,STK.BPSLOT     AS BPSLOT1
+       ,STK.PRJNUM     AS PRJNUM1
+       ,STK.SER        AS SER1
+       ,STK.STA        AS STA1
+       ,STK.STU        AS STU1
+       ,0#QTYSTU#      AS QTYSTU1
+       ,STK.STU        AS UOM1
+       ,0#QTYSTU#      AS QTY1
+       ,1              AS UOMCOE1
+       ,''             AS REMARK
+       ,STK.PRJNUM     AS PRJNUM
+       ,1              AS SUBSTA
+       ,Getdate()      AS SUBTIM
+       ,Newid()        AS PK
+       ,STK.PK         AS XWSPK
+       ,''             AS BATCHID
+       ,L.DOCTYP       AS SRCTYP
+       ,L.DOCNUM       AS SRCDOC
+       ,L.DOCLIN       AS SRCLIN
+       ,''             AS ORITYP
+       ,''             AS ORIDOC
+       ,0              AS ORILIN
+       ,1              AS DOCSTA
+       ,'#LOGIN_USER#' AS CREUSR
+       ,''             AS UPDUSR
+       ,Getdate()      AS CRETIM
+       ,''             AS UPDTIM
+       ,''             AS CLOREA
+FROM   MFGPKL L
+       LEFT JOIN MFGPKH H
+              ON H.DOCNUM = L.DOCNUM
+       INNER JOIN STK
+               ON L.CPNITMNO = STK.ITMNO
+WHERE  L.DOCNUM = '#SRCDOC#'
+       AND L.DOCLIN = 0#SRCLIN#
+       AND STK.PK = '#PK#'</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row" style=""&gt;
+    &lt;div style="float:left;width:80%" class="mui-input-column"&gt;
+        &lt;label&gt;lang:{zh:领料数量,vie:trọng lượng}&lt;/label&gt;
+        &lt;input type="number" required class="" placeholder="lang:{zh:请输入公斤数}"
+            id="QTYSTU" paratype="DEC" paradm="" value=""&gt;
+    &lt;/div&gt;
+    &lt;div style="float:right;width:20%"&gt;
+        &lt;button type="button" style="width:120px;height:25px" class="mui-btn mui-btn-blue linkdatasearch one" id="选择库存"
+            paradm="" code="TMESPDA13010X" num="705" text-value="ITM1-ITM1" para="{SITE,ITMNO,NEDQTYSTU}"
+            title="lang:{zh:选择库存}"
+            automatch='{"WH":"WH","LOC":"LOC","STU":"STU","STKQTYSTU":"STKQTYSTU","PK":"PK","QTYSTU":"QTYSTU","LOT":"LOT"}' reload value="" props&gt;
+            &lt;b style="font-size:16px"&gt;lang:{zh:选择库存}&lt;/b&gt;&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:库存数量}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="" readonly="readonly" id="STKQTYSTU" paratype="DEC" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:需领数量}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="" readonly="readonly" id="NEDQTYSTU" paratype="DEC" paradm=""
+        max="#NEDQTYSTU#" value="#NEDQTYSTU#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:库存单位}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" id="STU" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:地点}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="SITE" paratype="STR" paradm="" value="#SITE#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:部门/车间}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" id="DEPT" paratype="STR" paradm="" value="#DEPT#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:仓库,vie:kho}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" id="WH" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:库位,vie:vị trí}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="LOC" required paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:产品编码}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="ITMNO" paratype="STR" paradm=""
+        value="#CPNITMNO#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:产品名称}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="ITMNAM" paratype="STR" paradm=""
+        value="#ITMNAM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row linkreadonly"&gt;
+    &lt;label&gt;lang:{zh:批号}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" readonly="readonly" id="LOT" paratype="STR" paradm="" value="#CPNLOT#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:来源单据}&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" id="SRCDOC" paratype="STR" paradm="" value="#DOCNUM#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;lang:{zh:来源行号}&lt;/label&gt;
+    &lt;input type="number" class="" placeholder="" id="SRCLIN" paratype="DEC" paradm="" value="#DOCLIN#"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row mui-hidden"&gt;
+    &lt;label&gt;PK&lt;/label&gt;
+    &lt;input type="text" class="" placeholder="" id="PK" paratype="STR" paradm="" value=""&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript>$("#linkreset").remove() //,#linkok
+
+$(document).on("input", "#QTYSTU", function () {
+
+    var QTYSTU = parseFloat($("#QTYSTU").val()) || 0;         // 输入包装数量
+    var STKQTYSTU = parseFloat($("#STKQTYSTU").val()) || 0;   // 库位包装数
+    var NEDQTYSTU = parseFloat($("#NEDQTYSTU").val()) || 0; // 需领数量
+
+    if (STKQTYSTU &lt;= 0) {
+        $("#QTYSTU").val("");
+        alert("请先选择库存");
+        return;
+    }
+
+    if (QTYSTU &gt; STKQTYSTU) {
+        $("#QTYSTU").val("");
+        alert("数量不能大于库位数量");
+        return;
+    }
+
+    if (QTYSTU &gt; NEDQTYSTU) {
+        $("#QTYSTU").val("");
+        alert("数量不能大于剩余需领数量");
+        return;
+    }
+
+});
+
+
+linkDMFuncBackImpl = function () {
+    var NEDQTYSTU = parseFloat($("#NEDQTYSTU").val()) || 0;
+    var QTYSTU = parseFloat($("#QTYSTU").val()) || 0;
+    var retqtystu = NEDQTYSTU - QTYSTU
+
+    if (retqtystu &lt;= 0) {
+        showModelData(null);
+        return;
+    }
+
+    $("#QTYSTU").val("");
+    $("#NEDQTYSTU").val((retqtystu).toFixed(2));
+
+    var con = plus.webview.getWebviewById('contentlist');
+    mui.fire(con, 'contentlist_local', {});
+}</JavaScript>
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#85</ImageFile>
+  <ListPrint />
+  <MD5HASH>1df6292da4cd268f71008dbcff35c742</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

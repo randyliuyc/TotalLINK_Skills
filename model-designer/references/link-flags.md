@@ -11,12 +11,15 @@
 | `--LINKSAVEONENTERKEY` | SQLUpdateScript | 无 | 回车即保存 | ERAQA1005#10:21 等 7 处 |
 | `--LINKEDITMODE` | SQLUpdateScript | 无 | 启用行编辑 | ERAQA1005#10:22 等 6 处 |
 | `--LINKREQUIRED:列1,列2` | SQLUpdateScript | **冒号 + 逗号分隔列名** | 必填校验 | ERAQA1005#10:23 |
-| `--LINKADDNEWROWS` | SQLNew | 无 | 启用新增行 | ERAQA1005#10:73 等 5 处 |
+| `--LINKADDNEWROWS` | SQLNew **或 SQLUpdateScript** | 无 | 启用新增行/编辑态直接添加记录行（2023-12-14 起 `SysDataModel.vb:1106-1108` 允许写在 UPDATESCRIPT） | ERAQA1005#10:73；TAMPERFB BH#10/BL#10 SQLUpdateScript 首部 |
 | `--LINKNOGROUP` | SQLScript | 无 | 禁止分组 | ERAQA101010X#700:10 |
 | `--LINKDATAMINELAYOUT:55,45` | SQLScript | **冒号 + 逗号数值** | 挖掘布局比例 | ERAQA1010#10:10 |
 | `--LINKLOADDATAIMMEDIATE` | SQLScript | 无 | 立即加载数据（导出类大查询） | ERAQA1010#20:10 |
 | `--LINKDATAMINEOVERVIEW,VERTICAL,60,AUTOREFRESH` | SQLScript | **逗号分隔多参数** | 挖掘总览（方向/比例/自动刷新） | ERAQA1020#10:10 |
 | `--LINKREFRESH` | SQLClear | 无 | 动作执行后刷新 | ERAQA101010X#21:62 等 6 处 |
+| `--LINKMYROWDATA` | SQLScript | 无 | 标记主列表行数据脚本（MyRowData 链路） | TAMPERAPP TMESPDA130#10:10 |
+| `--LINKEXECOUTPUT` | SQLClear | 无 | 声明脚本带 OUTPUT 参数并返回结果集（EXEC 存储过程 OUTPUT 后 `SELECT @RPTSTA,@RPTMSG` 回传） | TAMPERAPP TMESPDA13010X#21:87 |
+| `--LINKAUTOREPLACEEMPTYCOLUMNS` | 任意经公式替换的脚本（SQLScript/SQLUpdateScript 实证） | 无 | 未被替换的 `#xxx#`/`@xxx@` 一律替换为空白（`GlobalFormula.vb:708-713`） | TAMPERFB BH#10/BL#10 SQLUpdateScript 首部 |
 | `--LINKSCRIPTGET@连接代码:` | SQLScript/SQLRemove | **`@连接代码` + `:`**，脚本体到独立一行 `#` 结束 | 在指定连接的数据库上执行内嵌脚本并返回结果值（`MLTShared.vb:3164` `GetScriptValue`：`LINKSCRIPTRUN@连接代码:脚本` 执行不返回 / `LINKSCRIPTGET@连接代码:脚本` 返回单值）。**连接代码因环境而异（样例为 `TMESERAQA`），生成时必须问用户** | ERAQA101010X#1000:61-66 |
 
 ## 脚本返回值中的结果标记（非 `--` 注释）
@@ -27,6 +30,7 @@
 |------|------|---------|
 | `LINKPREVENT:消息` | 阻止操作并提示 | ERAQA101010X#1000（删除检查）、501X#1000、502X#1000 |
 | `LINKCONFIRM:消息` | 弹确认框，用户确认后继续 | ERAQA101010X501X#1000（Copy 数据检查） |
+| 输出列 `LINKFUNCTIONLIST` | APP 动作可用性控制：值为 `.` 分隔动作令牌（如 `.PREPROCESS.501` 允许预处理触发 50x 模型）；#301（MyRowData 段）整脚本一句 `SELECT '.PREPROCESS.501' AS LINKFUNCTIONLIST` | TAMPERAPP TMESPDA13010X#301:10 |
 
 配套用法：主动作模型（如 #501 Copy）配一个「数据检查模型」（`主代码501X#1000`），SQLScript 用 `--LINKSCRIPTGET@源:` + CASE WHEN 返回 `LINKPREVENT`/`LINKCONFIRM`/空串。
 
@@ -37,7 +41,7 @@
 ## 完整词表（源码侧，样例未出现）
 
 以下标记在 `SysDataModel.vb` 有解析逻辑但本批样例未用到，需要时先读对应行号源码再决定是否使用，不要臆造参数格式：
-`--LINKAUTHORIZE`(L576)、`--LINKDATAAUTOSAVE`(L328)、`--LINKADDNEWROWTOP`(L1106-1111)、`--LINKGANTTVIEW`(L1197)、`--LINKCALENDARVIEW`(L1199)、`--LINKLOGICALDAY=`(L1201)、`--LINKPIVOTGRID`(L1210)、`--LINKNOEXPORT`(L1217)、`--LINKWAITTASKDONE`(L1458)、`--LINKCALLFUNCTION`(L1685)、`--LINKSHOWPROCESS`(L1686)、`--LINKSHOWEXCEPTION`(L1688)、`--LINKUPDATESCRIPT`(L1721)、`--LINKDATATRANSPOSITION`(L2095)、`--LINKDETAILLIST(...)`(L4642)、`--LINKBACKFUNC:`(L6431)、`--LINKWINDOWMODE`(L11401)、`--LINKMYROWDATA`(SysDataModel3.vb:34)、`--LINKDATAMINE~`(MLTGridEvent.vb:30)。
+`--LINKAUTHORIZE`(L576)、`--LINKDATAAUTOSAVE`(L328)、`--LINKADDNEWROWTOP`(L1106-1111)、`--LINKGANTTVIEW`(L1197)、`--LINKCALENDARVIEW`(L1199)、`--LINKLOGICALDAY=`(L1201)、`--LINKPIVOTGRID`(L1210)、`--LINKNOEXPORT`(L1217)、`--LINKWAITTASKDONE`(L1458)、`--LINKCALLFUNCTION`(L1685)、`--LINKSHOWPROCESS`(L1686)、`--LINKSHOWEXCEPTION`(L1688)、`--LINKUPDATESCRIPT`(L1721)、`--LINKDATATRANSPOSITION`(L2095)、`--LINKDETAILLIST(...)`(L4642)、`--LINKBACKFUNC:`(L6431)、`--LINKWINDOWMODE`(L11401)、`--LINKDATAMINE~`(MLTGridEvent.vb:30)。
 
 ## 使用原则
 

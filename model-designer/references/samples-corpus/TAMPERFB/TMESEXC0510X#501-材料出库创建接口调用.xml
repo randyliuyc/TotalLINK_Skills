@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESEXC0510X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>材料出库创建接口调用</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction>CALLFUNCTION~LINKRESTAPI~
+{
+    "ClientURL": "https://openapi.chanjet.com/tplus/api/v2/materialDispatch/Create",
+    "AuthUser": null,
+    "AuthPassword": null,
+    "Timeout": 120,
+    "Method": 1,
+    "Header": {
+        "Content-Type": "application/json",
+        "appKey": "6VNnRGdn",
+        "appSecret": "8BED6CFB7777F56859C6B821DD33C315",
+        "openToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpc3YiLCJpc3MiOiJjaGFuamV0IiwidXNlcklkIjoiNjAwMTUwMDc4NTciLCJvcmdJZCI6IjEyNDI5NzU0MjQ1ODYwNDYiLCJhY2Nlc3NfdG9rZW4iOiJiYy1jNjJhZTNkZC01ZjI2LTQxZDgtYjcwYS1hNTgwOTdiY2I4YmYiLCJhdWQiOiJpc3YiLCJuYmYiOjE3ODc2MjU3ODcsImFwcElkIjoiNTgiLCJzY29wZSI6ImF1dGhfYWxsIiwiYXBwS2V5IjoiNlZOblJHZG4iLCJpZCI6ImJlZDgxMWY4LWRhNzMtNDEwYS05ZTQ2LWY4MWUyMTgwYTY1MiIsImV4cCI6MTc4ODE0NDE4NywiaWF0IjoxNzg3NjI1Nzg3LCJvcmdBY2NvdW50IjoidTBkMG5zZzh3eGNtIn0.fnKqUhYSk90QHqA1iNK2IIJbJZgZ8xboxsFVasOGNaE",
+        "refreshToken": "9ba793a18ded4680b4f6bbc25d015c33"
+    },
+    "Parameter": null,
+    "UrlSegment": null,
+    "XmlBody": null,
+    "files": null,
+    "JsonBody": {
+        "dto": {
+            "ExternalCode": "CL-CK-20260826-002",
+            "VoucherType": { "Code": "ST1022" },
+            "VoucherDate": "2026-08-26",
+            "BusiType": { "Code": "41" },
+            "Warehouse": { "Code": "01" },
+            "Memo": "TotalLINK创建材料出库单-耶加雪菲水洗G2",
+            "RDRecordDetails": [
+                {
+                    "Code": "0001",
+                    "Inventory": { "Code": "01F75" },
+                    "BaseQuantity": 5
+                }
+            ]
+        }
+    },
+    "chkToken": null,
+    "chkValue": null,
+    "chkMessage": "$.message",
+    "resultFormula": "材料出库单创建结果:成功=HTTP200,错误信息 = #LINKJSONVALUE:$.message#",
+    "resultList": {
+        "success": "$.message",
+        "message": "$.message"
+    },
+    "resultSetValue": {
+        "errorMsg": "$.message"
+    },
+    "resultAutoHide": false
+}</CallFunction>
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#66</ImageFile>
+  <ListPrint />
+  <MD5HASH>e9767be8092050427ffc3a2f1d4b3b7b</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+</SysDataModelXML>

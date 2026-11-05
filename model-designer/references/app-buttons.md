@@ -57,6 +57,30 @@ SQLUpdateScript（`--LINKEDITMODE` 行编辑上下文）在两端都可以用行
 - 可编辑性控制：输出 `LINKAPPR列名` 控制列（历史写法配 CubeSetting COLFORMAT；**当前校验器视为遗留**，推荐改由 SQL WHERE 守卫 + 按钮显隐列实现）
 - 语料：KEEWAYZUP1010X#701（`--LINKEDITMODE` + `@列名@` 全套）
 
+### ⑤ 开窗选择按钮（linkdatasearch + automatch，TAMPER 语料）
+```html
+<button class="mui-btn mui-btn-blue linkdatasearch one"
+  code="TMESPDA13010X" num="704" text-value="ITM1-ITM1"
+  para="{SITE,ITMNO,UOM,NEDQTY}"
+  automatch='{"WH":"WH","LOC":"LOC","UOMCOE":"UOM","QTY":"QTY","PK":"PK"}'
+  reload props>
+```
+- 用在 H5Edit/H5NewRec 的输入行内：打开 num 模型的数据选择窗，选中后按 `automatch` 把**结果列映射进表单字段 id**（JSON 键=结果集列名，值=输入框 id）
+- `text-value`：开窗列表的显示列（须为数据源结果集实际列名）；`para`：传主模型字段/参数作为过滤上下文（`{字段1,字段2}` 取当前表单值）
+- 数据源模型配套：不配业务列 CubeSetting（只写 `LINKRESERVE_DMTITLE` 标题），SQL 输出表列名 + 拼接显示列——见 `datasearch-windows.md` §2a
+- 开窗返回后的回调钩子 `linkDMFuncBackImpl`（扣数量/清输入/关窗/通知刷新）见 `js-hooks.md`
+- 语料：TMESPDA130#10 H5Edit（num=704）、H5NewRec（num=706）、#502 H5Para（num=705）
+
+### ⑥ link-append：卡片内嵌另一模型列表（TAMPER 语料）
+```html
+<div class="mui-media-body mui-table-view-cell mui-collapse #UNHIDDENFLG# link-append"
+  code="TMESPDA13010X" num="701" para="#SITE#,#DOCNUM#,#DOCLIN#">
+```
+- 主模型 H5List 卡片内按行折叠展开**另一模型的明细列表**：`code`/`num` 指向明细查询模型（70x 段），`para` 用行级 `#列#` 传该行上下文
+- 明细模型（#701）：纯 SELECT + 可选 SQLRemove（删除按钮 `para="#PK#" script="3"`）；SQLRemove 用 `{0}`（APP 无行上下文，见 §0）
+- 展开容器 class：`mui-collapse` + `link-append`；`#UNHIDDENFLG#` 等条件 class 控制显隐
+- 语料：TMESPDA130#10 H5List 行 444-445 + TMESPDA13010X#701
+
 ## 2. linkquick 分发速查（完整表见 app-help/linkquick.md）
 
 | linkquick | 用途 | 模型设计相关 |

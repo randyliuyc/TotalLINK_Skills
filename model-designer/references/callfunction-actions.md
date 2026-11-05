@@ -35,6 +35,52 @@ CALLFUNCTION~LINKFILEUPLOAD~{
 
 要点：第 3 段是 JSON（`par.dm` 指定目标模型代码/编号、`rowData` 带行级占位符）；执行前会先经 `ScriptFormatedWithRowData` 做行数据替换（`fDataAnalysis.vb:2913`）。生成时 JSON 内的花括号无需转义（此脚本不经过 `string.Format`，但含 `{N}` 参数时需注意——样例用行级 `#OPESTD#` 而非 `{N}`）。
 
+## 样例实证：LINKRESTAPI（REST 接口调用，TAMPER 语料 2026-11-05）
+
+`TAMPERFB/TMESEXC0510X#501-材料出库创建接口调用.xml:72`，CallFunction 字段承载：
+
+```text
+CALLFUNCTION~LINKRESTAPI~
+{
+    "ClientURL": "https://...",
+    "AuthUser": null, "AuthPassword": null,
+    "Timeout": 120,
+    "Method": 1,
+    "Header": { "Content-Type": "application/json", "appKey": "...", "openToken": "..." },
+    "Parameter": null, "UrlSegment": null, "XmlBody": null, "files": null,
+    "JsonBody": { ... 业务报文，可嵌 #列# 占位 ... },
+    "chkToken": null, "chkValue": null, "chkMessage": "$.message",
+    "resultFormula": "材料出库单创建结果:成功=HTTP200,错误信息 = #LINKJSONVALUE:$.message#",
+    "resultList": { "success": "$.message", "message": "$.message" },
+    "resultSetValue": { "errorMsg": "$.message" },
+    "resultAutoHide": false
+}
+```
+
+要点：响应 JSON 字段用 **`#LINKJSONVALUE:$.路径#`** 提取（`$.message` 等 JSONPath）；`resultFormula` 是给用户看的结果文案模板。**appKey/openToken 等密钥不得硬编码进模型**——向用户索取配置方式。
+
+## 样例实证：FILEEXPORT（报表 PDF 导出/打印，TAMPER 语料）
+
+`TAMPERFB/TMESEXC0510X.BH10X#503-单据打印.xml:72`（单号打印动作模型）：
+
+```text
+CALLFUNCTION~FILEEXPORT~
+[
+    {
+        "fileType":"REPORT.PDF",
+        "fileName":"领料申请#DOCNUM#",
+        "fileDesc":"领料申请#DOCNUM#",
+        "ARSetting":{
+            "reportFile":"#LINKREPORTPATH#\\MFGPKH.rdlx",
+            "connString":[ "#LINKCONN.LINK01#" ],
+            "para":[ "#DOCNUM#" ]
+        }
+    }
+]
+```
+
+要点：参数段是**数组**（可多文件）；报表路径用 `#LINKREPORTPATH#`、连接用 `#LINKCONN.<连接码>#`、报表参数走 `para` 数组（行级 `#列#`）。与 `X3WEB` 类似，分隔符在语料中为旧式单 `~`（`FunctionSplit` 回退兼容），产出仍推荐 `~<!>~`。
+
 ## 样例实证：数据检查模式（动作防呆的推荐结构）
 
 主动作模型配一个检查模型，在动作执行前拦截：

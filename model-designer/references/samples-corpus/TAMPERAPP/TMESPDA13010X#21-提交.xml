@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPDA13010X</ModelCode>
+  <ModelNum>21</ModelNum>
+  <ModelDesc>提交</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType>ColumnChart</ChartType>
+  <SQLScript>#LINKSCRIPTGET@LINK01:
+SELECT CASE
+         WHEN Min(NEDQTY) &gt; 0 THEN N'LINKPREVENT:领料数量超出申请数量'
+         ELSE ''
+       END
+FROM   (SELECT S.QTY - Isnull(WIP.SUBQTY, 0) AS NEDQTY
+        FROM   MFGPKL S
+               LEFT JOIN MFGPKH H
+                      ON H.DOCNUM = S.DOCNUM
+               LEFT JOIN ITM M
+                      ON S.CPNITMNO = M.ITMNO
+               LEFT JOIN(SELECT Sum(QTY) SUBQTY
+                                ,SRCDOC
+                                ,SRCLIN
+                         FROM   STKCHG
+                         WHERE  SRCDOC = '{1}'
+                         GROUP  BY SRCDOC
+                                   ,SRCLIN)WIP
+                      ON WIP.SRCDOC = S.DOCNUM
+                         AND WIP.SRCLIN = S.DOCLIN
+        WHERE  H.SITE = '{0}'
+               AND S.DOCNUM = '{1}'
+               AND S.DOCSTA = '2'
+			   AND S.CLOSTA &lt;&gt; 1) A
+#</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>--LINKREFRESH
+--LINKEXECOUTPUT 
+DECLARE @RC INT
+DECLARE @DOCTYP VARCHAR(3) = 'CHG'
+DECLARE @BATCHID VARCHAR(50) = '#LINKID_ACTION#'
+DECLARE @USER VARCHAR(30) = '#LOGIN_USER#'
+DECLARE @LAN VARCHAR(30) = '#LOGIN_LAN#'
+DECLARE @RPTSTA INT
+DECLARE @RPTMSG NVARCHAR(max)
+
+
+DECLARE @DOCNUM VARCHAR(30) = '{1}'
+
+UPDATE STKCHG
+SET    BATCHID = @BATCHID
+       ,SUBTIM = Getdate()
+WHERE  CREUSR = @USER
+       AND DOCTYP = @DOCTYP
+	   AND DOCGRP = 'MPM'
+       AND SUBSTA &lt; 3
+       AND SRCDOC = @DOCNUM
+
+--执行提交处理
+EXECUTE @RC = [dbo].[Stksubmit_CHG]
+  @BATCHID
+  ,@USER
+  ,@LAN
+  ,@RPTSTA OUTPUT
+  ,@RPTMSG OUTPUT
+
+
+SELECT @RPTSTA  AS RPTSTA
+       ,@RPTMSG AS RPTMSG;</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#37</ImageFile>
+  <ListPrint />
+  <MD5HASH>592a653fa2e4e0ba019c34a0547237a9</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>21</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Nộp hồ sơ chọn sản xuất</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>21</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Sản xuất đóng gói đệ trình</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

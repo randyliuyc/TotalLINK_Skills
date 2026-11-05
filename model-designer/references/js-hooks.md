@@ -25,7 +25,17 @@
 | `beforeFunction` | 模型函数（提交/更新/删除）执行前 | `(sta[, id])` | **返回 `true` 即中断执行**（校验不过弹 alert 后 `return true`） | KEEWAYZUP10#10 L431 |
 | `afterFunction` | 模型函数执行后 | `(id)`：触发按钮 id（如 `linkquick12`=删除） | 无；`reloadModelData()` 刷新 | KEEWAYZUP10#10 L447、KEEWAYZUP56#10 L327 |
 | `Save_Data` | 扫码编辑子页返回时 | `()` | 无；`mui.fire(plus.webview.getWebviewById(...))` 通知列表页刷新 | KEEWAYZUP2010X#502 L284 |
+| `reScanFlag` | 保存后判断是否允许继续扫码 | `()` | 返回真值=允许重复扫码（如 functype 含 `"new"` 时） | TMESPDA130#10 L730± |
+| `linkDMFuncBackImpl` | 开窗（linkdatasearch）选行返回后 | `(数据, 控件)` 上下文 | 无；典型链：扣减剩余需领量 → 清空输入 → `showModelData(null)` 关窗 → `mui.fire` 通知列表刷新 | TMESPDA130#502 L274-318 |
+| `repeatTime` | 定时器（`linkpreprocess` 触发间隔） | `()` | 无；控制 #301 型按钮控制模型的轮询间隔（如 10 秒） | TMESPDA130#10 L726-729 |
 | `contextTap`（FB） | 详情页列表行点击 | `(contextid, linktitle, linkrefresh, linkparafill, cRDs)` | 无；localStorage 暂存 + `showAttachModelPara(...)` 弹补充参数 | TMESPUR01/02/03/06 #10 |
+
+**扫码解析链（TAMPERAPP 标杆，2026-11-05）**：主模型 JS 与无界面服务模型配合——
+
+1. 主模型配 15xx 段服务模型：#1521 校验单据（返回 `DOCNUM`+`提示`列，值 `'OK'` 或错误文案）；#1522 拆二维码（`;` 分隔）返回 `DATACK/QTY/PK`
+2. 跨模型传参：后一模型脚本用 `DECLARE @DOCNUM = '#DOCNUM#'` 接收**前一模型结果集列**（经 `#列#` 注入）
+3. 主模型 JS：`scan_para` 把扫码值写 `"#"+r+"#"` → `scanAfterAction` 检查 `$("#提示").val()=="OK"`，通过则 `reParaList()+showModelData()` 刷新参数页，否则 alert
+4. `beforeFunction` 保存前校验 `$("#DATACK").val()=="OK"`，不过则 alert + `return true` 阻断
 
 自由函数（`openZoom`、`linkquickAction1`、`openFileMethod`、匿名 touch 监听等）不是钩子——它们由模型内 HTML 属性（`onkeyup`/`onclick`）、`CallFunction` 的 `formula:"{openFileMethod(result)}"` 或平台 API（`addIcons`）引用。
 
@@ -38,6 +48,8 @@
 | 需求 | 克隆来源 |
 |---|---|
 | 全套钩子总览（scan_para + scanAfterAction + beforeFunction + afterFunction） | `KEEWAYZUP10#10-订单收货.xml`（L414-450） |
+| 扫码解析链标杆（1521→1522 服务模型 + scan_after 校验 + beforeFunction DATACK 阻断） | `samples-corpus/TAMPERAPP/TMESPDA130#10-领料出库.xml`（L667-765）+ `TMESPDA13010X#1521/#1522` |
+| 开窗返回回调（linkDMFuncBackImpl 扣量/清空/关窗/通知刷新） | `samples-corpus/TAMPERAPP/TMESPDA13010X#502-公斤领用.xml`（L274-318） |
 | 扫码后数据检查 + 自动查询 | `KEEWAYZUP30#5`（corpus，L435-452） |
 | 纯 UI 增强（双指缩放，无钩子） | `KEEWAYZUP2010X#703-图片展示.xml`（L92-110） |
 | FB 行点击补充参数 | `TMESPUR01#10-采购申请详情.xml`（L339-348） |

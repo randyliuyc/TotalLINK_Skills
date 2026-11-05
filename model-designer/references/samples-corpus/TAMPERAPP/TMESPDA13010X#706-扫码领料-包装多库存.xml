@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPDA13010X</ModelCode>
+  <ModelNum>706</ModelNum>
+  <ModelDesc>扫码领料-包装多库存</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SCANNED_QTY   DECIMAL(18, 2)
+        ,@REQ_QTY      DECIMAL(18, 6) = 0-- 需求包数
+        ,@CAN_PICK_QTY DECIMAL(18, 6) = 0 -- 本次可领数量
+
+SELECT @REQ_QTY = Isnull(QTY, 0)
+FROM   MFGPKL
+WHERE  DOCNUM = '{6}'
+       AND DOCLIN = '{7}';
+
+SELECT @SCANNED_QTY = Isnull(Sum(QTY), 0)
+FROM   STKCHG
+WHERE  SRCDOC = '{6}'
+       AND SRCLIN = '{7}';
+
+-- 本次还需领取数量
+SET @CAN_PICK_QTY = @REQ_QTY - @SCANNED_QTY;
+SELECT N'lang:{zh:产品编码}：' + K.ITMNO
+       + N'&lt;br&gt;lang:{zh:产品名称}：' + ITM.ITMNAM
+       + N'&lt;br&gt;lang:{zh:批号}：' + K.LOT
+       + N'&lt;br&gt;lang:{zh:仓库}：' + WH.WHNAM
+       + N'&lt;br&gt;lang:{zh:库位}：' + K.LOC
+       + N'&lt;br&gt;lang:{zh:库存数量,}：'
+       + Cast(Cast(K.QTY AS REAL) AS VARCHAR)
+       + UOM                             ITM1
+       ,K.WH
+       ,K.LOC
+       ,K.STU
+       ,K.UOM
+       ,Cast(K.UOMCOE AS DECIMAL(18, 2)) UOMCOE
+       ,K.ITMNO
+       ,K.ITMVER
+       ,K.LOT
+       ,K.SUBLOT
+       ,Cast(K.QTY AS REAL)              STKQTY
+       ,CASE
+          WHEN @CAN_PICK_QTY &gt; K.QTY THEN Cast(K.QTY AS DECIMAL(18, 2))
+          ELSE @CAN_PICK_QTY
+        END                              QTY
+       ,WH.WHGRP
+       ,K.PK
+       ,'OK'                             DATACK
+FROM   STK K
+       INNER JOIN ITM
+               ON K.ITMNO = ITM.ITMNO
+       LEFT JOIN ENTWH WH
+              ON K.WH = WH.WH
+WHERE  WH.WHGRP = 'STK'
+       AND K.SITE = '{0}'
+       AND K.ITMNO = '{1}'
+       AND K.LOT = '{2}'
+       AND K.SUBLOT = '{3}'
+       AND K.BPSLOT = '{4}'
+       AND K.UOM = '{5}'</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>SITE</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>ITMNO</ParaLabel02>
+  <ParaType02>STR</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>LOT</ParaLabel03>
+  <ParaType03>STR</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>SUBLOT</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>BPSLOT</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>UOM</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#30</ImageFile>
+  <ListPrint />
+  <MD5HASH>2f69e0a3ce714bd8747ab30f3beec135</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>706</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lựa chọn hàng tồn kho-lựa chọn sản xuất</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>706</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Lựa chọn hàng tồn kho - Sản xuất hàng may mặc</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

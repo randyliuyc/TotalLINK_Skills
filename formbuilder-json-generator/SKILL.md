@@ -368,6 +368,36 @@ description: 根据用户的自然语言描述，生成符合 formbuilder 表单
 - `references/expression-rules.md`：自定义表达式规则详解（括号标记、内置参数、三元表达式、各场景差异）
 - `references/advanced-config.md`：高级配置补充（表格默认值/主键/排序/搜索/筛选/分页、权限、临时数据源、校验、序号格式、按钮执行进阶字段）
 
+## 模板落库（SYSINFOMATION/300）
+
+Formbuilder 单据模板的查询/创建/修改通过 AI 工具 **SYSINFOMATION / 300** 落库（2026-11-05 开放，TotalLINK 开发环境实测验证）。同一 dmCode/dmNum 三个动作，靠 `--script-type` 区分：
+
+| script_type | 动作 | 调用方式 |
+|------|------|---------|
+| 0 | 查询模板 | `--params-json '["模板编码"]'` |
+| 1 | 创建模板 | `--params-json '[]'` + `--row-data` |
+| 2 | 修改模板 | `--params-json '["模板编码"]'` + `--row-data` |
+
+```bash
+# 查询（空编码返回空数据集；返回列 MODCODE/MODGROUP/MODDESC/MODJSON/CREUSER/CREDATE）
+python3 scripts/tlk.py call SYSINFOMATION 300 --script-type 0 --params-json '["MOD220500001"]'
+
+# 创建
+python3 scripts/tlk.py call SYSINFOMATION 300 --script-type 1 --params-json '[]' \
+  --row-data '{"MODCODE":"MOD220500009","MODGROUP":"通用","MODDESC":"XX录入表单","MODJSON":"<本 skill 生成的 json 序列化字符串>"}'
+
+# 修改（MODCODE 由 params 传入，rowData 不含 MODCODE）
+python3 scripts/tlk.py call SYSINFOMATION 300 --script-type 2 --params-json '["MOD220500009"]' \
+  --row-data '{"MODGROUP":"通用","MODDESC":"XX录入表单","MODJSON":"<...>"}'
+```
+
+要点：
+
+- **MODJSON 即本 skill 生成的表单 json 对象**，序列化为字符串后放入 `--row-data`（注意 shell 内引号转义，建议把 JSON 写临时文件后用 `jq -Rs` 或 `python3 -c 'json.dumps'` 压缩成一行再拼进参数）
+- 本 skill 只负责生成 JSON；落库调用走 totallink-base 的 `tlk.py call`（认证、错误处理见 totallink-base SKILL.md）
+
+> ⚠️ **该功能组按环境开放（服务端功能授权）**。更换环境后用 `python3 scripts/tlk.py tools search "模板"` 复核：找不到这组工具说明该环境未开放模板写入——**提示用户联系管理员在服务端开放**，不要换项目规避、不要自行绕路（与 totallink-base「未找到功能工具的处理」一致）。
+
 ## 与 model-designer 的分工
 
 > 本 skill 负责 formbuilder 表单骨架（LINKFORMMOD.MODJSON 内容）的设计与生成。模型侧（SYSSEARCH 模型族 XML：主模型 + 500 伴生模型的 formSetting/formData、导入与验证）由 `model-designer` skill 负责——其 FB 契约见 `model-designer/references/endpoints.md`，骨架设计知识来源即本 skill。

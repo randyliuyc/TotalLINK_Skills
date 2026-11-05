@@ -102,3 +102,18 @@ SET @ATTDMCODE = CONCAT(@DMCODE, @DMNUM, 'X');   -- 附加模型代码 = 主模�
 | 运行器打印/导出（`#LINKSCRIPTGET` + SQLClear EXEC + CALLFUNCTION~FILEEXPORT） | `ERAQA401010X#501-客户报告-英文.xml` |
 | 运行器 ERP 回写（X3WEB + 三语 LINKPREVENT/LINKCONFIRM） | `KEEWAYZUPSCH2010X#501-转采购订单.xml` |
 | 运行器自动单号（`#LINKDOCNUM(,{0})#`） | `KEEWAYZUPSCH1010X#21-新计划单.xml` |
+
+## 2026-11-05 TAMPER 标杆语料（用户认定，全量在 `../samples-corpus/TAMPERAPP|TAMPERFB/`）
+
+| 教学点 | 样例文件（corpus 路径） |
+|--------|------------------------|
+| PDA 扫码全链标杆（linkquick=8/link-append/automatch 开窗/scan 钩子/空骨架行/ROW_BACKCOLOR） | `TAMPERAPP/TMESPDA130#10-领料出库.xml` |
+| APP 查询列表页（#110 形态：DATEVAL + LIKE 模糊 + `#LINKDATE#`/`#LINK_TODAY#`） | `TAMPERAPP/TMESPDA130#110-领料出库查询.xml` |
+| 扫码解析服务段（1521 校单返回 `提示` / 1522 拆 QR + `#列#` 跨模型传参） | `TAMPERAPP/TMESPDA13010X#1521/#1522` |
+| 提交=存储过程（`--LINKEXECOUTPUT` + `#LINKID_ACTION#` 批次 + OUTPUT 回传） | `TAMPERAPP/TMESPDA13010X#21-提交.xml` |
+| 动作可用性控制（`LINKFUNCTIONLIST` + `.PREPROCESS.501` 令牌） | `TAMPERAPP/TMESPDA13010X#301-按钮控制.xml` |
+| automatch 开窗数据源（不配业务列 CubeSetting） | `TAMPERAPP/TMESPDA13010X#704/#705/#706` |
+| **FB 页面族组织**（.A/.B × .H/.L 四族 + 族伴生码=族码+10X，见 `../fb-page-families.md`） | `TAMPERFB/TMESEXC0510X.AH/.AL/.BH/.BL #10` |
+| 五种 500 形态（List=菜单 / Para=查询区 / Document=行传参 / 表单设置 / 表格设置） | `TAMPERFB/*10X*#500-*.xml` |
+| 动作模型 UPDATE 写 SQLClear（确认/关闭/行关闭） | `TAMPERFB/TMESEXC0510X.BH10X#501-确认.xml` 等 |
+| 打印/REST 接口（FILEEXPORT rdlx / LINKRESTAPI + `#LINKJSONVALUE#`） | `TAMPERFB/TMESEXC0510X.BH10X#503-单据打印.xml`、`TMESEXC0510X#501-材料出库创建接口调用.xml` |

@@ -25,6 +25,7 @@
 | `ShowInMenu` | bool | 样例恒 `false` |
 | `SysModelFlag` | bool | **硬规则：必须 false**（样例全部为 false） |
 | `MD5HASH` | string | 服务端重算。**警告：它不是整个文档的哈希**——盘点时发现内容不同的两个样例共享同一 MD5。生成时留空，比对时排除，绝不用于唯一性判断 |
+| `CUSCODE` | string | 客户代码（落库列 `CUSCODE`）。**统一留空**（2026-11-05 定）：客户归属由服务端按登录环境决定。样例语料均不含该元素；`model export` 导出的参考模型可能带值，克隆时必须清空（validate 报 `CUSCODE_NONEMPTY`） |
 
 ## 脚本字段
 

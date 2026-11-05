@@ -17,6 +17,9 @@ H5Edit / H5NewRec 里的开窗按钮 → 打开目标模型的**数据选择窗*
 
 ## 2. 三处命名必须一致（核心契约）
 
+> **适用范围（2026-11-05 TAMPER 语料细化）**：本契约适用于**开窗/列表数据源模型**（TMESSTK20 实测、KEEWAYZUP 语料）。
+> 两类例外见 §2a/§2b：APP PDA 开窗走 `automatch` 不配业务列 CubeSetting；FB 页面族的 CubeSetting 是表结构元数据不是结果集投影。
+
 | 位置 | 要求 | 不一致的实机症状 |
 |---|---|---|
 | 目标模型 SQLScript 结果集列名 | 别名（若写）或底层列名 | — |
@@ -25,7 +28,30 @@ H5Edit / H5NewRec 里的开窗按钮 → 打开目标模型的**数据选择窗*
 
 TMESSTK2010X#710 修复记录：SQL 别名 `产品编码/产品名称`，CubeSetting 写了 `物料编码/物料名称` → APP 列表 100 行全空白；对齐后恢复。
 
+## 2a. APP PDA 开窗：列匹配走 automatch（TAMPER 语料）
+
+PDA 扫码类开窗（`TAMPERAPP/TMESPDA13010X#702/704/705/706`）的对接方式不同：
+
+- **开窗数据源模型不配业务列 CubeSetting**——四个开窗模型的 CubeSetting 只有 `LINKRESERVE_DMTITLE`（多语言标题）两条，无任何业务列 COLNAME
+- 列回填由**调用方按钮的 `automatch` JSON** 完成（结果列 → 表单字段 id 映射，属性族详见 `app-buttons.md` §1⑤）：
+
+```html
+<button class="mui-btn mui-btn-blue linkdatasearch one"
+  code="TMESPDA13010X" num="704" text-value="ITM1-ITM1"
+  para="{SITE,ITMNO,UOM,NEDQTY}"
+  automatch='{"WH":"WH","LOC":"LOC","UOMCOE":"UOM","QTY":"QTY","PK":"PK"}'
+  reload props>
+```
+
+- 数据源 SQL 直接输出表列名（`K.WH, K.LOC, K.UOMCOE, K.PK`）+ 一个拼接显示列（`text-value` 引用，如 `ITM1`）；「本次可领数量」等业务约束用 CASE 算进输出列
+- 结论：**COLNAME 契约在 automatch 场景不适用**；`text-value` 仍必须引用实际结果集列名
+
+## 2b. FB 页面族：CubeSetting 是元数据不是投影（TAMPER 语料）
+
+FB 页面族（`fb-page-families.md`）的主模型 SQL 可能只有 1 列（如 `SELECT '领料申请'`），CubeSetting 却枚举数十个 COLNAME——这是**表结构派生的元数据 + `LINKRESERVE_DMTITLE` 多语言标题**，不参与结果集匹配。「COLNAME=结果集列名」对此类 formSetting 模型不适用，也不要求业务列 CAPTION 齐全。
+
 > **SQL 列名风格（2026-11-04 定）**：新模型 SELECT 不为显示目的写中文别名（语料中的别名写法是早期风格，不作推荐），直接用表列名（可带表前缀）；显示标题由 CubeSetting `CAPTION`（运行器翻译）或 H5 模板内联 label（APP）承担。开窗窗体的列标题同样来自 CubeSetting。计算/聚合列无原始列名可用时才用别名，且建议英文标识符（如 `QTY_SUM`）。validate 对中文别名报 `SQL_ALIAS_LEGACY`（info 级，存量模型可保留）。
+**例外（2026-11-05 TAMPER 语料）**：无界面服务型模型（扫码解析/校验/按钮控制）的消息与辅助列可用中文别名——它们不用于列表显示，直接作为前端提示文案（如 `TMESPDA13010X#1521` 的 `SELECT '领料单已关闭！' 提示`）。
 
 新风格示例（与旧别名版等价）：
 

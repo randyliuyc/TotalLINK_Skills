@@ -79,10 +79,10 @@ FLAG_FIELD = {
     "--LINKEDITMODE": "SQLUpdateScript",
     "--LINKREQUIRED": "SQLUpdateScript",
     "--LINKDATAAUTOSAVE": "SQLUpdateScript",   # KEEWAYZUP10#5 行内编辑三件套之一
-    "--LINKADDNEWROWS": "SQLNew",
+    "--LINKADDNEWROWS": {"SQLNew", "SQLUpdateScript"},  # SysDataModel.vb:1106-1108（2023-12-14 起 UPDATESCRIPT 亦可）
     "--LINKNOGROUP": "SQLScript",
     "--LINKNOFILTER": "SQLScript",             # ERAQATSK10X#713
-    "--LINKAUTOREPLACEEMPTYCOLUMNS": "SQLScript",  # KEEWAYZUP1010X#701 批量导入
+    "--LINKAUTOREPLACEEMPTYCOLUMNS": None,     # GlobalFormula.vb:708-713，任何经公式替换的脚本（TAMPERFB SQLUpdateScript 实证）
     "--LINKDETAILLIST": "SQLScript",           # KEEWAYZUP10#10 子表挂载
     "--LINKDATAMINELAYOUT": "SQLScript",
     "--LINKLOADDATAIMMEDIATE": "SQLScript",
@@ -126,7 +126,8 @@ FLAG_RE = re.compile(r"--LINK[A-Z]+")
 
 def root_fields():
     names = ["ModelCode", "ModelNum", "ModelDesc", "KeyWords", "DataMineCode",
-             "FunctionCode", "ChartType", "SQLScript", "SQLUpdateScript"]
+             "FunctionCode", "ChartType", "SQLScript", "SQLUpdateScript",
+             "CUSCODE"]
     names += [f"Ret{i}" for i in range(1, 6)]
     names += ["UseParameter", "ConnString", "ModuleCode"]
     for i in range(1, 11):
@@ -268,6 +269,12 @@ def check_identity(root, d, expect_code, expect_num, env=None):
         d.info("MD5HASH_EMPTY", "MD5HASH",
                "MD5HASH 留空即可：导入时由服务端重算，不是文档哈希")
 
+    cuscode = text_of(root, "CUSCODE")
+    if cuscode:
+        d.warning("CUSCODE_NONEMPTY", "CUSCODE",
+                  f"CUSCODE 统一留空（2026-11-05 定）：客户归属由服务端按登录环境决定；"
+                  f"model export 导出的参考模型可能带值，克隆时必须清空，实际 {cuscode!r}")
+
     for i in range(1, 6):
         tag = f"Ret{i}"
         if text_of(root, tag) not in ("", "0"):
@@ -356,6 +363,8 @@ def check_placeholders(root, slots, last, is_main, d):
                           "主模型会把它原样留在脚本里；附加模型可能由调用方传参，确认调用链")
 
         leftover = BRACE_TOKEN_RE.sub("", text)
+        # lang:{zh:...,vie:...} 多语言令牌是平台合法写法（TAMPER 语料 SQL 值内实证），花括号不算未转义
+        leftover = re.sub(r"lang:\{[^{}]*\}", "", leftover)
         if field in BRACE_FIELDS and ("{" in leftover or "}" in leftover):
             # FB 500 的字段映照 JSON（语料 21 处一致写法）花括号是结构本身，不报
             if field == "SQLScript" and _is_json_object(text):
@@ -368,7 +377,10 @@ def check_placeholders(root, slots, last, is_main, d):
         if field in ROW_SCRIPT_FIELDS:
             continue
         if field == "SQLScript" and is_main:
-            check_row_tokens(text, field, d)
+            # FB 页面族模型（ModelCode 含 "."，如 TMESEXC0510X.BH#10）在页面行上下文执行，行级占位符合法
+            family = "." in (text_of(root, "ModelCode") or "")
+            check_row_tokens(text, field, d,
+                             severity="info" if family else "warning")
 
     for slot in slots:
         if slot["label"] and (slot["index"] - 1) not in used:
@@ -392,14 +404,19 @@ def is_runtime_token(name):
     return upper.startswith(TOKEN_PREFIXES_UPPER)
 
 
-def check_row_tokens(text, field, d):
+def check_row_tokens(text, field, d, severity="warning"):
     for match in ROW_TOKEN_RE.finditer(text):
         name = match.group(1)
         if is_runtime_token(name):
             continue
-        d.warning("ROW_TOKEN_IN_QUERY", field,
-                  f"主模型 SQLScript 没有当前行，#{name}# 不会被替换"
-                  "（行级占位符只能用在编辑/新增/删除/动作脚本）")
+        if severity == "info":
+            d.info("ROW_TOKEN_IN_QUERY", field,
+                   f"#{name}# 是行级占位符：FB 页面族模型在页面行上下文执行属合法用法；"
+                   "若为运行器主模型则不会被替换")
+        else:
+            d.warning("ROW_TOKEN_IN_QUERY", field,
+                      f"主模型 SQLScript 没有当前行，#{name}# 不会被替换"
+                      "（行级占位符只能用在编辑/新增/删除/动作脚本）")
         return
 
 
@@ -441,9 +458,11 @@ def check_flags(root, d):
                               f"{flag} 不在已知标记表内，可能是拼写错误")
                     continue
                 expected = FLAG_FIELD[flag]
-                if expected and field != expected:
-                    d.warning("FLAG_WRONG_FIELD", field,
-                              f"{flag} 应写在 {expected}，写在 {field} 不会被解析")
+                if expected:
+                    allowed = expected if isinstance(expected, (set, frozenset)) else {expected}
+                    if field not in allowed:
+                        d.warning("FLAG_WRONG_FIELD", field,
+                                  f"{flag} 应写在 {'/'.join(sorted(allowed))}，写在 {field} 不会被解析")
 
                 if flag == "--LINKREQUIRED":
                     value = stripped.split(flag, 1)[1].strip()

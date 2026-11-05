@@ -62,6 +62,14 @@ S.CTLTYP LINKDROPVALIDCTLTYP
 | `#SYSUSER.UDFxxx#` | 登录用户自定义字段。样例未出现【待核对】 |
 | `#TAG#` | 标签打印场景（`LinkDefine.cs:365`） |
 | `#LINKDOCNUM([已有单号,]规则码)#` | 单据自动编号（三种形态与取号规则见下节） |
+| `#LINKUSER(#LOGIN_USER#).DEPTn#` | 登录用户的组织维度字段（DEPT1~DEPTn，按用户档案取值）。TAMPER 语料 `X.AH#10`【结构待源码核对】 |
+| `#LINKDATE(年偏移,月偏移,日偏移,格式)#` | 相对当前日期的偏移量（如 `#LINKDATE(0,0,-7,yyyy-MM-dd)#` = 7 天前）。TAMPER 语料 #110 H5Para 参数默认值 |
+| `#LINK_TODAY#` | 今天（日期字面量）。TAMPER 语料 #110 H5Para |
+| `#LINKJSONVALUE:$.路径#` | REST 响应 JSON 的 JSONPath 取值（配 `CALLFUNCTION~LINKRESTAPI~`，见 `callfunction-actions.md`）。TAMPER 语料 10X#501 |
+| `#LINKCONN.<连接码>#` | 环境连接字符串（报表/接口用，如 `["#LINKCONN.LINK01#"]`）。TAMPER 语料 BH10X#503 |
+| `#LINKREPORTPATH#` | 服务端报表目录（`ARSetting.reportFile` 前缀，rdlx 报表）。TAMPER 语料 BH10X#503 |
+| `#MENUTITLE#` / `#PARENTNO#` / `#MENUICON#` / `#DMCODE##DMNUM#` | 菜单注册 JSON 专用（`ConnString=LINKMENUITEM` 的 500-List，见 `fb-page-families.md` §3） |
+| `@列名@` | **新行占位**（SQLUpdateScript 行编辑/新增时的新值，配 `--LINKADDNEWROWS`/`--LINKEDITMODE`；MERGE INTO 场景实证 TAMPERFB BH#10/BL#10） |
 
 ### 单据编号占位符：`#LINKDOCNUM` 三形态
 

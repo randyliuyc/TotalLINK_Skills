@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPDA13010X</ModelCode>
+  <ModelNum>1522</ModelNum>
+  <ModelDesc>扫描解析</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @QRCODE        VARCHAR(30) = '{0}'
+        ,@DOCNUM       VARCHAR(30) = '#DOCNUM#'
+        ,@DOCLIN       INT = 0
+        ,@ITMNO        VARCHAR(30) = ''
+        ,@LOT          VARCHAR(30) = ''
+        ,@SUBLOT       VARCHAR(50) = ''
+        ,@BPSLOT       VARCHAR(30) = ''
+        ,@WH           VARCHAR(30) = ''
+        ,@LOC          VARCHAR(30) = ''
+        ,@REQ_QTY      DECIMAL(18, 6) = 0-- 需求包数
+        ,@UOM          NVARCHAR(6) = ''
+        ,@UOMCOE       DECIMAL(18, 6) = 0
+        ,@SCANNED_QTY  DECIMAL(18, 6) = 0-- 已扫包数
+        ,@STOCK_ROWS   INT = 0-- 库存行数
+        ,@STOCK_QTY    DECIMAL(18, 6) = 0-- 库存可用包数
+        ,@CAN_PICK_QTY DECIMAL(18, 6) = 0 -- 本次可领数量
+        ,@STKPK        VARCHAR(50); 
+
+
+SET @QRCODE = Rtrim(Ltrim(@QRCODE)) + ';';
+-- 拆分物料号
+SET @ITMNO = Substring(@QRCODE, 1, Charindex(';', @QRCODE) - 1);
+SET @QRCODE = Stuff(@QRCODE, 1, Charindex(';', @QRCODE), '');
+-- 拆分批次
+SET @LOT = Substring(@QRCODE, 1, Charindex(';', @QRCODE) - 1);
+SET @QRCODE = Stuff(@QRCODE, 1, Charindex(';', @QRCODE), '');
+-- 拆分子批次
+SET @SUBLOT = Substring(@QRCODE, 1, Charindex(';', @QRCODE) - 1);
+SET @QRCODE = Stuff(@QRCODE, 1, Charindex(';', @QRCODE), '');
+-- 拆分商批批次
+SET @BPSLOT = Substring(@QRCODE, 1, Charindex(';', @QRCODE) - 1);
+
+SELECT @REQ_QTY = Isnull(QTY, 0)
+       ,@UOM = Isnull(UOM, '')
+       ,@DOCLIN = Isnull(DOCLIN, 0)
+FROM   MFGPKL
+WHERE  DOCNUM = @DOCNUM
+       AND CPNITMNO = @ITMNO;
+
+-- 需求不存在
+IF @REQ_QTY = 0
+  BEGIN
+      SELECT '领料申请单不存在该产品，请检查' AS DATACK
+      RETURN;
+  END
+
+-- KG单位禁止扫码领料
+IF @UOM = 'KG'
+  BEGIN
+      SELECT '该产品请手动KG领料，请检查' AS DATACK
+      RETURN;
+  END
+
+SELECT @SCANNED_QTY = Isnull(Sum(QTY), 0)
+FROM   STKCHG
+WHERE  SRCDOC = @DOCNUM
+       AND SRCLIN = @DOCLIN;
+
+-- 超领校验
+IF @SCANNED_QTY &gt;= @REQ_QTY
+  BEGIN
+      SELECT '该产品超出领料需求数量，请检查' AS DATACK
+      RETURN;
+  END
+
+-- 本次还需领取数量
+SET @CAN_PICK_QTY = @REQ_QTY - @SCANNED_QTY;
+
+SELECT @STOCK_ROWS = Count(*)
+       ,@STOCK_QTY = Isnull(Sum(K.QTY), 0)-- 可用数量
+       ,@UOMCOE = Max(K.UOMCOE)
+       ,@WH = Max(K.WH)
+       ,@LOC = Max(K.LOC)
+       ,@STKPK = Max(K.PK)
+FROM   STK K
+       JOIN ENTWH WH
+         ON K.WH = WH.WH
+WHERE  WH.WHGRP = 'STK'
+       AND K.ITMNO = @ITMNO
+       AND K.LOT = @LOT
+       AND Isnull(K.SUBLOT, '') = Isnull(@SUBLOT, '')
+       AND Isnull(K.BPSLOT, '') = Isnull(@BPSLOT, '')
+       AND K.UOM = @UOM
+       AND K.QTY &gt; 0 
+
+-- 无库存
+IF @STOCK_ROWS = 0
+  BEGIN
+      SELECT N'lang:{zh:库存不存在，请检查}' AS DATACK
+      RETURN;
+  END
+
+-- 多行库存，需选择
+IF @STOCK_ROWS &gt; 1
+  BEGIN
+      SELECT '存在多个库存行，请选择' AS DATACK
+             ,0            AS QTY
+             ,@ITMNO       AS ITMNO
+             ,@LOT         AS LOT
+             ,@SUBLOT      AS SUBLOT
+             ,@BPSLOT      AS BPSLOT
+             ,''           AS UOMCOE
+             ,@UOM         AS UOM
+             ,''           AS WH
+             ,''           AS LOC
+             ,@DOCNUM      AS DOCNUM
+             ,@DOCLIN      AS DOCLIN
+      RETURN;
+  END 
+
+
+
+-- 单行库存，返回可领数量
+IF @STOCK_ROWS = 1
+  BEGIN
+      SELECT 'OK'     AS DATACK
+             ,CASE
+                WHEN @CAN_PICK_QTY &gt; @STOCK_QTY THEN @STOCK_QTY
+                ELSE @CAN_PICK_QTY
+              END     AS QTY
+             ,@ITMNO  AS ITMNO
+             ,@LOT    AS LOT
+             ,@BPSLOT AS BPSLOT
+             ,@SUBLOT AS SUBLOT
+             ,@UOMCOE AS UOMCOE
+             ,@UOM    AS UOM
+             ,@WH     AS WH
+             ,@LOC    AS LOC
+             ,@DOCNUM AS DOCNUM
+             ,@DOCLIN AS DOCLIN
+             ,@STKPK  AS PK
+  END</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>CTR</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#17</ImageFile>
+  <ListPrint />
+  <MD5HASH>3413130ec641bf3912ab1535eae40035</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Phân tích quét</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA13010X</DMCODE>
+      <DMNUM>1522</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Giải pháp quét</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

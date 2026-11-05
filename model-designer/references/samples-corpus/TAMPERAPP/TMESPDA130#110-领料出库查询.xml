@@ -1,0 +1,948 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>TMESPDA130</ModelCode>
+  <ModelNum>110</ModelNum>
+  <ModelDesc>领料出库查询</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @SITE VARCHAR(30)=N'%{0}%'--地点	    
+DECLARE @STADAT DATE='{1}'--开始日期	
+DECLARE @ENDDAT DATE='{2}'--结束日期	
+DECLARE @SRCDOC VARCHAR(30)=N'%{3}%'--领料通知单	
+DECLARE @ITM VARCHAR(30)=N'%{4}%'--产品信息	
+--DECLARE @BATCHID VARCHAR(100)=N'%{5}%'--BATCHID
+DECLARE @LOT VARCHAR(30)=N'%{5}%'	
+
+SELECT S.[DOCNUM]
+       ,S.[DOCLIN]
+       ,S.[DOCTYP]
+       ,S.[DOCGRP]
+       ,S.[DOCDAT]
+       ,S.[SITE]
+       ,S.[ITMNO]
+       ,S.[ITMVER]
+       ,ITM.ITMNAM + ITM.ITMNAM1 + ITM.ITMNAM2 ITMNAM
+       ,S.[FAC]
+       ,S.[WH]
+       ,S.[LOC]
+       ,S.[LOT]
+       ,S.[SUBLOT]
+       ,S.[STA]
+       ,S.[STU]
+       ,CAST(S.[QTYSTU]  AS decimal(18,2))  [QTYSTU]
+       ,S.[UOM]
+       ,S.[UOMCOE]
+       ,CAST(S.[QTY]  AS decimal(18,2))  [QTY]  
+       ,S.[ITMVER1]
+       ,S.[FAC1]
+       ,S.[WH1]
+       ,S.[LOC1]
+       ,S.[LOT1]
+       ,S.[SUBLOT1]
+       ,S.[STA1]
+       ,S.[CTRNUM]
+       ,S.[CTRQTY]
+       ,S.[REMARK]
+       ,S.[SUBSTA]
+       ,S.[SUBTIM]
+       ,S.[SUBRET]
+       ,S.[PK]
+       ,S.[XWSPK]
+       ,S.[BATCHID]
+       ,S.[SRCTYP]
+       ,S.[SRCDOC]
+       ,S.[SRCLIN]
+       ,S.[SRCSEQ]
+       ,S.[ORITYP]
+       ,S.[ORIDOC]
+       ,S.[ORILIN]
+       ,S.[ORISEQ]
+       ,S.[DOCSTA]
+       ,S.[CLOREA]
+       ,S.[CREUSR]
+       ,S.[UPDUSR]
+       ,CONVERT(VARCHAR(19), S.[CRETIM], 21)   CRETIM
+       ,CONVERT(VARCHAR(19), S.[UPDTIM], 21)   UPDTIM
+       ,S.DOCNUM + Cast(S.DOCLIN AS CHAR)      id --关键字
+	  ,CASE
+          WHEN S.SUBSTA &lt; 3 THEN 'E03'
+          ELSE 'H03'
+        END                               ROW_BACKCOLOR
+	  ,CASE
+          WHEN S.SUBSTA &lt; 3 THEN 'E02'
+          ELSE 'H02'
+        END                               ROW_BACKCOLOR1
+FROM   [STKCHG] S
+       LEFT JOIN ITM
+              ON S.ITMNO = ITM.ITMNO
+WHERE  S.SITE LIKE @SITE
+       AND ( S.DOCDAT BETWEEN @STADAT AND @ENDDAT
+              OR @STADAT = '' )
+       AND S.SRCDOC LIKE @SRCDOC
+       AND S.ITMNO + S.ITMVER + ITM.ITMNAM LIKE @ITM
+	   AND S.LOT  LIKE @LOT
+       --AND Isnull(S.BATCHID, '') LIKE @BATCHID
+       AND S.DOCTYP = 'CHG'
+       AND S.DOCGRP = 'MPM'
+       --AND S.SUBSTA &lt;&gt; 1
+ORDER  BY S.DOCNUM DESC
+          ,S.DOCLIN</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString>LINK01</ConnString>
+  <ModuleCode />
+  <ParaLabel01>地点</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>开始日期</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03>结束日期</ParaLabel03>
+  <ParaType03>DATEVAL</ParaType03>
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04>领料通知单</ParaLabel04>
+  <ParaType04>STR</ParaType04>
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05>产品信息</ParaLabel05>
+  <ParaType05>STR</ParaType05>
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06>品名/色号</ParaLabel06>
+  <ParaType06>STR</ParaType06>
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07>批号</ParaLabel07>
+  <ParaType07>STR</ParaType07>
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List>&lt;li id='#' class='mui-table-view-cell' &gt;
+&lt;a href='#'&gt;
+    &lt;div class="mui-card-footer #ROW_BACKCOLOR#"&gt;
+&lt;h4&gt;#SRCDOC#-#SRCLIN# &lt;/h4&gt;
+ &lt;/div&gt;
+	&lt;div class='mui-media-body'&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品编码,vie:mã sản phẩm}: #ITMNO#&lt;/br&gt;&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:产品编码,vie:mã sản phẩm}: #ITMNO#&lt;/br&gt;&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:中文名称,vie:tên tiếng trung}: #ITMNAM#&lt;/br&gt;&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:来源仓库,vie:kho gốc}: #WH# &lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:来源库位,vie:vị trí gốc}: #LOC#&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:目标仓库,vie:kho mục tiêu}: #WH1# &lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:目标库位,vie:vị trí mục tiêu}: #LOC1# &lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:批号,vie:số lô}: #LOT1#&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:子批次,vie:số kiện từng loại}: #SUBLOT1#&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:包/箱数,vie:Số lượng gói/hộp}: #QTY# [#UOM#]&lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:数量,vie:Số lượng}: #QTYSTU# [#STU#]&lt;/h4&gt;
+	&lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:操作用户,vie:người dùng điều hành}:#CREUSR# &lt;/h4&gt;
+    &lt;h4 style="white-space:pre-wrap"&gt;lang:{zh:操作时间,vie:Ngày nhận}:#CRETIM# &lt;/h4&gt;
+	&lt;/div&gt; 	
+	&lt;/a&gt;
+&lt;/li&gt;</H5List>
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para>&lt;div class="mui-input-row"&gt;
+    &lt;label&gt;地点&lt;/label&gt;
+    &lt;div class="linkmultiple one mui-input-clear" type="button" id="地点" code="LINKSITE" num="1" text-value="SITENAM-SITE" value="YT" required&gt;坦伯烟台&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:开始日期,vie:ngày bắt đầu}&lt;/label&gt;
+&lt;input type="date" class="mui-input-clear" placeholder="lang:{zh:请输入开始日期}" 
+id="开始日期" paratype="DATEVAL" paradm="" value="#LINKDATE(0,0,-7,yyyy-MM-dd)#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:结束日期,vie:ngày cuối}&lt;/label&gt;
+&lt;input type="date" class="mui-input-clear" placeholder="lang:{zh:请输入结束日期}" 
+id="结束日期" paratype="DATEVAL" paradm="" value="#LINK_TODAY#"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:领料单号}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="" 
+id="生产领料单" paratype="STR" paradm="" value="{3}"&gt;
+&lt;/div&gt;
+&lt;div class="mui-input-row"&gt;
+&lt;label&gt;lang:{zh:产品信息,vie:Thông tin sản phẩm}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:根据产品信息进行查询,vie:Tìm kiếm dựa trên thông tin sản phẩm}" 
+id="产品信息" paratype="STR" paradm="" value="{4}"&gt;
+&lt;/div&gt;
+
+&lt;div class="mui-input-row "&gt;
+&lt;label&gt;lang:{zh:批号,vie:số lô}&lt;/label&gt;
+&lt;input type="text" class="mui-input-clear" placeholder="lang:{zh:请输入批号,vie:Vui lòng nhập số lô}" 
+id="LOT" paratype="STR" paradm="" value="{5}"&gt;
+&lt;/div&gt;</H5Para>
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#09</ImageFile>
+  <ListPrint />
+  <MD5HASH>5a64d32cc9d9eb5f1e8328a1eab23ab4</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>BATCHID</COLNAME>
+      <CAPTION>Gửi lô</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>BATCHID</COLNAME>
+      <CAPTION>提交批次</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>CLOREA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>CRETIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>CREUSR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>CTRNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>CTRQTY</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>DOCDAT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>DOCGRP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>DOCLIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>DOCNUM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>DOCSTA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>DOCTYP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>FAC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>FAC1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>id</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ITMNAM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>Mã số sản phẩm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ITMNO</COLNAME>
+      <CAPTION>产品编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ITMVER</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ITMVER1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA03</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA04</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA05</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA06</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA07</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Truy vấn chọn chuyển sản xuất</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Sản xuất chuyển giao vật liệu yêu cầu</CAPTION>
+      <COLTYPE>VIE</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LOC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LOC1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>Số lô</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LOT</COLNAME>
+      <CAPTION>批号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>LOT1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ORIDOC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ORILIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ORISEQ</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ORITYP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>PK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>QTY</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>QTYSTU</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>REMARK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ROW_BACKCOLOR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>ROW_BACKCOLOR1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION>Địa điểm</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SITE</COLNAME>
+      <CAPTION>地点</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SRCDOC</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SRCLIN</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SRCSEQ</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SRCTYP</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>STA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>STA1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>đơn vị bảo quản kho</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>STU</COLNAME>
+      <CAPTION>库存单位</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SUBLOT</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SUBLOT1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SUBRET</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SUBSTA</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>SUBTIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>UOM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>UOMCOE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>UPDTIM</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>UPDUSR</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>WH</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>WH1</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>TMESPDA130</DMCODE>
+      <DMNUM>110</DMNUM>
+      <COLNAME>XWSPK</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+</SysDataModelXML>

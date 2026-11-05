@@ -57,12 +57,12 @@ S.CTLTYP LINKDROPVALIDCTLTYP
 |------|------|
 | `#LINKRES#数字` | 客户端图标资源引用（ImageFile 字段专用，数字 0~99 随机即可） |
 | `#LINKSCRIPTGET@连接代码:SQL#` / `#LINKSCRIPTRUN@连接代码:SQL#` | 公式占位符形式的内嵌脚本：GET 返回单值、RUN 执行返回空（`GlobalFormula.vb:541`、`MLTShared.vb:3164`）。连接代码因环境而异，问用户 |
-| `#LC.xxx#` | LINKCONST 全局常量（运行时查库，按 CUSCODE 过滤；`GlobalFormula.vb:1006-1022`）。样例未出现【待核对】 |
-| `#LINKID_ACTION#` / `#LINKID_RESULT#` | 动作/结果 ID（`SysDataModel.vb:3723/3727`）。样例未出现【待核对】 |
-| `#SYSUSER.UDFxxx#` | 登录用户自定义字段。样例未出现【待核对】 |
+| `#LC.xxx#` | LINKCONST 全局常量（运行时查库，按 CUSCODE 过滤；`GlobalFormula.vb:1006-1022`）。样例未出现【已源码核对】 |
+| `#LINKID_ACTION#` / `#LINKID_RESULT#` | 动作/结果 ID（`GlobalFormula.vb:1132/1136`）。LinkIdAction=每次动作执行前新生成 GUID（SysDataModel.vb:11263/11428/11933，附加模型可继承主模型）；LinkIdResult=模型每次加载数据时生成（SysDataModel.vb:2078）并传给附加模型。样例未出现【已源码核对 2026-11-05】 |
+| `#SYSUSER.UDFxxx#` | 登录用户字段：先改写为 `#LINKUSER(当前用户).COL#` 再查 SYSUSER 表（KeyName1=LOGINUSER），**任意列**非仅 UDF；列不存在返回字面量 `ColNotExist`（`GlobalFormula.vb:1182-1201`、`MLTShared2.vb:2773-2797`）。样例未出现【已源码核对 2026-11-05】 |
 | `#TAG#` | 标签打印场景（`LinkDefine.cs:365`） |
 | `#LINKDOCNUM([已有单号,]规则码)#` | 单据自动编号（三种形态与取号规则见下节） |
-| `#LINKUSER(#LOGIN_USER#).DEPTn#` | 登录用户的组织维度字段（DEPT1~DEPTn，按用户档案取值）。TAMPER 语料 `X.AH#10`【结构待源码核对】 |
+| `#LINKUSER(#LOGIN_USER#).DEPTn#` | 登录用户的组织维度字段：DEPT1~DEPT3 是 SYSUSER 表列（**n 上限 3**），返回**部门代码**非名称（名称用 DeptName1~3 列）。TAMPER 语料 `X.AH#10`【已源码核对 2026-11-05：GlobalFormula.vb:1206-1221、SysUser.vb:44-46】 |
 | `#LINKDATE(年偏移,月偏移,日偏移,格式)#` | 相对当前日期的偏移量（如 `#LINKDATE(0,0,-7,yyyy-MM-dd)#` = 7 天前）。TAMPER 语料 #110 H5Para 参数默认值 |
 | `#LINK_TODAY#` | 今天（日期字面量）。TAMPER 语料 #110 H5Para |
 | `#LINKJSONVALUE:$.路径#` | REST 响应 JSON 的 JSONPath 取值（配 `CALLFUNCTION~LINKRESTAPI~`，见 `callfunction-actions.md`）。TAMPER 语料 10X#501 |
@@ -102,6 +102,87 @@ S.CTLTYP LINKDROPVALIDCTLTYP
 -- 幂等模式：FB 明细加行 UNION 空行场景，真实行 {0}=已取单号原样回填，空行才取新号
 N'#LINKDOCNUM({0},PRQ)#' AS [DOCNUM]（TMESPUR01#10）
 ```
+
+## 2026-11-05 运行器会话补充（TotalLINKDEV.html 差异校验）
+
+> 来源：`LINK/LINK/Note/TotalLINKDEV.html`（133 项）与 skill 已有知识、640 语料三方比对后，按组拍板校验/直收。除标注【未核对】外均经源码核实。HTML 手册勘误（详见 `link-flags.md` 勘误节）：`#LINKRSAENCRYPT` 实为**双参** `(明文,公钥)`、`--LINKSERVERTASK` 实为 `--LINKSERVERTASK.任务ID`、`--LINKIDACTION` 非控制标记。
+
+### 会话/用户上下文（A 组）
+
+**DM 依赖组**（ModelFieldProcessor，仅 DM 非空时替换，入口 `GlobalFormula.vb:157`；无空值回退，DM 为空时只有脚本带 `--LINKAUTOREPLACEEMPTYCOLUMNS` 才被清空，:708-711）：
+
+| 占位符 | 取值 | 行号 |
+|---|---|---|
+| `#LOGIN_USER#` / `#LOGIN_NAME#` / `#LOGIN_LAN#` | LinkVar.UserCode / UserName / LangCode | 1102/1103/1104 |
+| `#LOGIN_ROLE#` / `#LOGIN_COMPUTER#` / `#LOGIN_ID#` | LinkVar.Role / DevID / LoginID | 1107/1110/1113 |
+| `#CURR_MODELCODE#` / `#CURR_MODELNUM#` | dm.ModelCode / ModelNumber | 1116/1119 |
+| `#ATTACH_MODELCODE#` | dm.AttachModelCode（仅附加模型链路有值） | 1122 |
+| `#LINKSERVER#` / `#LINKCUSCODE#` | LinkVar.Server / CusCode | 1125/1128 |
+| `#LINKID_ACTION#` / `#LINKID_RESULT#` | 见上表（已核实赋值时机） | 1132/1136 |
+
+**DM 无关组**（DM 为空也替换）：
+
+| 占位符 | 取值 | 行号 |
+|---|---|---|
+| `#LINKDB#` | LINK 数据库名 | 853 |
+| `#LINKTOKEN#` | DM 非空=DM.LinkToken；否则默认 `TotalLINKInternal`（`BASE_LinkToken` 非空则用它）——唯一有回退值的占位符 | 856、121、165-167 |
+| `#TotalLINKMAXUSERS#` | 最大用户数（HTML 未收录的增量发现） | 859 |
+| `#LINKURLPWD#` | 动态密码 `ddMMyyyy × 1949` 按日变化（MLTShared2.vb:2804-2808） | 881-882 |
+
+### 日期时间（B 组）
+
+`DatePlaceholderProcessor`（GlobalFormula.vb:750-829，入口条件 `result.Contains("#LINK_")`:763，基准 `DateTime.Now`）。函数体内 24 条 Replace 与下表一一对应，**无手册未收录项**：
+
+| 占位符 | 输出 |
+|---|---|
+| `#LINK_TODAY#` / `#LINK_YESTERDAY#` / `#LINK_TOMORROW#` | 今天/昨天/明天 `yyyy-MM-dd`（:767-769） |
+| `#LINK_THISYEAR#` / `#LINK_THISYEAR2#` | `yyyy` / `yy`（:771-772） |
+| `#LINK_THISMONTH#` / `#LINK_THISMONTH4#` | `MM` / `yyMM`（:773-774） |
+| `#LINK_THISYEARMONTH#` / `#LINK_THISYEARMONTH6#` | `yyyy-MM` / `yyyyMM`（:776-777） |
+| `#LINK_FIRSTDAY_THISMONTH#` / `#LINK_LASTDAY_THISMONTH#` | 本月首日 `yyyy-MM-01` / 月末（次日 1 日减 1 天）（:779-781） |
+| `#LINK_LASTYEAR#` / `#LINK_LASTMONTH#` | 去年 `yyyy` / 上月 `MM`（:783-784） |
+| `#LINK_LASTYEARMONTH#` / `#LINK_LASTYEARMONTH6#` | 去年同月 `yyyy-MM` / `yyyyMM`（:786-787） |
+| `#LINK_FIRSTDAY_LASTMONTH#` / `#LINK_LASTDAY_LASTMONTH#` | 上月首日/末日（:789-791） |
+| `#LINK_TODAY8#` | `yyyyMMdd`（:796） |
+| `#LINK_TIMETICKS#` / `#LINK_TIMESTAMPMS#` / `#LINK_TIMESTAMPS#` | .NET Ticks / Unix 毫秒 / Unix 秒（:793/797/798） |
+| `#LINK_TIMEHMS#` / `#LINK_TIMEHM#` | `HH:mm:ss` / `HH:mm`（:800-801） |
+| `#LINK_FULLTIME#` | `yyyy-MM-dd HH:mm:ss.fff`（:803） |
+| `#LINKDATE(年偏移,月偏移,日偏移,.NET格式)#` | 前三段 AddYears/AddMonths/AddDays（:806-825） |
+
+### 数据集/多层数据（C 组）
+
+| 占位符 | 语义 | 行号 |
+|---|---|---|
+| `##LINKECHARTDATASET##` | 当前模型 GDs 网格数据转 ECharts dataset 二维 JSON（首行列名数组 + 数据行） | SysDataModel.vb:6845-6849（生成 ：6926-） |
+| `##LINKLEVELDATA##` | 当前模型自身 GetLevelData 的 JArray JSON | SysDataModel.vb:6852-6856 |
+| `#LINKLEVELDATA(模型,编号[,参数…])#` | 实例化指定模型取 GetLevelData JArray；模型返回 Nothing → `"[]"` 兜底 | GlobalFormula.vb:615-651 |
+| `#LINKXMLDATA(模型,编号[,参数…])#` | 同上取 GetXMLData XML；**无 Nothing 兜底**（与 JSON 形态行为差异：模型空返回时替换为空串或异常） | GlobalFormula.vb:654-685 |
+| `#LINKJSON{JSONPath[,分段长,拼接串]}#` | 从当前 moreData（JToken 提交数据）按 JSONPath 取值；3 参形态按分段长切片重连（Oracle CLOB 场景） | SysDataModel.vb:6041-6109 |
+| `#LINKARRAYITEM((路径)(JArray原文))#` | 双括号：第 2 括号=JSON Array 原文（`"null"`→空），第 1 括号逐元素 JSONPath 取值后**逗号拼接**（供 SQL IN） | GlobalFormula.vb:286-329 |
+
+共用 JSONPath 取数工具：`GetJTokenString`（MLTShared2.vb:4685）。
+
+### 变量/脚本复用（D 组）
+
+| 占位符 | 语义 | 行号 |
+|---|---|---|
+| `#LINKSETVAL(名,值)#` / `#LINKGETVAL(名)#` | **进程内存字典，不落库**；键=`变量名+LoginID`；Win 客户端=整个运行期，IIS=应用池生命周期**跨请求共享**（仅靠 LoginID 区分用户，无并发锁）；取不到返回 `""` | GF.vb:431-480 → MLTShared2.vb:2214/2228 → Globle.vb:685 |
+| `#LINKFUNC.名称[(参数…)]#` | 查 LINKFUNC 表（FUNCODE），参数按 `{0}{1}` 位置填充 → 脚本递归过 GlobalFormulaReplace → 按 FUNTYPE 分派：LINKFORMULA=DataTable.Compute / LINKSCRIPTGET=ExecScalar / LINKSCRIPTRUN=Exec；FUNCONN 空=默认连 LINKBI；SETPROCESS/FILEDIALOG 等内置类型不走表；**参数含逗号会被切错** | GF.vb:416-429 → MLTShared2.vb:2058-2185 |
+| `#TotalLINKScript.编号.脚本类型(名1,值1,名2,值2…)#` | 从固定模型 `TOTALLINKSCRIPT` 取脚本（脚本类型=枚举名 BaseScript/CreateScript/DeleteScript/TreateScript）；变量**成对**消费，替换带引号的 `'@xxx'`→`'值'`；在所有其他占位符**之前**处理 | GF.vb:82-109；字段映射 SysDataModel4.vb:120-157 |
+| `#_LINKSYS_.序号.字段#` | 系统内置模型 `_LINKSYS_`：执行该编号查询并取**第 0 行**指定列（多行只看第一行） | GF.vb:209-233 |
+
+### 加密与 Token（E 组）
+
+| 占位符 | 语义 | 行号 |
+|---|---|---|
+| `#LINKENCRYPT(内容)#` | 3DES-CBC+PKCS → Base64，**密钥硬编码** `lINKbipLUS`（可逆混淆，非安全加密） | GF.vb:974-1000 → MLTSimple3Des.vb:85-88 |
+| `#LINKRSAENCRYPT(明文,公钥)#` | **双参**（HTML 单参有误）：公钥由第二参直接携带，Java 公钥转 .NET 后 RSA 加密；两参都不能含逗号 | GF.vb:591-612 |
+| `#LINKTOKEN(用户代码)#` | 目标用户=当前用户 → 直接返回 dm.LinkToken；否则为该用户现造 LinkSpecial Token（存 SYSCODE 表 CODETYPE='TotalLINKToken'，按天滚动、默认 7 天有效）；**不校验调用者权限**（安全注意：任何脚本能触发替换即可为任意用户造 Token） | GF.vb:1226-1256 → MLTSimple3Des.vb:100-137 |
+| `#LINKWEIXINTOKEN#` `#LINKDINGTALKTOKEN#` `#LINKBAIDUAITOKEN#` `#LINKFEISHUTOKEN#` | 微信/钉钉/百度/飞书 AI Token【未核对，直收】 | — |
+
+### 集成/设备/路径（F 组，用户拍板直接收编，【未核对】）
+
+`#LINKIOT.设备.项#`（设备信息采集）、`#LINKINFLUX(查询)#`（InfluxDB 采集信息）、`#LINKACTIVITY(…)#`（LINKFUNC 权限模式判断）、`#LINKSIGNSTEPSETTING(…)#`（审批 SIGNLIST 条件控制，返回提示信息）、`#LINKLOCATION#`/`#LINKLOCATIONJSON#`（简洁/完整地理位置）、`#LINKLOCALPATH#`（本地工作路径）、`#LOCALREPORTPATH#` / `#LINKEXPORTPATH#`（本地报表/导出路径）。
 
 ## 使用原则
 

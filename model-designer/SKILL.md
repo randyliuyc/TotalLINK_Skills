@@ -124,6 +124,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | 弄不清某字段/脚本如何被执行、影响哪个返回 | `references/endpoints.md`（链路图 + 能力组契约表） |
 | 纯查询/报表模型 | `references/fields.md`、`references/placeholders.md` |
 | 带增删改的模型 | `references/fields.md`、`references/link-flags.md` |
+| 预判某个标记/配置在运行器里长什么样（界面行为） | `references/runner-behavior.md`（模型要素 → 运行器行为映射 + 设计规律） |
 | 带动作按钮/外部调用 | `references/fields.md`、`references/callfunction-actions.md` |
 | 带下拉参数（DROPDOWN/DROPRELOAD） | `references/fields.md`、`references/samples/ERAQA101010X.SUPCOD#10-选择供应商.xml` |
 | 可编辑网格/列编辑/保存联动 | `references/fields.md`、`references/modelsetting.md` |
@@ -136,7 +137,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `../formbuilder-json-generator/`（布局/控件/按钮/表达式规则；模板查询/落库走 AI 工具 `SYSINFOMATION/300`，契约见其「模板落库」节，按环境开放、缺工具时提示用户在服务端开放） |
 | APP 模型要写前端脚本（扫码/校验/刷新钩子） | `references/js-hooks.md` |
 | APP H5 模板的控件 class、link- 属性、取值/提交链路等客户端约定 | `../totallink-app-help/references/`（h5-guide / classes-ids / attributes / methods） |
-| 拿不准某字段影响哪个环境 | `references/environments.md`、`references/endpoints.md` |
+| 拿不准某字段影响哪个环境 | `references/environments.md`、`references/endpoints.md`、`references/runner-behavior.md`（环境标签） |
 | 任何生成之前 | 对应类型的最接近样例 + 已确认的任务书 |
 
 ## 速查

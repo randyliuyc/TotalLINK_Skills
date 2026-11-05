@@ -24,7 +24,7 @@
 
 | 问 | 命中能力组 | 产出的模型族构成 |
 |---|---|---|
-| 这个模型给谁用？（模型运行器 / APP / FB 网页 / AI 调用） | — | 决定 H5 族字段是否必做 |
+| 这个模型给谁用？（模型运行器 / APP / FB 网页 / AI 调用，**可多选**——一模型多端很常见） | — | 决定 H5 族字段是否必做；L2 的运行器专属题（L2-R）按是否含「模型运行器」过滤 |
 | 用户在界面上要做什么？（查列表 / 看单据表单 / 编辑 / 新增 / 删除 / 行动作 / 前后置处理 / 打印 / 图表 / 挖掘 / 多级展开） | ①~⑦ | 主模型 + 附加模型编号段清单 |
 | 数据是一个列表还是一张单据？ | ① vs ② | 列表模型 or FB 表单模型族 |
 
@@ -98,8 +98,8 @@
 
 | # | 问题 | 推荐 | 映射 | 消费端点 |
 |---|---|---|---|---|
-| L2-3 | 能编辑哪些列？怎么定位行？ | `WHERE 主键=0#LINKROWID#` | `SQLUpdateScript`（落库列 SEARCHWHERE）+ `--LINKEDITMODE` | ③④ |
-| L2-4 | 能新增吗？默认值？ | `#LOGIN_USER#`、`GETDATE()` | `SQLNew` + `--LINKADDNEWROWS`（编辑态加行）或留空（按钮式新增） | ④ |
+| L2-3 | 能编辑哪些列？怎么定位行？编辑形态：弹窗（默认）/ 行内（`--LINKEDITMODE`）/ 直接加行（`--LINKADDNEWROWS`）？ | `WHERE 主键=0#LINKROWID#`；低频整单改=弹窗+`--LINKAUTOCLOSE` 保存后关窗，高频小改=行内编辑 | `SQLUpdateScript`（落库列 SEARCHWHERE）+ 编辑形态标记；必填列加 `--LINKREQUIRED:列1,列2`。三种形态的运行器界面差异见 `runner-behavior.md` §2 | ③④ |
+| L2-4 | 能新增吗？默认值？要复制上一行吗？ | `#LOGIN_USER#`、`GETDATE()` | `SQLNew` + `--LINKADDNEWROWS`（编辑态加行；流水录入可加 `--LINKCOPYLINE` 复制上一行）或留空（按钮式新增） | ④ |
 | L2-5 | 能删除吗？ | 软删/防呆时改走 1000 检查模型 | `SQLRemove` | ④ |
 | L2-6 | 编辑列的下拉/联动？ | — | ModelSetting `EditValueList`（模型代码#序号）、`EditCols` | ③ |
 
@@ -109,8 +109,17 @@
 |---|---|---|---|---|
 | L2-7 | 有哪些行级动作（右键菜单/按钮）？各做什么？ | 动作 SQL 写在附加模型的 `SQLCLEAR` | 附加 501~520 + `--LINKREFRESH` | ⑤ |
 | L2-8 | 动作前要检查/确认什么？ | 防呆文案写脚本注释标记 | 附加 1000 + `LINKPREVENT`(阻止)/`LINKCONFIRM`(确认)/`LINKWARNING`(提示) | ⑤ |
-| L2-9 | 有自动前/后置处理吗？ | — | 附加 11~20 / 31~40；手动版 21~30 / 41~50 | ④⑤ |
+| L2-9 | 有自动前/后置处理吗？要异步执行吗？ | 异步二选一：即时触发 `--LINKSERVERTASK.任务ID`（HTTP 发出即返回，不等待、不落任务表）；持久队列 `--LINKACTIONPUSH(优先级~JobKey~用户~模型,编号~参数)`（LinkTasks Quartz 消费） | 附加 11~20 / 31~40；手动版 21~30 / 41~50 | ④⑤ |
 | L2-10 | 动作完成后跳哪 / 提示什么？ | — | `--LINKREFRESH`；提示模型 编号+2000 | ⑤ |
+
+**运行器专属交互开关**（阶段 0 目标环境含「模型运行器」才问；APP/FB 无消费代码，写了也是无效载荷——见 `runner-behavior.md` §7）
+
+| # | 问题 | 推荐 | 映射 | 消费端点 |
+|---|---|---|---|---|
+| L2-R1 | 离开网格时未保存的改动怎么办？ | 常规=默认弹确认框；流水作业=`--LINKDATAAUTOSAVE` 静默自动保存；纯查询=`--DISABLEAUTOSAVE` 既不保存也不弹 | 脚本标记（引擎级，优先级 AUTOSAVE > DISABLE > 默认确认） | linkDMData |
+| L2-R2 | 要批量填写吗（头行填一次应用到多行）？ | 表格批量录入场景才用 | `--LINKBATCHEDIT` | linkDMData |
+| L2-R3 | 要扫码输入框吗？ | 扫码枪接电脑场景才用；APP 扫码走 JS 钩子（L2-J1），两者是不同链路 | `--LINKINPUTBOX`（需要时加 `--DISABLEINPUTIMEMODE` 禁输入法） | linkDMData |
+| L2-R4 | 表格要隐藏过滤行 / 禁止导出吗？ | 纯展示型才用；注意 NOEXPORT 仅禁 UI 按钮，数据照发 | `--LINKNOFILTER` / `--LINKNOEXPORT` | linkDMData |
 
 **⑦ 图表/挖掘/多层级**
 
@@ -130,7 +139,7 @@
 
 约 81% 的 APP 模型不需要 JS——三问都不命中就不写。FB 侧只有详情页行点击 `contextTap` 一种。
 
-**文件上传**（若有）：附加模型承载上传记录脚本，脚本标记 `--LINKUPLOAD_FILETYPE/PATHASSIGN/KEEPFILENAME`，端点 `linkDMFileUpload`。
+**文件上传**（若有）：附加模型承载上传记录脚本，脚本标记 `--LINKUPLOAD_FILETYPE:类型` / `--LINKUPLOAD_PATHASSIGN:路径` / `--LINKUPLOAD_KEEPFILENAME:1`（**必须带参**，非空=保留原名），端点 `linkDMFileUpload`（引擎级 IIS 同样生效；端点另有硬编码扩展名黑白名单先拦截）
 
 ### L3 验收面
 
@@ -174,6 +183,7 @@
   - 500 的 `formtemplate` 指向的 FB 表单骨架若需**新建**，用 `formbuilder-json-generator` skill 生成（formbtns 默认空数组，按钮逻辑走模型 #501+）
   - APP H5 模板内的控件 class / link- 属性 / 取值提交约定，以 `totallink-app-help` 的 h5-guide / classes-ids / attributes 为准
 - JS 钩子（L2-J 命中项）：scan_para / beforeFunction / afterFunction / contextTap / 无
+- 关键交互行为开关（L2 访谈拍板的 `--LINK*` 标记，验收对照 `runner-behavior.md`）：＿＿＿
 
 ## 7. 动作清单
 | 动作 | 承载位置（哪个模型的哪个脚本） | 防呆 | 完成后行为 |

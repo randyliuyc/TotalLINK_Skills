@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>SYSINFOMATION</ModelCode>
+  <ModelNum>300</ModelNum>
+  <ModelDesc>Formbuilder单据模板管理</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>SELECT [MODCODE]--模板编码
+      ,[MODGROUP]--模板类型
+      ,[MODDESC] --模板描述
+      ,[MODJSON] --模板内容
+      ,[CREUSER] --创建用户
+      ,[CREDATE] --创建日期
+      ,[LINKROWID]
+  FROM [LINKFORMMOD]
+ WHERE MODCODE = '{0}'</SQLScript>
+  <SQLUpdateScript>UPDATE [LINKFORMMOD] SET
+           [MODGROUP]='@MODGROUP@'
+           ,[MODDESC]=N'@MODDESC@'
+           ,[MODJSON]=N'@MODJSON@'
+WHERE MODCODE = '{0}'</SQLUpdateScript>
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01>模板编号</ParaLabel01>
+  <ParaType01>STR</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew>--LINKADDNEWROWS
+INSERT INTO [LINKFORMMOD]
+           ([MODCODE]
+           ,[MODGROUP]
+           ,[MODDESC]
+           ,[MODJSON]
+           ,[CREUSER]
+           ,[CREDATE])
+     VALUES
+           ('#MODCODE#','@MODGROUP@',N'@MODDESC@',N'@MODJSON@','#LOGIN_USER#',GETDATE())</SQLNew>
+  <SQLRemove>DELETE FROM LINKFORMMOD WHERE LINKROWID='#LINKROWID#'</SQLRemove>
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#91</ImageFile>
+  <ListPrint />
+  <MD5HASH>eae887a7aa06a01956266d4d95f0a027</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>CREDATE</COLNAME>
+      <CAPTION>创建日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>CREUSER</COLNAME>
+      <CAPTION>创建用户</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Document template details</CAPTION>
+      <COLTYPE>LANGUAGE-en</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Détails du modèle de document</CAPTION>
+      <COLTYPE>LANGUAGE-fra</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Rincian templat dokumen</CAPTION>
+      <COLTYPE>LANGUAGE-id</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>Chi tiết mẫu tài liệu</CAPTION>
+      <COLTYPE>LANGUAGE-vie</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>LINKROWID</COLNAME>
+      <CAPTION />
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>MODCODE</COLNAME>
+      <CAPTION>模板编码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>MODDESC</COLNAME>
+      <CAPTION>模板描述</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>MODGROUP</COLNAME>
+      <CAPTION>模板类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <COLNAME>MODJSON</COLNAME>
+      <CAPTION>模板内容</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+  <DMUsage>
+    <DMUsage>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <SCRIPT>0</SCRIPT>
+      <DMUSAGE>FormBuilder 表单模板信息
+
+params: ["模板编码"]</DMUSAGE>
+    </DMUsage>
+    <DMUsage>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <SCRIPT>1</SCRIPT>
+      <DMUSAGE>创建新的FormBuilder单据模板
+
+rowData: {"MODCODE":"模板编码","MODGROUP":"模板类别","MODDESC":"模板描述","MODJSON":"模板内容"}</DMUSAGE>
+    </DMUsage>
+    <DMUsage>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>300</DMNUM>
+      <SCRIPT>2</SCRIPT>
+      <DMUSAGE>修改Formbuilder表单模板信息
+
+params: ["模板编码"]
+rowData: {"MODGROUP":"模板类别","MODDESC":"模板描述","MODJSON":"模板内容"}</DMUSAGE>
+    </DMUsage>
+  </DMUsage>
+</SysDataModelXML>

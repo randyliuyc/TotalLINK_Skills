@@ -20,6 +20,7 @@ git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git <目标目录>
 | Skill | 用途 | 适用范围 |
 |-------|------|---------|
 | totallink-base | 认证、工具发现、API 调用、数据预处理 | 通用 |
+| ai-init | AI 环境初始化：新环境导入 LINKAIINIT 模型组并执行 SYSINFOMATION230X/501（建 LINKAIAVT/LINKAIBAL 表 + 汇总行基线） | 通用 |
 | model-designer | 数据模型设计：需求问卷与任务书门禁 → 生成 XML → 静态诊断 → 导入 → 设计态运行 → 两层验收（`tlk model` 命令组，含 `dict` 表字典） | 通用（角色须 SystemAdmin/SystemExpert） |
 | model-interview | 需求访谈纪律（grilling）：一次一题、附推荐、事实自查决策归用户、共识前不动手 | 通用 |
 | formbuilder-json-generator | Formbuilder 表单 JSON 生成（MODJSON 骨架：布局/控件/按钮/表达式规则）——model-designer 的 FB `formtemplate` 骨架设计知识来源 | 通用 |
@@ -39,6 +40,9 @@ totallink-base/
 │   ├── tlk_core.py          #   配置、请求、错误映射、设计态端点
 │   ├── parse_tools.py       #   工具列表解析
 │   └── preprocess.py        #   大数据自动摘要
+├── ai-init/                 # AI 环境初始化 Skill
+│   ├── SKILL.md             #   新环境/初始化触发时的导入与执行流程
+│   └── models/              #   LINKAIINIT 模型组 6 个 XML（含 SYSINFOMATION230X#501 初始化动作）
 ├── model-designer/          # 数据模型设计 Skill
 │   ├── SKILL.md
 │   ├── tlk_group.py         #   注册 model 命令组（dict / export / import / run / validate）

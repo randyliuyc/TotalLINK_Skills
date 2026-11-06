@@ -79,6 +79,8 @@ python3 scripts/tlk.py env list
   ```
   `--url` 默认 `http://124.71.144.80:8088`，项目名必填。
 
+> **新环境 AI 初始化**：新配置的环境（或用户要求初始化 AI 环境/额度时），按 `ai-init/SKILL.md` 导入初始化模型组并执行 `SYSINFOMATION230X/501`——环境数据库尚无 `LINKAIAVT`/`LINKAIBAL` 表时，额度相关模型（210/220/230）不可用。
+
 ### 配置文件格式
 
 ```json

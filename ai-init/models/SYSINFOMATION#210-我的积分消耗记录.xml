@@ -1,0 +1,217 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>SYSINFOMATION</ModelCode>
+  <ModelNum>210</ModelNum>
+  <ModelDesc>My AI Action List</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript>DECLARE @USR VARCHAR(30) = '#LOGIN_USER#';
+DECLARE @DATSTR DATE = '{0}';
+DECLARE @DATEND DATE = '{1}';
+
+SELECT LOGDATE
+  , DMCODE
+  , DMNUM
+  , SCRIPT
+  , COST
+  , TOKEN
+FROM LINKAILOG
+WHERE USR = @USR
+  AND LOGDATE &gt;= @DATSTR
+  AND LOGDATE &lt; DATEADD(DAY, 1, @DATEND);</SQLScript>
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>true</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01>DATSTR</ParaLabel01>
+  <ParaType01>DATEVAL</ParaType01>
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02>DATEND</ParaLabel02>
+  <ParaType02>DATEVAL</ParaType02>
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear />
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#46</ImageFile>
+  <ListPrint />
+  <MD5HASH>41e6fa022420188666389de0ec84fc19</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <CubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>COST</COLNAME>
+      <CAPTION>积分消耗</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>DMCODE</COLNAME>
+      <CAPTION>模型代码</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>DMNUM</COLNAME>
+      <CAPTION>顺序号</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA01</COLNAME>
+      <CAPTION>起始日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>LINKRESERVE_DMPARA02</COLNAME>
+      <CAPTION>结束日期</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>LINKRESERVE_DMTITLE</COLNAME>
+      <CAPTION>我的积分消耗记录</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>LOGDATE</COLNAME>
+      <CAPTION />
+      <COLTYPE>COLFORMAT</COLTYPE>
+      <COLFORMAT>g</COLFORMAT>
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>LOGDATE</COLNAME>
+      <CAPTION>操作时间</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>SCRIPT</COLNAME>
+      <CAPTION>脚本类型</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+    <DMCubeSetting>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <COLNAME>USEDQUOTA</COLNAME>
+      <CAPTION>积分消耗</CAPTION>
+      <COLTYPE>LANGUAGE-zh</COLTYPE>
+      <COLFORMAT />
+      <COLAGGREGATE />
+      <DISPORDER>0</DISPORDER>
+      <FORMULA />
+    </DMCubeSetting>
+  </CubeSetting>
+  <DMUsage>
+    <DMUsage>
+      <DMCODE>SYSINFOMATION</DMCODE>
+      <DMNUM>210</DMNUM>
+      <SCRIPT>0</SCRIPT>
+      <DMUSAGE>当前用户的AI调用记录
+
+params: ["起始日期","结束日期"]</DMUSAGE>
+    </DMUsage>
+  </DMUsage>
+</SysDataModelXML>

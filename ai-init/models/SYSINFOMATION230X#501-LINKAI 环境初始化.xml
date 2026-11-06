@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<SysDataModelXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ModelCode>SYSINFOMATION230X</ModelCode>
+  <ModelNum>501</ModelNum>
+  <ModelDesc>LINKAI 环境初始化</ModelDesc>
+  <KeyWords />
+  <DataMineCode />
+  <FunctionCode />
+  <ChartType />
+  <SQLScript />
+  <SQLUpdateScript />
+  <Ret1>0</Ret1>
+  <Ret2>0</Ret2>
+  <Ret3>0</Ret3>
+  <Ret4>0</Ret4>
+  <Ret5>0</Ret5>
+  <UseParameter>false</UseParameter>
+  <ConnString />
+  <ModuleCode />
+  <ParaLabel01 />
+  <ParaType01 />
+  <ParaSearchCode01 />
+  <ParaDefVal01 />
+  <ParaLabel02 />
+  <ParaType02 />
+  <ParaSearchCode02 />
+  <ParaDefVal02 />
+  <ParaLabel03 />
+  <ParaType03 />
+  <ParaSearchCode03 />
+  <ParaDefVal03 />
+  <ParaLabel04 />
+  <ParaType04 />
+  <ParaSearchCode04 />
+  <ParaDefVal04 />
+  <ParaLabel05 />
+  <ParaType05 />
+  <ParaSearchCode05 />
+  <ParaDefVal05 />
+  <ParaLabel06 />
+  <ParaType06 />
+  <ParaSearchCode06 />
+  <ParaDefVal06 />
+  <ParaLabel07 />
+  <ParaType07 />
+  <ParaSearchCode07 />
+  <ParaDefVal07 />
+  <ParaLabel08 />
+  <ParaType08 />
+  <ParaSearchCode08 />
+  <ParaDefVal08 />
+  <ParaLabel09 />
+  <ParaType09 />
+  <ParaSearchCode09 />
+  <ParaDefVal09 />
+  <ParaLabel10 />
+  <ParaType10 />
+  <ParaSearchCode10 />
+  <ParaDefVal10 />
+  <SQLNew />
+  <SQLRemove />
+  <SQLClear>-- ============================================================
+-- 内容：
+--   1. 新建 LINKAIAVT 表（激活记录表，与 LINKAIBAL 同库）
+--   2. 初始化 LINKAIAVT 汇总行基线（MONQUOTA=0）
+--   3. 初始化 LINKAIBAL 汇总行基线（MONQUOTA=0）
+--
+-- 说明：
+--   - 两表汇总行基线由本脚本固化，永存不删，用于防删除/防清空检测
+--   - 幂等：已存在基线时不重复插入
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- 1. 新建 LINKAIAVT 表
+-- ------------------------------------------------------------
+IF OBJECT_ID(N'dbo.LINKAIAVT', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[LINKAIAVT] (
+        [ID]           [bigint] IDENTITY(1, 1) NOT NULL
+        , [TOKENHASH]  [varchar](64) NOT NULL          -- 激活码 SHA256（唯一索引防重用）
+        , [USR]        [varchar](30) NOT NULL          -- 用户标识
+        , [CUSTCODE]   [varchar](30) NOT NULL          -- 客户编码
+        , [MONQUOTA]   [int] NOT NULL DEFAULT(0)       -- 每月额度
+        , [MONTHS]     [int] NOT NULL DEFAULT(0)       -- 月数
+        , [STARTMONTH] [varchar](6) NOT NULL DEFAULT('') -- 起始月份 YYYYMM
+        , [ACTIVATED]  [datetime] NOT NULL DEFAULT(GETDATE())
+        , [ROWCHECK]   [varchar](64) NULL DEFAULT('')  -- HMAC-SHA256 行签名
+        , CONSTRAINT [PK_LINKAIAVT] PRIMARY KEY CLUSTERED (
+            [ID] ASC
+        ) WITH (
+            PAD_INDEX = OFF
+            , STATISTICS_NORECOMPUTE = OFF
+            , IGNORE_DUP_KEY = OFF
+            , ALLOW_ROW_LOCKS = ON
+            , ALLOW_PAGE_LOCKS = ON
+        ) ON [PRIMARY]
+    ) ON [PRIMARY]
+
+    -- 唯一索引防激活码重用
+    CREATE UNIQUE NONCLUSTERED INDEX [IX_LINKAIAVT_TOKENHASH]
+        ON [dbo].[LINKAIAVT] ([TOKENHASH])
+        WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF,
+              IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+        ON [PRIMARY]
+END
+
+
+-- ------------------------------------------------------------
+-- 2. 初始化 LINKAIAVT 汇总行基线（MONQUOTA=0）
+--    签名字段: TOKENHASH|USR|CUSTCODE|MONQUOTA|MONTHS|STARTMONTH|ACTIVATED
+--            = __TOTAL__|__TOTAL__||0|0||2026-01-01
+-- ------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LINKAIAVT] WHERE [TOKENHASH] = '__TOTAL__')
+BEGIN
+    INSERT INTO [dbo].[LINKAIAVT]
+        ([TOKENHASH], [USR], [CUSTCODE], [MONQUOTA], [MONTHS], [STARTMONTH], [ACTIVATED], [ROWCHECK])
+    VALUES
+        ('__TOTAL__', '__TOTAL__', '', 0, 0, '',
+         '2026-01-01',
+         'BFE984C451B5F2C44323220CAA61AA222B7FD546FAA0EBD20E6771184AB72D75')
+END
+
+
+-- ------------------------------------------------------------
+-- 3. 初始化 LINKAIBAL 汇总行基线（MONQUOTA=0）
+--    签名字段: USR|MONTHKEY|MONQUOTA|USEDQUOTA|ISACTIVE|CRETIM
+--            = __TOTAL__||0|0|1|2026-01-01
+-- ------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM [dbo].[LINKAIBAL] WHERE [USR] = '__TOTAL__')
+BEGIN
+    INSERT INTO [dbo].[LINKAIBAL]
+        ([USR], [MONTHKEY], [MONQUOTA], [USEDQUOTA], [ISACTIVE], [ROWCHECK], [CRETIM], [UPDTIM])
+    VALUES
+        ('__TOTAL__', '', 0, 0, 1,
+         'BBC1F0374A63666224756EEC8B5146DEE47B30493117783E030F544F9C20EADD',
+         '2026-01-01', '2026-01-01')
+END</SQLClear>
+  <H5List />
+  <H5Detail />
+  <H5Edit />
+  <H5Chart />
+  <H5MaxLines>0</H5MaxLines>
+  <AllDataTreatTitle />
+  <H5NewRec />
+  <H5Para />
+  <H5AttPara />
+  <CallFunction />
+  <JavaScript />
+  <H5GridHeader />
+  <H5GridDetail />
+  <ImageFile>#LINKRES#92</ImageFile>
+  <ListPrint />
+  <MD5HASH>d760e7457efda7dc9f3c4af02165c426</MD5HASH>
+  <ModelSetting />
+  <ShowInMenu>false</ShowInMenu>
+  <SysModelFlag>false</SysModelFlag>
+  <DMUsage>
+    <DMUsage>
+      <DMCODE>SYSINFOMATION230X</DMCODE>
+      <DMNUM>501</DMNUM>
+      <SCRIPT>4</SCRIPT>
+      <DMUSAGE>TotalLINK AI 环境初始化
+初始化 LINKAIAVT 汇总行基线
+初始化 LINKAIBAL 汇总行基线</DMUSAGE>
+    </DMUsage>
+  </DMUsage>
+</SysDataModelXML>

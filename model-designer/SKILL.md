@@ -18,7 +18,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 
 | 命令 | 作用 |
 |------|------|
-| `model dict <表名> [--code --num --conn --db] [--save]` | 查表字典（配置驱动，缺省 SYSTEMCODE/30；`--save` 写入项目配置） |
+| `model dict <表名> [--code --num --conn --db] [--save]` | 查表字典（**模型代码与连接/库不设缺省，须由用户提供**；`--save` 写入项目配置后复用） |
 | `model export <dmCode> <dmNum> -o <file.xml>` | 导出现有模型为 XML（当模板或回归基线） |
 | `model validate <file.xml> [dmCode dmNum] [--columns COL1,COL2] [--env fb\|app]` | 纯 XML 静态诊断，不走网络；`--env` 加模型族一致性检查 |
 | `model import <file.xml> [--force] [--code X --num Y]` | 导入落库（服务端重算 `MD5HASH`） |
@@ -26,7 +26,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 
 下文一律写完整入口：`python3 scripts/tlk.py model ...`。
 
-- **`dict`**：配置驱动的薄封装（编号/连接/参数模板都在 `~/.totallink/config.json` 项目节 `dict` 键下，CLI 可临时覆盖）。三级降级：①缺省 SYSTEMCODE/30 调通 → 正常返回归一化列清单；②模型不存在/404 → 输出可操作错误，转去问用户（用 `tools search` 搜「表结构」，或请用户提供 dmCode/dmNum 后 `--save` 配置）；③返回列与已知词汇表对不上 → 原样输出 schema+样例行并标注「列映射未知」，**不猜**，问用户各列含义。
+- **`dict`**：**字典模型（dmCode/dmNum）与连接/库（conn/db）不设缺省值，也不自行试探**——这些值随环境而异（多连接多库并存），猜错只会得到 500 或空列，还会把「环境未开通」误判成「参数不对」。配置齐全时（项目配置 `dict` 键，或 CLI 传入）正常返回归一化列清单。**配置缺失时命令报 `CONFIG` 并列出缺哪几项**：此时去问用户三项参数（①字典模型 dmCode/dmNum ②连接代码 conn ③数据库名 db），拿到后用 `--code/--num/--conn/--db --save` 落进 `~/.totallink/config.json` 项目节 `dict` 键，后续查询直接复用该配置。模型存在但调用失败 → 按返回的 `hint` 走（同样先问用户，不换编号试探）。返回列与已知词汇表对不上 → 原样输出 schema+样例行并标注「列映射未知」，**不猜**，问用户各列含义。
 - **`validate` 的输出去看 `summary` 与 `diagnostics`**（`error` / `warning` / `info`）；顶层出现 `error` 字段表示有 error 级诊断（`VALIDATE`）或文件读不到（`IO`）。诊断项自带 `code` 与 `path`，按 `path` 定位到字段/列。
 - `validate [dmCode dmNum]` 校验 XML 内嵌编号是否等于给定期望值——以样例为模板改名时用它防混淆。`--env fb` 检查 500 伴生模型、`#FORMDATA#` 写法；`--env app` 检查 H5 族字段成对性与 `H5PARA` 非空。
 - `--columns` 取 `model run` 返回的 `columns`（逗号分隔），用于检查 CubeSetting 是否覆盖实际返回列。
@@ -39,7 +39,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 0. **任务书门禁**：生成任何 XML 之前，必须先按 `references/discovery.md` 完成问卷并落盘任务书（`<CODE>#<NUM>-brief.md`），经用户确认。任务书未确认前只允许事实调查（字典查询、样例检索），不允许产出 XML。
 1. **编号直接询问用户**：`ModelCode` / `ModelNum` 向用户索取。询问时附上 `eModelAttachNum` 编号段语义（`references/samples/README.md`）供参考。
 2. **环境相关值必须问用户，但提供默认值**：
-   - 连接代码（`ConnString`，与 `--LINKSCRIPTGET@连接代码:` 同域）：默认 `LINKDB`，用户确认或改写；
+   - 连接代码（`ConnString`，与 `--LINKSCRIPTGET@连接代码:` 同域）：默认 `LINKDB`，用户确认或改写（**仅作推荐值，不确认不落库**；`model dict` 的 conn/db 无缺省，必须问到确切值）；
    - 模块前缀（系统缩写+模块缩写）：问用户，不沿用样例值；
    - CubeSetting 语言集合：默认 `zh` + `en`（每列×每语言一条），需要更多语言由用户给代码（如 `vi` → `LANGUAGE-vi`）；
    - `ImageFile` 的 `#LINKRES#` 数字取 0~99 随机即可，不必问。
@@ -53,10 +53,11 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 7. **`CUSCODE` 统一留空**（2026-11-05 定）：客户归属由服务端按登录环境决定；`model export` 导出的参考模型可能带 CUSCODE 值，生成/克隆时一律清空（validate 报 `CUSCODE_NONEMPTY`）。
 8. **不臆造**：列名只准从 `model dict` 的列清单选；不认识的字段、标记、action，先查 `references/`；文档没有的问用户。
 9. **模型是模型族**：动主模型时检查附加模型族（`{代码}{编号}X`）是否需要同步调整；FB 表单按页面族组织（`.AH/.AL/.BH/.BL` 四族 + 各族 500 伴生模型，见 `references/fb-page-families.md`）。
+10. **表字典参数问用户，不试探**：`model dict` 的 dmCode/dmNum、conn、db 一律由用户提供。命令报 `CONFIG` 就去问这三项（一次问清，给出推荐值与依据），拿到后 `--save` 写入项目配置。**禁止自己换编号、换连接、换库名轮番试**——既慢又会把「环境未开通该能力」误判成「参数不对」。
 
 ## 工作流
 
-1. **需求澄清 = 问卷（阶段 0 + 问题库）**：严格按 `references/discovery.md` 执行——先判定能力组（①~⑦），再按层问 L1 数据面 → L2 交互面 → L3 验收面；一次一题、附推荐、能查的事实不问。数据面第一件事：`model dict` 拉列清单。
+1. **需求澄清 = 问卷（阶段 0 + 问题库）**：严格按 `references/discovery.md` 执行——先判定能力组（①~⑦），再按层问 L1 数据面 → L2 交互面 → L3 验收面；一次一题、附推荐、能查的事实不问。数据面第一件事：`model dict` 拉列清单（**首次查询前先按硬规则 10 问用户要 dmCode/dmNum/conn/db 并 `--save` 落配置**）。
    *完成判据：能力清单、模型族构成、列清单、参数表全部齐备。*
 2. **落盘任务书**：按 `discovery.md` 模板写 `<CODE>#<NUM>-brief.md`，交用户确认。**未确认不得生成 XML**（硬规则 0）。
 3. **找模板与能力发现**：
@@ -101,7 +102,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | `EXPECT_MISMATCH` | XML 内编号与给定期望值不一致 | 确认是否用错了模板 |
 | `FAMILY_*`（`--env` 时） | 模型族一致性问题（H5GRIDHDR/DTL 不成对、H5PARA 空、500 JSON 非法、`#FORMDATA#` 写法错等） | 对照 `endpoints.md` 修复 |
 
-`dict` 的降级提示：见上文命令表 `dict` 条目——按提示转 `tools search` 或问用户。
+`dict` 的降级提示：见上文命令表 `dict` 条目——缺配置报 `CONFIG`（列明缺哪几项）时**问用户**要 dmCode/dmNum/conn/db 并 `--save` 落配置，不自行试探。
 
 `run` 的 `error`：
 

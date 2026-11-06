@@ -38,7 +38,7 @@
 
 | # | 问题 | 推荐 | 映射 | 消费端点 |
 |---|---|---|---|---|
-| L1-1 | 涉及哪些表？**各表在哪个连接（ConnString）上？** | — | — | **先跑 `tlk model dict` 把列清单拉进任务书，后续选列只准从清单选**；连接归属写进任务书 §1（环境常多库并存，跨连接不可 JOIN，见 `environments.md`） |
+| L1-1 | 涉及哪些表？**各表在哪个连接（ConnString）上？** | — | — | **先跑 `tlk model dict` 把列清单拉进任务书，后续选列只准从清单选**（首次查询前先按 SKILL.md 硬规则 10 问用户要 dmCode/dmNum/conn/db 并 `--save` 落配置）；连接归属写进任务书 §1（环境常多库并存，跨连接不可 JOIN，见 `environments.md`） |
 | L1-2 | 列表/表单展示哪些列？标题怎么来？ | 只展示业务需要的列；SQL 用表列名不写中文别名（早期样例风格，validate 报 `SQL_ALIAS_LEGACY` info），标题走 `CubeSetting` 多语言 CAPTION（运行器）/ H5 模板内联 label（APP） | `SEARCHSELECT` 输出列 + `CubeSetting`（COLNAME=结果集列名，列标题×语言） | ①② |
 | L1-3 | 有哪些查询参数？各是什么类型、必填吗？ | 常用筛选 1~4 个；必填 `ParaDefVal` 写 `?` | `ParaLabel/ParaType/ParaSearchCode/ParaDefVal 01~10`、`UseParameter` | ①⑥ |
 | L1-4 | 参数区在 APP/FB 上长什么样？（对照样例索引选形态） | 克隆最接近样例的 `H5PARA` 骨架 | `H5PARA` | ⑥ |

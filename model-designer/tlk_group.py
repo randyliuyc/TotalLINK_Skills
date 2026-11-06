@@ -3,8 +3,8 @@
 
 由 `scripts/tlk.py` 按插件契约发现并注册，成为 `tlk model <子命令>`：
 
-  dict     表字典查询（配置驱动：编号/连接/参数模板存 ~/.totallink/config.json，
-           缺省 SYSTEMCODE/30；模型不存在或列结构未知时降级提示，不猜）
+  dict     表字典查询（配置驱动：编号/连接/参数模板存 ~/.totallink/config.json；
+           模型代码与连接库无缺省，必须由用户提供，不自行试探）
   export   导出模型 XML 到文件（linkDMExport）
   import   导入模型 XML 落库（linkDMImport，服务端重算 MD5HASH）
   run      设计态运行（linkDMRun，不计配额、不校验 AccessFlag）
@@ -20,14 +20,18 @@ import sys
 GROUP = "model"
 HELP = "数据模型设计：字典 / 导出 / 导入 / 运行 / 静态校验"
 
-# 表字典缺省配置：模型编号与参数模板都可在项目配置 dict 键下覆盖
+# 表字典缺省配置：模型编号与连接**不给缺省值**——必须由用户提供（CLI 覆盖或项目配置 dict 键）。
+# 理由：字典模型与连接/库随环境而异（多连接多库并存），猜错只会得到 500 或空列，
+# 反复试探既慢又可能把「环境未开通」误判成「参数不对」。缺失时报 CONFIG，由调用方去问用户。
 DICT_DEFAULTS = {
-    "dmCode": "SYSTEMCODE",
-    "dmNum": 30,
-    "conn": "LINKDB",
-    "db": "LINKDB",
+    "dmCode": "",
+    "dmNum": 0,
+    "conn": "",
+    "db": "",
     "args": ["{conn}", "{db}", "{table}"],
 }
+# 必须由用户提供、不得兜底猜测的配置项
+DICT_REQUIRED = ("dmCode", "dmNum", "conn", "db")
 # 归一化列词汇表：schema 命中 COLNAME 才做归一化，否则原样输出并标注「列映射未知」
 _DICT_KNOWN_COLS = ("COLNAME", "COLDESC", "COLTYPE", "COLLEN", "SCALE",
                     "PK", "IDENT", "ALLOWNULL", "SEQ")
@@ -147,6 +151,21 @@ def cmd_dict(args):
                    "message": "--args 必须是字符串数组模板，如 '[\"{conn}\",\"{db}\",\"{table}\"]'"})
         cfg["args"] = tpl
 
+    # 必填项缺失：不猜测、不试探——交回调用方去问用户，用户给出后用 --save 落配置
+    missing = [k for k in DICT_REQUIRED
+               if cfg.get(k) in (None, "") or cfg.get(k) == 0]
+    if missing:
+        _emit({
+            "error": "CONFIG",
+            "message": "表字典配置不完整，缺：" + "、".join(missing),
+            "missing": missing,
+            "hint": "字典模型与连接随环境而异，不设缺省也不自行试探。"
+                    "请先向用户确认：①字典模型 dmCode/dmNum（如 SYSTEMCODE/30）；"
+                    "②连接代码 conn；③数据库名 db。"
+                    "拿到后用 --code/--num/--conn/--db --save 写入项目配置"
+                    "（~/.totallink/config.json 项目节 dict 键），后续查询直接复用该配置。",
+        })
+
     if args.save:
         err = _save_dict_cfg(project_key or (args.project or ""), {
             "dmCode": cfg["dmCode"], "dmNum": cfg["dmNum"],
@@ -164,9 +183,11 @@ def cmd_dict(args):
                          script_type=0, project=args.project,
                          timeout=args.timeout)
     if "error" in resp:
-        resp["hint"] = ("表字典模型不可用。处理路径：① python3 scripts/tlk.py tools search "
-                        "\"表结构\" 查找字典能力；② 由用户提供 dmCode/dmNum 后用 "
-                        "--code/--num 临时指定，或加 --save 写入项目配置；③ 请用户开放该功能。")
+        resp["hint"] = ("表字典模型不可用。处理路径：①不要自行试探其他编号或连接——"
+                        "请向用户确认字典模型 dmCode/dmNum、连接代码 conn、数据库名 db，"
+                        "用 --code/--num/--conn/--db --save 写入项目配置后重试；"
+                        "②若用户确认该环境本就没有字典能力，如实报告并建议联系管理员开通；"
+                        "③tools search \"表结构\" 仅作事实核对，不替代向用户确认。")
         _emit(resp)
 
     data = resp.get("data") or {}
@@ -190,8 +211,9 @@ def cmd_dict(args):
         if not cols:
             out["note"] = ("列清单为空：该表可能不在当前字典模型覆盖的连接/库上"
                            "（环境常多库并存，如 MES 表与 X3 表分属不同连接），"
-                           "或表名拼写不同。先确认表所在连接（问用户/查存量模型引用），"
-                           "再用 --conn/--db 重试；仍为空则改问用户列结构，不要猜。")
+                           "或表名拼写不同。先确认表所在连接——问用户该表属于哪个连接/库，"
+                           "用 --conn/--db --save 更新配置后重试；"
+                           "仍为空则改问用户列结构，不要猜。")
     else:
         out["normalized"] = False
         out["note"] = ("列映射未知（schema 与已知词汇表不匹配），以下为原始结构，"
@@ -305,12 +327,12 @@ def _add_common(p, timeout=True):
 
 def register(subparsers):
     p = subparsers.add_parser(
-        "dict", help="表字典查询（配置驱动，缺省 SYSTEMCODE/30）")
+        "dict", help="表字典查询（模型代码与连接须由用户提供，--save 写入项目配置）")
     p.add_argument("table", metavar="TABLE", help="表名，如 BPCUS")
-    p.add_argument("--code", help="字典模型 dmCode（缺省用项目配置，再缺省 SYSTEMCODE）")
-    p.add_argument("--num", type=int, help="字典模型 dmNum（缺省用项目配置，再缺省 30）")
-    p.add_argument("--conn", help="链接代码（缺省用项目配置，再缺省 LINKDB）")
-    p.add_argument("--db", help="数据库名（缺省用项目配置，再缺省 LINKDB）")
+    p.add_argument("--code", help="字典模型 dmCode（不设缺省，须来自用户确认或项目配置）")
+    p.add_argument("--num", type=int, help="字典模型 dmNum（不设缺省，须来自用户确认或项目配置）")
+    p.add_argument("--conn", help="链接代码（不设缺省，须来自用户确认或项目配置）")
+    p.add_argument("--db", help="数据库名（不设缺省，须来自用户确认或项目配置）")
     p.add_argument("--args", metavar="JSON",
                    help="参数模板（字符串数组，占位符 {table}/{conn}/{db}），"
                         "如 '[\"{conn}\",\"{db}\",\"{table}\"]'")

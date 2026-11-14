@@ -114,6 +114,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | FB 页面组怎么组织（.A/.B×.H/.L 族、五种 500 形态、菜单 JSON、动作模型） | `references/fb-page-families.md` |
 | FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `formbuilder-json-generator` skill（布局/控件/按钮/表达式规则；模板查询/落库走 AI 工具 `SYSINFOMATION/300`，契约见其「模板落库」节，按环境开放、缺工具时提示用户在服务端开放） |
 | APP 模型要写前端脚本（扫码/校验/刷新钩子） | `references/js-hooks.md` |
+| 第三方系统要 HTTP 对接 TotalLINK（登录/取数/提交/上传的接口契约） | `totallink-api` skill 的 `references/`（endpoints.md + auth-and-errors.md）。分工：建模侧归本 skill，对接侧归 totallink-api；dmCode/dmNum 是它调用的编号来源 |
 | APP H5 模板的控件 class、link- 属性、取值/提交链路等客户端约定 | `totallink-app-help` skill 的 `references/`（h5-guide / classes-ids / attributes / methods） |
 | 拿不准某字段影响哪个环境 | `references/environments.md`、`references/endpoints.md`、`references/runner-behavior.md`（环境标签） |
 | 任何生成之前 | 对应类型的最接近样例 + 已确认的任务书 |

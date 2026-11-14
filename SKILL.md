@@ -342,3 +342,12 @@ preprocess.py data.json --head 10            # 前 N 行预览
 - 已配置 TotalLINK 项目（参见 totallink-base Skill）
 - API 调用通过 `scripts/tlk.py` 执行
 ```
+
+---
+
+## 本仓库其他 Skill
+
+| Skill | 用途 | 与本 Skill（tlk.py 通道）的关系 |
+|-------|------|--------------------------------|
+| `model-designer` | 设计数据模型（SYSSEARCH）并落库验证 | 复用本 Skill 的 env/auth，命令经 `tlk_group.py` 注册为 `tlk model ...` |
+| `totallink-api` | 第三方系统 HTTP 对接契约（`linkUserLogin` / `linkDMDatasetResult` 等 8 端点，权威基准 LINKIIS） | **独立通道**：用户名密码登录 + `loginID` token，不走 `tlk.py`；开发对接代码时读其 `references/`，本文件不适用 |

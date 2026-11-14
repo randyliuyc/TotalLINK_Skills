@@ -1,5 +1,5 @@
 ---
-name: totallink-email-sender
+name: email-sender
 slug: totallink-email
 description:
   TotalLINK 邮件发送公共 Skill，提供通过 SMTP 发送邮件的通用能力。

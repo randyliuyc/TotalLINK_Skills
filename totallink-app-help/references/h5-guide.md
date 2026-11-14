@@ -1,7 +1,7 @@
 # 模型 H5 编写指南（动态渲染机制与编写规范）
 
 > **核心概念：模型界面不是静态页面**。contentlist/modelpara/attachmodelpara/newrecord/linkmemo 五个界面的 HTML 都由服务端返回片段、客户端 `innerHTML`/`append` 动态注入。回答"怎么写模型 H5"时以本文件 + classes-ids.md + attributes.md 为准。行号为编写时快照。
-> **2026-11-12 APP 壳源码核对**（`TotalLINKAPP/app`，未混淆源码）：§1 消费链路、§3 取值/提交链路经全量源码核实与本文一致；关键修正/补强见 `model-designer/references/js-hooks.md`（钩子签名/时机）与 `model-designer/references/runner-behavior.md` §7 APP 反向清单（壳不解析 modelFlags/--LINK*，防呆走 `ajax_promise_plus` 的 action 三分支 `linkshared.js:2978-2997`）。
+> **2026-11-12 APP 壳源码核对**（`TotalLINKAPP/app`，未混淆源码）：§1 消费链路、§3 取值/提交链路经全量源码核实与本文一致；关键修正/补强见 `model-designer` skill 的 `references/js-hooks.md`（钩子签名/时机）与 `references/runner-behavior.md` §7 APP 反向清单（壳不解析 modelFlags/--LINK*，防呆走 `ajax_promise_plus` 的 action 三分支 `linkshared.js:2978-2997`）。
 
 ## 1. 五个界面的动态渲染链路
 

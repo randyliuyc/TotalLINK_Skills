@@ -54,4 +54,4 @@
 
 ## 6. 方法/扩展点速查
 
-原外部文档（formbuilder/api/methods.html）不可作为依据（地址可能失效）。其中列出的方法/属性已**逐条与本项目源码核实**并归档到 `references/methods.md`（含行号、真实签名、未找到条目更正清单）。回答"某方法怎么用/是否存在"类问题时，读 methods.md，并以 search_content/read_file 复核当前源码为准。
+原外部文档（formbuilder/api/methods.html）不可作为依据（地址可能失效）。其中列出的方法/属性已**逐条与本项目源码核实**并归档到 `methods.md`（含行号、真实签名、未找到条目更正清单）。回答"某方法怎么用/是否存在"类问题时，读 methods.md，并以 search_content/read_file 复核当前源码为准。

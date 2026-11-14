@@ -400,6 +400,6 @@ python3 scripts/tlk.py call SYSINFOMATION 300 --script-type 2 --params-json '["M
 
 ## 与 model-designer 的分工
 
-> 本 skill 负责 formbuilder 表单骨架（LINKFORMMOD.MODJSON 内容）的设计与生成。模型侧（SYSSEARCH 模型族 XML：主模型 + 500 伴生模型的 formSetting/formData、导入与验证）由 `model-designer` skill 负责——其 FB 契约见 `model-designer/references/endpoints.md`，骨架设计知识来源即本 skill。
+> 本 skill 负责 formbuilder 表单骨架（LINKFORMMOD.MODJSON 内容）的设计与生成。模型侧（SYSSEARCH 模型族 XML：主模型 + 500 伴生模型的 formSetting/formData、导入与验证）由 `model-designer` skill 负责——其 FB 契约见 `model-designer` skill 的 `references/endpoints.md`，骨架设计知识来源即本 skill。
 >
 > 模板物理表 = **`LINKFORMMOD`**（列 MODCODE/MODDESC/MODJSON）。FB 设计器（`TotalLINKFB/src/views/table/index.vue`）经 **LINKFORM 系统模型固定编号** 存取同一张表（前端硬编码，2026-11-12 源码核实）：29=模板列表、30=模板详情/另存(scriptType 1)/更新(2)/删除(3)、40=模型按钮(读 h5para 的 formbtns)、10=列格式 FATJSON、50=模型字段数据。本 skill 的 SYSINFOMATION/300 落库与设计器读写同源——**用 300 建的模板，设计器里能直接看到**；formtemplate 引用（如 MOD220500008）即此表的 MODCODE。

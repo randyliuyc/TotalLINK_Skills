@@ -1,13 +1,13 @@
 ---
-name: TotalLINK-reimbursement-audit
+name: reimbursement-audit
 slug: totallink-reimbursement
 description:
   TotalLINK 报销单全流程审计 Skill。自动完成：查询报销单 → 下载附件识别发票 → 生成审计报告（Markdown）→ 生成 PDF → 发送邮件。
 metadata:
   dependencies:
     - totallink-base
-    - totallink-email-sender
-    - totallink-pdf-generator
+    - email-sender
+    - pdf-generator
   workbuddy:
     env:
       TOTALLINK_AUTH_TOKEN: ""
@@ -34,10 +34,10 @@ metadata:
 
 ## 前置条件
 
-- **TotalLINK 项目选择**：参照 [基础 Skill](../SKILL.md) 完成项目选择和认证配置
-- **API 调用**：通过 `../scripts/tlk.py call` 调用
-- 邮件 SMTP 配置：参照 [邮件发送 Skill](../shared/email-sender/SKILL.md)。首次使用向用户索取发件人邮箱与 SMTP 授权码，保存到 `~/.totallink/smtp.json`（权限 600）；**收件人每次执行时向用户确认**
-- PDF 生成工具链：由 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 承担，渲染统一走 Chrome headless（本机 WeasyPrint 缺 gobject 不可用，已废弃）
+- **TotalLINK 项目选择**：参照 `totallink-base` skill 完成项目选择和认证配置
+- **API 调用**：通过 `totallink-base` skill 的 `scripts/tlk.py call` 调用
+- 邮件 SMTP 配置：参照 `email-sender` skill。首次使用向用户索取发件人邮箱与 SMTP 授权码，保存到 `~/.totallink/smtp.json`（权限 600）；**收件人每次执行时向用户确认**
+- PDF 生成工具链：由 `pdf-generator` skill 承担，渲染统一走 Chrome headless（本机 WeasyPrint 缺 gobject 不可用，已废弃）
 - Python 环境：需准备装有 `pdfplumber`、`requests` 的 Python，路径导出为 `TOTALLINK_PYTHON`
 
 > 为简化下文命令，先执行：
@@ -315,24 +315,24 @@ with pdfplumber.open('path.pdf') as pdf:
 
 ### Step 6：生成 PDF + 发送邮件
 
-参照 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 和 [邮件发送 Skill](../shared/email-sender/SKILL.md)。
+参照 `pdf-generator` skill 和 `email-sender` skill。
 
 **生成 PDF（Chrome headless）：**
 
-> 排版与渲染统一由 [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) 承担。WeasyPrint 路径已废弃（本机缺 `libgobject-2.0-0`，`import weasyprint` 直接报错），不要尝试。Chrome 不支持 @page 页码计数器，PDF 无页码（已接受此限制；需要页码时在 Chrome 打印对话框勾选「页眉和页脚」）。
+> 排版与渲染统一由 `pdf-generator` skill 承担。WeasyPrint 路径已废弃（本机缺 `libgobject-2.0-0`，`import weasyprint` 直接报错），不要尝试。Chrome 不支持 @page 页码计数器，PDF 无页码（已接受此限制；需要页码时在 Chrome 打印对话框勾选「页眉和页脚」）。
 
 ```bash
 cd /path/to/outputs/exp_audit_<yyyymm>
 # <SKILL_DIR> = TotalLINK skill 安装目录，如 ~/.workbuddy/skills/TotalLINK
 
-# 1. 按 PDF 生成 Skill 的排版规范生成自包含 HTML（见其工作流第 4 步，
-#    排版依据 references/print-css.md 与 references/visual-design.md）
+# 1. 按 pdf-generator skill 的排版规范生成自包含 HTML（见其工作流第 4 步，
+#    排版依据该 skill 的 references/print-css.md 与 references/visual-design.md）
 
 # 2. 渲染 PDF（脚本自动探测 Chrome，不硬编码浏览器路径）
-"<SKILL_DIR>/shared/pdf-generator/scripts/render_pdf.sh" 审计报告.html 审计报告.pdf
+"<SKILL_DIR>/pdf-generator/scripts/render_pdf.sh" 审计报告.html 审计报告.pdf
 
 # 3. 校验页数与关键内容（NFKC 归一化已内置于脚本）
-"$TOTALLINK_PYTHON" "<SKILL_DIR>/shared/pdf-generator/scripts/verify_pdf.py" \
+"$TOTALLINK_PYTHON" "<SKILL_DIR>/pdf-generator/scripts/verify_pdf.py" \
   审计报告.pdf --expect "执行摘要" "结论" --max-pages 30
 ```
 
@@ -416,7 +416,7 @@ print(f"邮件已发送至 {to_addr}")
 ### scripts/
 - [dedup_check.py](scripts/dedup_check.py) — 跨单/跨月发票查重（输入 invoices_index.json，输出重复分组 JSON，退出码 2=有重复）
 
-### references/
-- [TotalLINK 基础 Skill](../SKILL.md) — 认证管理、API 格式
-- [邮件发送 Skill](../shared/email-sender/SKILL.md) — SMTP 发送规范
-- [PDF 生成 Skill](../shared/pdf-generator/SKILL.md) — Markdown → HTML → PDF 自动流程（Chrome headless）
+### 依赖的其他 skill
+- `totallink-base` — 认证管理、API 格式
+- `email-sender` — SMTP 发送规范
+- `pdf-generator` — Markdown → HTML → PDF 自动流程（Chrome headless）

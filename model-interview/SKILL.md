@@ -24,7 +24,7 @@ description: 围绕需求、计划或设计决策对用户进行持续追问式�
 
 ## 与 model-designer 的衔接
 
-模型设计需求的访谈按 `model-designer/references/discovery.md` 执行：阶段 0 判定能力组 → L1 数据面 → L2 交互面 → L3 验收面，产出「模型任务书」并经用户确认后才生成 XML（任务书门禁）。本纪律是那套问卷的**执行方式**，问卷内容以 discovery.md 为准。
+模型设计需求的访谈按 `model-designer` skill 的 `references/discovery.md` 执行：阶段 0 判定能力组 → L1 数据面 → L2 交互面 → L3 验收面，产出「模型任务书」并经用户确认后才生成 XML（任务书门禁）。本纪律是那套问卷的**执行方式**，问卷内容以 discovery.md 为准。
 
 ## 收敛标志
 

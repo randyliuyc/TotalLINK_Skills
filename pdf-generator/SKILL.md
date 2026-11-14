@@ -1,5 +1,5 @@
 ---
-name: totallink-pdf-generator
+name: pdf-generator
 slug: totallink-pdf
 description:
   TotalLINK 文档输出公共 Skill：将 Markdown 排版为自包含 HTML，并用 Chrome headless

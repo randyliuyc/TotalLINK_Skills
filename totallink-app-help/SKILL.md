@@ -1,6 +1,6 @@
 ---
 name: totallink-app-help
-description: TotalLINK App（HBuilder 5+ Runtime / HTML5+ / mui / jQuery）项目知识库。当用户询问本项目相关问题时使用：项目结构与页面、linkquick 属性全套用法（linkquick="1"~"14" 及各分支行为）、核心公共函数（DMContextAction/contextCall/linkAjax/防重复点击等）、服务端接口约定、页面间通信与状态管理、多语言、离线模式、以及本项目常见的"一次点击触发两次请求"等调试经验。遇到本项目代码问题（js/linkshared.js、js/contentlist.js、各 html 页面）应先读本 skill 的 references 再作答。
+description: TotalLINK App（HBuilder 5+ Runtime / HTML5+ / mui / jQuery）项目知识库。当用户询问本项目相关问题时使用：项目结构与页面、linkquick 属性全套用法（linkquick="1"~"16" 及各分支行为）、核心公共函数（DMContextAction/contextCall/linkAjax/防重复点击等）、服务端接口约定、页面间通信与状态管理、多语言、离线模式、以及本项目常见的"一次点击触发两次请求"等调试经验。遇到本项目代码问题（js/linkshared.js、js/contentlist.js、各 html 页面）应先读本 skill 的 references 再作答。
 ---
 
 # TotalLINK App 项目知识库
@@ -40,4 +40,4 @@ description: TotalLINK App（HBuilder 5+ Runtime / HTML5+ / mui / jQuery）项�
 
 ## 与 model-designer 的分工
 
-> 本 skill 是 APP 壳工程的知识库（壳开发、排障、平台机制）。`model-designer` skill 生成模型 H5 模板（H5List/H5Para/H5Edit 等）时，控件 class 用 `classes-ids.md`、自定义属性用 `attributes.md`、动态渲染与提交取值链路用 `h5-guide.md`（§3）、模型 JS 钩子用 `model-designer/references/js-hooks.md`。
+> 本 skill 是 APP 壳工程的知识库（壳开发、排障、平台机制）。`model-designer` skill 生成模型 H5 模板（H5List/H5Para/H5Edit 等）时，控件 class 用 `classes-ids.md`、自定义属性用 `attributes.md`、动态渲染与提交取值链路用 `h5-guide.md`（§3）、模型 JS 钩子用 `model-designer` skill 的 `references/js-hooks.md`。

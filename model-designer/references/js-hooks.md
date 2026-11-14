@@ -64,6 +64,6 @@
 ## 注意
 
 - 顶层语句即页面初始化脚本（如 `$("#linkok").hide()`），不只是函数定义区。
-- 服务端 js 片段的**唯一可靠执行通道是客户端 `load_js`**（`linkshared.js:2292-2306`：先 `$(".linkjavascript").remove()` 再新建 inline script append，插入即执行）；`load_js_ajax`/`append_js`（:2308-2335，newrecord/linkmemo 用）只是把文本 append 到**页面里已静态解析的空 `<script id="linkjavascript">` 节点**——不触发执行，只有其 func 回调（linkInitData）会跑，模型 JS 初始化在这些页面应走 `reloadAfter()` 钩子。`reloadAfter()` 壳默认空实现（:4306），`linkInitData` 末尾统一调用（:4382）。提交参数按 DOM 顺序由 `reParaList`/`jq_para` 收集成 `{0}{1}…`——客户端机制详见 `totallink-app-help/references/h5-guide.md`（§3.3/§3.4）。
+- 服务端 js 片段的**唯一可靠执行通道是客户端 `load_js`**（`linkshared.js:2292-2306`：先 `$(".linkjavascript").remove()` 再新建 inline script append，插入即执行）；`load_js_ajax`/`append_js`（:2308-2335，newrecord/linkmemo 用）只是把文本 append 到**页面里已静态解析的空 `<script id="linkjavascript">` 节点**——不触发执行，只有其 func 回调（linkInitData）会跑，模型 JS 初始化在这些页面应走 `reloadAfter()` 钩子。`reloadAfter()` 壳默认空实现（:4306），`linkInitData` 末尾统一调用（:4382）。提交参数按 DOM 顺序由 `reParaList`/`jq_para` 收集成 `{0}{1}…`——客户端机制详见 `totallink-app-help` skill 的 `references/h5-guide.md`（§3.3/§3.4）。
 - `JavaScript` 字段属 `BRACE_FIELDS`：脚本内字面花括号需 `{{ }}` 转义（经 string.Format 处理）。
 - 任务书按钩子选型结果列 JS 清单；验收时人工断言含扫码/校验/刷新行为。

@@ -132,12 +132,12 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | 数据检查/防呆（LINKPREVENT/LINKCONFIRM） | `references/link-flags.md`、`references/samples/ERAQA101010X#1000-删除检查.xml` |
 | 附加模型/数据挖掘联动 | `references/samples/README.md`、`references/samples/ERAQA101010X#21-Release.xml` |
 | APP/FB 模板克隆来源 | `references/samples-index.md` |
-| APP 按钮怎么写（新建/动作/删除，`linkquick`/`btnid`/`para`/`script`、APP 与 Client 传参模式区别） | `references/app-buttons.md`（属性级细节见 `../totallink-app-help/references/linkquick.md`、`attributes.md`） |
+| APP 按钮怎么写（新建/动作/删除，`linkquick`/`btnid`/`para`/`script`、APP 与 Client 传参模式区别） | `references/app-buttons.md`（属性级细节见 `totallink-app-help` skill 的 `references/linkquick.md`、`attributes.md`） |
 | 开窗选择窗（linkdatasearch 数据源模型，列表空白的排查） | `references/datasearch-windows.md` |
 | FB 页面组怎么组织（.A/.B×.H/.L 族、五种 500 形态、菜单 JSON、动作模型） | `references/fb-page-families.md` |
-| FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `../formbuilder-json-generator/`（布局/控件/按钮/表达式规则；模板查询/落库走 AI 工具 `SYSINFOMATION/300`，契约见其「模板落库」节，按环境开放、缺工具时提示用户在服务端开放） |
+| FB 需**新建/修改** formbuilder 表单骨架（formtemplate 指向的 MODJSON） | `formbuilder-json-generator` skill（布局/控件/按钮/表达式规则；模板查询/落库走 AI 工具 `SYSINFOMATION/300`，契约见其「模板落库」节，按环境开放、缺工具时提示用户在服务端开放） |
 | APP 模型要写前端脚本（扫码/校验/刷新钩子） | `references/js-hooks.md` |
-| APP H5 模板的控件 class、link- 属性、取值/提交链路等客户端约定 | `../totallink-app-help/references/`（h5-guide / classes-ids / attributes / methods） |
+| APP H5 模板的控件 class、link- 属性、取值/提交链路等客户端约定 | `totallink-app-help` skill 的 `references/`（h5-guide / classes-ids / attributes / methods） |
 | 拿不准某字段影响哪个环境 | `references/environments.md`、`references/endpoints.md`、`references/runner-behavior.md`（环境标签） |
 | 任何生成之前 | 对应类型的最接近样例 + 已确认的任务书 |
 

@@ -63,17 +63,23 @@ def load_all_config():
 
 
 def save_config(cfg):
-    """保存配置到文件。"""
+    """保存配置到文件，权限固定 600。
+
+    配置里是 auth_token（等价账号口令），不能让同机其他账号读到；
+    创建时用 0o600，已存在的文件 os.open 不改权限，故再显式 chmod 一次。
+    """
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+    fd = os.open(CONFIG_PATH, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
+    os.chmod(CONFIG_PATH, 0o600)
 
 
 def get_project_config(project_name=None):
     """
     获取指定项目的认证配置。
 
-    优先级：project_name 参数 > active 字段 > 第一个项目
+    优先级：project_name 参数（未命中即失败）> active 字段 > 第一个项目
     返回: (project_key, project_cfg) 或 (None, None)
     """
     cfg = load_all_config()
@@ -85,8 +91,10 @@ def get_project_config(project_name=None):
     if not projects:
         return None, None
 
-    if project_name and project_name in projects:
-        return project_name, projects[project_name]
+    if project_name:
+        # 显式指定了项目名：命中才用，未命中返回 (名称, None) 交调用方报错。
+        # 不回退到 active/第一个项目——多项目环境下回退会把操作打到错误的环境。
+        return project_name, projects.get(project_name)
 
     active = cfg.get("active")
     if active and active in projects:
@@ -144,14 +152,23 @@ def add_project(project_name, auth_token, base_url=DEFAULT_BASE_URL):
 # ---------------------------------------------------------------- 请求
 
 def _resolve_project(project_name=None):
-    """解析项目配置，返回 (project_key, project_cfg, error)。"""
+    """解析项目配置，返回 (project_key, project_cfg, error)。
+
+    显式指定项目名却不存在时报 CONFIG，绝不回退到别的项目：
+    --project 写错时把请求打到另一套环境，比直接失败更危险。
+    """
     project_key, proj_cfg = get_project_config(project_name)
-    if not proj_cfg:
+    if proj_cfg:
+        return project_key, proj_cfg, None
+    if project_name and load_all_config():
         return project_key, None, {
             "error": "CONFIG",
-            "message": f"配置文件不存在：{CONFIG_PATH}，请先运行首次认证配置",
+            "message": f"项目 '{project_name}' 不存在，用 env list 查看已有项目名",
         }
-    return project_key, proj_cfg, None
+    return project_key, None, {
+        "error": "CONFIG",
+        "message": f"配置文件不存在：{CONFIG_PATH}，请先运行首次认证配置",
+    }
 
 
 def parse_params_json(raw):

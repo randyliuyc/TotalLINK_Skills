@@ -58,12 +58,24 @@ def cmd_env_list(args):
     _print_json(tlk_core.list_projects())
 
 
+def _resolve_token(args):
+    """取令牌：--token > --token-stdin > TOTALLINK_TOKEN 环境变量。"""
+    if args.token:
+        return args.token.strip()
+    if args.token_stdin:
+        return sys.stdin.readline().strip()
+    return os.environ.get("TOTALLINK_TOKEN", "").strip()
+
+
 def cmd_env_add(args):
-    if not args.token:
-        _emit({"error": "PARAM", "message": "env add 需要配合 --token"})
+    token = _resolve_token(args)
+    if not token:
+        _emit({"error": "PARAM",
+               "message": "env add 需要令牌：--token \"tlk_...\"、--token-stdin，"
+                          "或 TOTALLINK_TOKEN 环境变量"})
     _emit(tlk_core.add_project(
         project_name=args.name,
-        auth_token=args.token,
+        auth_token=token,
         base_url=args.url or tlk_core.DEFAULT_BASE_URL,
     ))
 
@@ -192,7 +204,10 @@ def build_parser():
 
     p = env_sub.add_parser("add", help="新增或更新项目配置")
     p.add_argument("name", metavar="<项目名>")
-    p.add_argument("--token", required=True, metavar="TOKEN", help="auth_token（tlk_ 开头）")
+    p.add_argument("--token", metavar="TOKEN",
+                   help="auth_token（tlk_ 开头）；也可用 --token-stdin 或 TOTALLINK_TOKEN")
+    p.add_argument("--token-stdin", action="store_true",
+                   help="从标准输入读令牌（避免令牌进 shell 历史与进程列表）")
     p.add_argument("--url", metavar="URL", help=f"base_url（默认 {tlk_core.DEFAULT_BASE_URL}）")
     p.set_defaults(handler=cmd_env_add)
 

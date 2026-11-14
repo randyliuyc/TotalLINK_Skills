@@ -92,8 +92,8 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 |------|------|------|
 | `STRUCTURE` 类（`UNKNOWN_ELEMENT` / `DUPLICATE_ELEMENT` / `BAD_INT` / `BAD_BOOL` / `ROOT_TAG` / `MISSING_FIELD`） | XML 结构或字段名不对，导入会失败或字段被丢弃 | 对照 `fields.md` 改元素名/类型 |
 | `SYSMODELFLAG` | 系统级标志为 true | 改 `false` |
-| `PARATYPE_ILLEGAL` | `ParaType` 不在 `EParamType` 词汇表（`DATEC8/DATEC10/DATEINT8/DATEVAL/DATETIME/DEC/STR/SPEECHSTR/PICKERSTR/DROPDOWN/DROPRELOAD/MOREFUNC`，见 `fields.md`） | 改类型 |
-| `PARAM_INDEX_UNDEFINED` | 脚本引用了未定义的参数位（主模型会原样留在脚本里；附加模型可能由调用方传参） | 主模型补 `ParaLabel` 或改占位符；附加模型确认调用链 |
+| `PARATYPE_ILLEGAL`（info） | `ParaType` 不在 `EParamType` 词汇表（`DATEC8/DATEC10/DATEINT8/DATEVAL/DATETIME/DEC/STR/SPEECHSTR/PICKERSTR/DROPDOWN/DROPRELOAD/MOREFUNC`，见 `fields.md`）。语料另有 `TEXTAREA`/`字符型` 等写法，引擎不因此拒绝导入 | 词表可能不全，确认运行时是否生效 |
+| `PARAM_INDEX_UNDEFINED` | 脚本引用了未定义的参数位（主模型会原样留在脚本里；附加模型可能由调用方传参）。`{10}` 不在此列——它是系统传入的文本框内容 | 主模型补 `ParaLabel` 或改占位符；附加模型确认调用链 |
 | `ROW_TOKEN_IN_QUERY` | 主模型 `SQLScript` 里用了行级 `#列名#` | 挪到编辑/新增/删除/动作脚本 |
 | `OLD_SEPARATOR` / `SEPARATOR_MIXED` | 旧 `~` 或混用分隔符 | 改用 `~<!>~` |
 | `FLAG_*` | `--LINKxxx` 标记未知、写错字段或格式不对 | 对照 `link-flags.md` |
@@ -144,11 +144,11 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 ## 速查
 
 - 根元素 `<SysDataModelXML>`，字段全集与取值规范见 `references/fields.md`。
-- 两套参数占位符（勿混）：模型参数 `{N}`（0 基，`{0}` = 参数 01）；网格行级值 `#列名#`（数字列写 `0#列名#` 防 NULL/空串）。详见 `references/placeholders.md`。
+- 两套参数占位符（勿混）：模型参数 `{N}`（0 基，`{0}` = 参数 01，`{0}`~`{9}` 对应用户参数 01~10；**`{10}` 不是第 11 个参数**，系统会传入「调用的文本框本身的内容」）；网格行级值 `#列名#`（数字列写 `0#列名#` 防 NULL/空串）。详见 `references/placeholders.md`。
 - **APP 按钮删除传参走 `{0}`**（`para="#LINKROWID#" script="3"` 把行 ID 当模型参数传入）；`#LINKROWID#` 行级令牌只在 Client/运行器行编辑上下文生效——见 `references/app-buttons.md` §0。
 - **SQL 列名风格（2026-11-04 定）**：新模型 SELECT 不为显示目的写中文别名（早期样例风格），直接用表列名；标题走 CubeSetting CAPTION（运行器）/ H5 模板内联 label（APP）；聚合列才用英文别名。validate 对中文别名报 `SQL_ALIAS_LEGACY`（info）。**例外**：无界面服务型模型的消息列可用中文别名（TAMPERAPP#1521 `提示`）。
 - 开窗选择窗契约：列表/开窗数据源模型 CubeSetting `COLNAME` 必须等于结果集列名，`text-value` 引用实际列名，对不上即 APP 列表「有行但空白」；**APP PDA 开窗走按钮 `automatch` 不配业务列 CubeSetting**——适用范围与排查见 `references/datasearch-windows.md` §2/2a/2b。
-- 参数四件套：`ParaLabel01~10` / `ParaType01~10` / `ParaSearchCode01~10` / `ParaDefVal01~10`，最多 10 个，存在 SYSSEARCH 表；`ParaDefVal` 写 `?` 表示必填（同时决定附加模型是否需人工补参）。
+- 参数四件套：`ParaLabel01~10` / `ParaType01~10` / `ParaSearchCode01~10` / `ParaDefVal01~10`，最多 10 个，存在 SYSSEARCH 表；`ParaDefVal` 写 `?` 表示必填（同时决定附加模型是否需人工补参）。脚本里的 `{10}` 不在这四件套内，由系统传入文本框内容，不需要也不应该定义 `ParaLabel11`。
 - 恒填字段：`ImageFile = #LINKRES#数字`（数字取 0~99）；`MD5HASH` 留空。
 - 脚本注释标记（`--LINKEDITMODE`、`--LINKREQUIRED:` 等）见 `references/link-flags.md`。
 - `ModelNum` 编号段语义与 `ModelCode` 命名规范见 `references/samples/README.md`。

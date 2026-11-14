@@ -59,6 +59,10 @@ BRACE_FIELDS = ("SQLScript", "SQLUpdateScript", "SQLNew", "SQLRemove", "SQLClear
 PARA_TYPES = {"DATEC8", "DATEC10", "DATEINT8", "DATEVAL", "DATETIME", "DEC",
               "STR", "SPEECHSTR", "PICKERSTR", "DROPDOWN", "DROPRELOAD", "MOREFUNC"}
 
+# {N} 是 0 基：{0}~{9} 对应用户参数 01~10；
+# {10} 不是第 11 个用户参数，系统会传入「调用的文本框本身的内容」，属合法写法。
+SYSTEM_BOX_PARAM_INDEX = 10
+
 CUBE_ATTRS = ("DMCODE", "DMNUM", "COLNAME", "CAPTION", "COLTYPE",
               "COLFORMAT", "COLAGGREGATE", "DISPORDER", "FORMULA")
 CUBE_INT = {"DMNUM", "DISPORDER"}
@@ -316,8 +320,11 @@ def check_params(root, slots, d):
         if slot["label"]:
             last = i
         if slot["type"] and slot["type"] not in PARA_TYPES:
-            d.error("PARATYPE_ILLEGAL", f"ParaType{i:02d}",
-                    f"ParaType 只能是 {'/'.join(sorted(PARA_TYPES))}，实际 {slot['type']!r}")
+            # 词表取自源码枚举，语料里另有 TEXTAREA / 字符型 等写法；
+            # 引擎不因取值在词表外而拒绝导入，故只作提示。
+            d.info("PARATYPE_ILLEGAL", f"ParaType{i:02d}",
+                   f"ParaType 不在已知词表（{'/'.join(sorted(PARA_TYPES))}），"
+                   f"实际 {slot['type']!r}；词表可能不全，确认运行时是否生效")
         if slot["type"] in ("DROPDOWN", "DROPRELOAD") and not slot["search"]:
             d.warning("PARA_DROPDOWN_SOURCE", f"ParaType{i:02d}",
                       f"{slot['type']} 需要 ParaSearchCode{i:02d} 指定下拉来源模型代码")
@@ -354,9 +361,12 @@ def check_placeholders(root, slots, last, is_main, d):
         for match in PARAM_INDEX_RE.finditer(text):
             idx = int(match.group(1))
             used.add(idx)
-            if idx >= 10:
+            if idx == SYSTEM_BOX_PARAM_INDEX:
+                continue  # {10} 由系统传入（调用方文本框内容），不是用户参数位
+            if idx > SYSTEM_BOX_PARAM_INDEX:
                 d.error("PARAM_INDEX_UNDEFINED", field,
-                        f"{{{idx}}} 超出参数上限（最大 {{9}}）")
+                        f"{{{idx}}} 超出参数上限（用户参数 {{0}}~{{{SYSTEM_BOX_PARAM_INDEX - 1}}}，"
+                        f"{{{SYSTEM_BOX_PARAM_INDEX}}} 为系统传入的文本框内容）")
             elif idx not in defined:
                 d.warning("PARAM_INDEX_UNDEFINED", field,
                           f"{{{idx}}} 没有对应参数（ParaLabel{idx + 1:02d} 为空）："
@@ -524,8 +534,10 @@ def check_cube(root, d, columns):
             dm_num = field_text(cube, "DMNUM")
 
             if not col:
-                d.error("CUBE_COLNAME", "CubeSetting",
-                        "DMCubeSetting 缺 COLNAME，该条设置无效")
+                # 空 COLNAME 的条目确实无效，但语料里存在这种写法（模型标题行 /
+                # 设计器残留），且同列另有正常语言行时不影响标题，故只提示不阻断。
+                d.warning("CUBE_COLNAME", "CubeSetting",
+                          "DMCubeSetting 缺 COLNAME，该条设置无效（若是模型标题行可忽略）")
                 continue
             if not coltype.startswith("LANGUAGE-"):
                 d.warning("CUBE_COLTYPE", f"CubeSetting/{col}",

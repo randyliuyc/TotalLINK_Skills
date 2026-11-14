@@ -1,6 +1,6 @@
 # TotalLINK Skills
 
-对接 [TotalLINK](https://totalink.io) 数据分析平台的 AI Skill 集合。
+对接 [TotalLINK](http://total-link.cn) 数据分析及功能开发平台的 AI Skill 集合。
 
 **一个文件，多平台通用**：根 `SKILL.md` 同时适配 WorkBuddy（AskUserQuestion 弹窗）和其他 AI Agent（文字交互）。脚本层纯 Python，跨平台可运行。
 

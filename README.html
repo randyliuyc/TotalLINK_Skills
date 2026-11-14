@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TotalLINK Skills</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style>
+  #title-block-header{display:none}
+  body{max-width:860px;margin:2rem auto;padding:0 1.5rem;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65;color:#1f2328}
+  h1,h2{border-bottom:1px solid #d8dee4;padding-bottom:.3em}
+  h2{margin-top:2em}
+  table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.92em}
+  th,td{border:1px solid #d8dee4;padding:.45em .7em;text-align:left;vertical-align:top}
+  th{background:#f6f8fa}
+  tr:nth-child(even) td{background:#fafbfc}
+  code{background:#f0f1f2;padding:.15em .35em;border-radius:4px;font-size:.9em}
+  pre{background:#f6f8fa;padding:1em;border-radius:8px;overflow-x:auto}
+  pre code{background:none;padding:0}
+  blockquote{border-left:4px solid #d0d7de;margin:1em 0;padding:.2em 1em;color:#57606a}
+  a{color:#0969da;text-decoration:none}
+  a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TotalLINK Skills</h1>
+</header>
+<h1 id="totallink-skills">TotalLINK Skills</h1>
+<p>对接 <a href="http://total-link.cn">TotalLINK</a>
+数据分析及功能开发平台的 AI Skill 集合。</p>
+<p><strong>一个文件，多平台通用</strong>：根 <code>SKILL.md</code>
+同时适配 WorkBuddy（AskUserQuestion 弹窗）和其他 AI
+Agent（文字交互）。脚本层纯 Python，跨平台可运行。</p>
+<h2 id="安装">安装</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://gitee.com/randyliuyc/TotalLINK_Skill.git <span class="op">&lt;</span>目标目录<span class="op">&gt;</span></span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>安装路径</th>
+<th>加载文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WorkBuddy</td>
+<td><code>~/.workbuddy/skills/TotalLINK/</code></td>
+<td>根 <code>SKILL.md</code></td>
+</tr>
+<tr>
+<td>其他 Agent</td>
+<td>任意目录</td>
+<td>根 <code>SKILL.md</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>整仓安装</strong>：仓库根目录即 base
+skill（<code>totallink-base</code>），场景 skill 放在同级子目录。目录名
+<code>TotalLINK</code> 是安装目录名，不要求与 skill <code>name</code>
+一致；各子目录名与各自的 <code>name</code> 一致。 跨 skill 的引用按
+skill 名描述（如「见 <code>model-designer</code> skill 的
+<code>references/endpoints.md</code>」），可执行脚本路径按仓库布局给出（如
+<code>&lt;SKILL_DIR&gt;/pdf-generator/scripts/render_pdf.sh</code>）。</p>
+</blockquote>
+<h2 id="技能列表">技能列表</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>目录</th>
+<th>用途</th>
+<th>适用范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>totallink-base</td>
+<td>根目录</td>
+<td>认证、工具发现、API 调用、数据预处理</td>
+<td>通用</td>
+</tr>
+<tr>
+<td>ai-init</td>
+<td><code>ai-init/</code></td>
+<td>AI 环境初始化：新环境导入 LINKAIINIT 模型组并执行
+SYSINFOMATION230X/501（建 LINKAIAVT/LINKAIBAL 表 + 汇总行基线）</td>
+<td>通用</td>
+</tr>
+<tr>
+<td>model-designer</td>
+<td><code>model-designer/</code></td>
+<td>数据模型设计：需求问卷与任务书门禁 → 生成 XML → 静态诊断 → 导入 →
+设计态运行 → 两层验收（<code>tlk model</code> 命令组，含
+<code>dict</code> 表字典）</td>
+<td>通用（角色须 SystemAdmin/SystemExpert）</td>
+</tr>
+<tr>
+<td>model-interview</td>
+<td><code>model-interview/</code></td>
+<td>需求访谈纪律（grilling）：一次一题、附推荐、事实自查决策归用户、共识前不动手</td>
+<td>通用</td>
+</tr>
+<tr>
+<td>formbuilder-json-generator</td>
+<td><code>formbuilder-json-generator/</code></td>
+<td>Formbuilder 表单 JSON 生成（MODJSON
+骨架：布局/控件/按钮/表达式规则）——model-designer 的 FB
+<code>formtemplate</code> 骨架设计知识来源</td>
+<td>通用</td>
+</tr>
+<tr>
+<td>totallink-app-help</td>
+<td><code>totallink-app-help/</code></td>
+<td>TotalLINK App 壳项目知识库（linkquick / 公共函数 / 接口 / 模型 H5
+编写指南 / 属性与 class 约定）——model-designer 生成 APP H5
+模板时的客户端约定权威</td>
+<td>TotalLINK App 项目</td>
+</tr>
+<tr>
+<td>totallink-api</td>
+<td><code>totallink-api/</code></td>
+<td>第三方系统 HTTP 对接契约：<code>linkUserLogin</code> /
+<code>linkDMDatasetResult</code> 等 8
+个端点的权威文档（登录、查询、提交、上传；权威基准
+LINKIIS）——开发对接代码时给 Agent 读的参照</td>
+<td>第三方集成开发</td>
+</tr>
+<tr>
+<td>reimbursement-audit</td>
+<td><code>reimbursement-audit/</code></td>
+<td>报销单全流程审计</td>
+<td>TotalLINK Development</td>
+</tr>
+<tr>
+<td>email-sender</td>
+<td><code>email-sender/</code></td>
+<td>SMTP 邮件发送（SSL 465）</td>
+<td>通用</td>
+</tr>
+<tr>
+<td>pdf-generator</td>
+<td><code>pdf-generator/</code></td>
+<td>Markdown → 精美 HTML → A4 PDF（自动，Chrome headless 渲染）</td>
+<td>通用</td>
+</tr>
+</tbody>
+</table>
+<h2 id="技能关系">技能关系</h2>
+<p>所有 skill 建立在 <strong>totallink-base</strong>
+之上（环境配置、令牌、统一调用入口
+<code>scripts/tlk.py</code>），按用途分四层：</p>
+<svg viewBox="0 0 960 400" role="img" aria-label="TotalLINK skill 关系图" style="max-width:960px;width:100%;height:auto;font-family:inherit">
+<rect x="200" y="14" width="560" height="58" rx="8" fill="#f6f8fa" stroke="#0969da" stroke-width="1.5"/>
+<text x="480" y="38" text-anchor="middle" font-size="14" font-weight="600" fill="#1f2328">totallink-base（根目录）</text>
+<text x="480" y="56" text-anchor="middle" font-size="11.5" fill="#57606a">env / auth / call / tools · scripts/tlk.py</text>
+<line x1="480" y1="72" x2="480" y2="100" stroke="#d0d7de" stroke-width="2"/>
+<line x1="85" y1="100" x2="875" y2="100" stroke="#d0d7de" stroke-width="2"/>
+<line x1="85" y1="100" x2="85" y2="118" stroke="#d0d7de" stroke-width="2"/>
+<line x1="282" y1="100" x2="282" y2="118" stroke="#d0d7de" stroke-width="2"/>
+<line x1="480" y1="100" x2="480" y2="118" stroke="#d0d7de" stroke-width="2"/>
+<line x1="678" y1="100" x2="678" y2="118" stroke="#d0d7de" stroke-width="2"/>
+<line x1="875" y1="100" x2="875" y2="118" stroke="#d0d7de" stroke-width="2"/>
+<g>
+<rect x="20" y="118" width="130" height="28" rx="14" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="85" y="137" text-anchor="middle" font-size="12.5" font-weight="600" fill="#57606a">环境准备</text>
+<rect x="217" y="118" width="130" height="28" rx="14" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="282" y="137" text-anchor="middle" font-size="12.5" font-weight="600" fill="#57606a">模型开发</text>
+<rect x="415" y="118" width="130" height="28" rx="14" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="480" y="137" text-anchor="middle" font-size="12.5" font-weight="600" fill="#57606a">场景应用</text>
+<rect x="613" y="118" width="130" height="28" rx="14" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="678" y="137" text-anchor="middle" font-size="12.5" font-weight="600" fill="#57606a">外部集成</text>
+<rect x="810" y="118" width="130" height="28" rx="14" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="875" y="137" text-anchor="middle" font-size="12.5" font-weight="600" fill="#57606a">通用工具</text>
+</g>
+<g>
+<rect x="0" y="162" width="170" height="44" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="85" y="188" text-anchor="middle" font-size="13" fill="#1f2328">ai-init</text>
+<rect x="197" y="162" width="170" height="44" rx="8" fill="#fff" stroke="#0969da" stroke-width="1.8"/>
+<text x="282" y="183" text-anchor="middle" font-size="13" font-weight="600" fill="#0969da">model-designer</text>
+<text x="282" y="199" text-anchor="middle" font-size="10.5" fill="#57606a">（主入口）</text>
+<rect x="197" y="218" width="170" height="44" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="282" y="244" text-anchor="middle" font-size="13" fill="#1f2328">model-interview</text>
+<rect x="197" y="274" width="170" height="52" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="282" y="296" text-anchor="middle" font-size="11.5" fill="#1f2328">formbuilder-json-</text>
+<text x="282" y="312" text-anchor="middle" font-size="11.5" fill="#1f2328">generator</text>
+<rect x="197" y="338" width="170" height="44" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="282" y="364" text-anchor="middle" font-size="13" fill="#1f2328">totallink-app-help</text>
+<rect x="395" y="162" width="170" height="44" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="480" y="188" text-anchor="middle" font-size="12" fill="#1f2328">reimbursement-audit</text>
+<text x="480" y="225" text-anchor="middle" font-size="10.5" fill="#57606a">（PDF 渲染依赖 pdf-generator）</text>
+<rect x="593" y="162" width="170" height="48" rx="8" fill="#fff" stroke="#cf222e" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="678" y="183" text-anchor="middle" font-size="13" font-weight="600" fill="#1f2328">totallink-api</text>
+<text x="678" y="200" text-anchor="middle" font-size="10.5" fill="#57606a">（不走 tlk.py，独立通道）</text>
+<rect x="790" y="162" width="170" height="44" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="875" y="188" text-anchor="middle" font-size="13" fill="#1f2328">email-sender</text>
+<rect x="790" y="218" width="170" height="44" rx="8" fill="#fff" stroke="#d0d7de"/>
+<text x="875" y="244" text-anchor="middle" font-size="13" fill="#1f2328">pdf-generator</text>
+</g>
+</svg>
+<ul>
+<li><strong>环境准备</strong>：<code>ai-init</code>
+只在新环境第一次使用时跑一次（导入初始化模型组、建额度表）。</li>
+<li><strong>模型开发族</strong>：<code>model-designer</code>
+是主入口，其余三个是它按需引用的支撑——<code>model-interview</code>
+提供访谈纪律、<code>formbuilder-json-generator</code> 提供 FB
+表单骨架知识、<code>totallink-app-help</code> 提供 APP
+壳客户端约定。</li>
+<li><strong>外部集成</strong>：<code>totallink-api</code>
+是<strong>另一套独立通道</strong>——用户名密码登录拿 <code>loginID</code>
+token 直调服务端 HTTP 端点，不使用 <code>tlk.py</code> 和
+<code>tlk_</code> 令牌。给第三方系统写对接代码时才用。</li>
+<li><strong>通用工具</strong>：<code>email-sender</code> /
+<code>pdf-generator</code> 与 TotalLINK
+平台无耦合；<code>reimbursement-audit</code> 的 PDF 渲染依赖
+<code>pdf-generator/scripts/</code>。</li>
+</ul>
+<h3 id="我该用哪个-skill">我该用哪个 skill？</h3>
+<table>
+<thead>
+<tr>
+<th>我想……</th>
+<th>用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一次在新环境用 AI / 额度激活</td>
+<td><code>ai-init</code>（先配好 totallink-base 令牌）</td>
+</tr>
+<tr>
+<td>把业务需求设计成数据模型、生成/导入模型 XML</td>
+<td><code>model-designer</code></td>
+</tr>
+<tr>
+<td>设计 FB 网页表单的骨架 JSON</td>
+<td><code>model-designer</code> +
+<code>formbuilder-json-generator</code></td>
+</tr>
+<tr>
+<td>给 TotalLINK App 写 H5 模板 / 前端脚本</td>
+<td><code>model-designer</code> + <code>totallink-app-help</code></td>
+</tr>
+<tr>
+<td>让第三方系统（ERP 等）调 TotalLINK 的数据能力</td>
+<td><code>totallink-api</code></td>
+</tr>
+<tr>
+<td>审计报销单</td>
+<td><code>reimbursement-audit</code></td>
+</tr>
+<tr>
+<td>发邮件 / 生成 PDF</td>
+<td><code>email-sender</code> / <code>pdf-generator</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="目录结构">目录结构</h2>
+<pre><code>TotalLINK/                        # 仓库根 = totallink-base（安装目录名）
+├── SKILL.md                      # totallink-base
+├── README.md
+├── scripts/                      # base 自带的 Python 脚本
+│   ├── tlk.py                    #   CLI 单入口（env / auth / call / tools + 插件发现）
+│   ├── tlk_core.py               #   配置、请求、错误映射、设计态端点
+│   ├── parse_tools.py            #   工具列表解析
+│   └── preprocess.py             #   大数据自动摘要
+├── ai-init/                      # AI 环境初始化 Skill
+│   ├── SKILL.md
+│   └── models/                   #   LINKAIINIT 模型组 6 个 XML（含 SYSINFOMATION230X#501 初始化动作）
+├── model-designer/               # 数据模型设计 Skill
+│   ├── SKILL.md
+│   ├── tlk_group.py              #   注册 model 命令组（dict / export / import / run / validate）
+│   ├── scripts/
+│   │   └── validate_model.py     #   纯 XML 静态诊断（含 --env 模型族检查）
+│   └── references/
+│       ├── 13 个契约文档          #   fields / endpoints / discovery / link-flags / placeholders / …
+│       ├── samples/              #   43 个精选真实模型 XML（运行器 / APP / FB）
+│       └── samples-corpus/       #   673 个全量语料（六个项目，只读参照）
+├── model-interview/              # 需求访谈纪律 Skill（grilling）
+│   └── SKILL.md
+├── formbuilder-json-generator/   # Formbuilder 表单 JSON 生成 Skill
+│   ├── SKILL.md
+│   └── references/               #   控件类型 / 布局与按钮 / 表达式规则 / 高级配置
+├── totallink-app-help/           # TotalLINK App 壳项目知识库 Skill
+│   ├── SKILL.md
+│   └── references/               #   架构 / linkquick / 函数 / API / H5 指南 / 属性 / class / 平台专题
+├── totallink-api/                # 第三方系统 HTTP 对接契约 Skill
+│   ├── SKILL.md
+│   └── references/               #   endpoints.md（8 端点契约）/ auth-and-errors.md（认证与错误）
+├── reimbursement-audit/          # 报销审计 Skill
+│   ├── SKILL.md
+│   └── scripts/dedup_check.py    #   跨单/跨月发票查重
+├── email-sender/                 # 通用：SMTP 邮件发送
+│   └── SKILL.md
+├── pdf-generator/                # 通用：Markdown → HTML → PDF
+│   ├── SKILL.md
+│   ├── references/               #   打印 CSS / 视觉方向 / 交付前检查
+│   └── scripts/                  #   重复检测 / Chrome 渲染 / PDF 校验
+└── docs/
+    ├── adr/                      #   架构决策记录（0001 totallink-api 权威基准）
+    └── handoff-formbuilder-app.md #  源码核对会话的交接记录（维护者内部文档）</code></pre>
+<h2 id="前置条件">前置条件</h2>
+<ul>
+<li>Python 3.9+</li>
+<li>TotalLINK 账户及授权令牌（<code>tlk_</code> 开头）</li>
+<li>报销单审计额外依赖：<code>pdfplumber</code>（PDF 校验）、Chrome /
+Chromium / Edge（PDF 渲染，脚本自动探测）</li>
+</ul>
+<h2 id="使用">使用</h2>
+<p>以下命令属于 totallink-base（<code>totallink-api</code> 是纯文档
+skill，无需配置、无命令，按其 <code>SKILL.md</code> 引导阅读
+<code>references/</code> 即可）：</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 查询项目列表</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/tlk.py env list</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 环境自检（项目 / URL / 用户 / 额度）</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/tlk.py auth verify</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 搜索可用工具</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/tlk.py tools search 报销</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 调用工具</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/tlk.py call TMESCOM01 9 <span class="at">--script-type</span> 0 <span class="at">--params-json</span> <span class="st">&#39;[&quot;&quot;]&#39;</span></span></code></pre></div>
+<blockquote>
+<p>令牌默认以 <code>--token "tlk_..."</code> 传入；不想让令牌进 shell
+历史或进程列表时，可用 <code>--token-stdin</code>（从标准输入读）或
+<code>TOTALLINK_TOKEN</code> 环境变量。 配置落盘在
+<code>~/.totallink/config.json</code>，权限固定 <code>600</code>。</p>
+</blockquote>
+</body>
+</html>

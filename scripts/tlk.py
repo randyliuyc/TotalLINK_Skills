@@ -142,7 +142,12 @@ def discover_plugins(subparsers):
         if not os.path.isfile(plugin_path):
             continue
 
-        module = _load_plugin_module(dir_name, plugin_path)
+        try:
+            module = _load_plugin_module(dir_name, plugin_path)
+        except Exception as e:
+            # 插件加载失败不应让整个 CLI 起不来：跳过该组，其余命令照常可用
+            print(f"[TotalLINK] 插件加载失败，已跳过：{plugin_path}（{e}）", file=sys.stderr)
+            continue
 
         group = getattr(module, "GROUP", None)
         if not isinstance(group, str) or not group.strip():
@@ -172,7 +177,11 @@ def discover_plugins(subparsers):
         )
         group_sub = group_parser.add_subparsers(dest="action", metavar="<子命令>")
         group_sub.required = True
-        register(group_sub)
+        try:
+            register(group_sub)
+        except Exception as e:
+            # 注册失败只影响该组，不阻断其它命令
+            print(f"[TotalLINK] 命令组 '{group}' 注册失败，该组不可用：{e}", file=sys.stderr)
 
 
 # ---------------------------------------------------------------- 参数骨架

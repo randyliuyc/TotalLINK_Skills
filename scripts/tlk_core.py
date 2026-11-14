@@ -139,6 +139,8 @@ def add_project(project_name, auth_token, base_url=DEFAULT_BASE_URL):
     cfg = load_all_config()
     if not cfg:
         cfg = {"projects": {}, "active": project_name}
+    # 配置文件可能被手改成缺 projects 键的形态，补回来再写，避免 KeyError
+    cfg.setdefault("projects", {})
     cfg["projects"][project_name] = {
         "auth_token": auth_token,
         "base_url": base_url,

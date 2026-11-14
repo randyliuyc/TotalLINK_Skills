@@ -176,8 +176,14 @@ def cmd_dict(args):
             _emit(err)
 
     # 按参数模板生成 Para（占位符缺失时取空串，保证位置对齐）
-    params = [t.format(table=args.table, conn=cfg.get("conn", ""),
-                       db=cfg.get("db", "")) for t in cfg["args"]]
+    # 模板里的未知占位符（如 {x}）会抛 KeyError，转成 PARAM 报错而不是崩栈
+    try:
+        params = [t.format(table=args.table, conn=cfg.get("conn", ""),
+                           db=cfg.get("db", "")) for t in cfg["args"]]
+    except (KeyError, IndexError, ValueError) as e:
+        _emit({"error": "PARAM",
+               "message": f"--args 模板含不支持的占位符：{e}；"
+                          "只支持 {table} / {conn} / {db}，需要字面花括号时写 {{ }}"})
 
     resp = tlk_core.call(cfg["dmCode"], cfg["dmNum"], params=params,
                          script_type=0, project=args.project,

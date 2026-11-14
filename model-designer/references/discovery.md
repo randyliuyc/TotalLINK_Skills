@@ -62,12 +62,13 @@
 
 另有并列的提交进度列（X3 风格）：`SUBSTA`（<3 = 未完成，提交时由动作脚本打批次号，见下）。
 
-### 编号段语义补充（TAMPER 语料 2026-11-05，接 samples/README 编号表）
+### 编号段语义补充（TAMPER 语料 2026-11-05，接 samples/README 编号表；2026-11-12 APP 壳源码核实）
 
+- **壳侧总纲（源码核实）**：APP 壳对 110/301/700/15xx 等**用户模型编号零特判**——菜单→模型路由是纯 `code/num/para` 透传（`menulist.js:315-334` → `menuTap` `linkshared.js:2758-2777`）；壳硬编码的只有平台系统模型编号（`_LINKSYS_` 10/20、`LINKBOOKMARK` 10、`LINKWFTASKPR` 110）。编号段语义是**服务端（引擎脚本生成逻辑）与建模/菜单侧约定**，不是壳侧路由。
 - **#110 查询入口形态**：同 ModelCode 下的纯只读查询模型（H5Para+H5List、`DATEVAL` 参数、`LIKE N'%{n}%'` 模糊、自造关键字列）——APP 端「查询列表页」的实际载体，编号表未收录，属语料确立的惯例（TMESPUR01#110 同型）
-- **#301 按钮控制**：MyRowData 段的 APP 用法——`SELECT '.PREPROCESS.501' AS LINKFUNCTIONLIST` 控制前端动作可用性（`link-flags.md` 结果标记表）
-- **15xx 扫码解析服务段**：无界面模型（H5/JS 全空，仅 SQLScript）。惯例：1521 校验单据（返回 `提示`=OK/错误文案）、1522 拆二维码内容；跨模型传参靠 `#列#` 注入（`js-hooks.md` 扫码解析链）
-- **#700 双语义**：按钮防呆（`#LINKSCRIPTGET@连接:...#` 返回 `LINKPREVENT:...`）或数据源下拉/开窗（普通 SELECT）——按脚本内容区分，不按编号
+- **#301 按钮控制**：MyRowData 段的 APP 用法——`SELECT '.PREPROCESS.501' AS LINKFUNCTIONLIST` 控制前端动作可用性（`link-flags.md` 结果标记表）。**源码核实**：`LINKFUNCTIONLIST`/`.PREPROCESS.` 字样在 APP 壳 0 命中——壳消费的是引擎生成的 `FunList` HTML 片段（`#linkfunlist.innerHTML`，`contentlist.js:476`），列表项自带 `linkquick`/`btnid` 属性进 linkquick 委托链；#301 语义完全在服务端 FunList 生成逻辑里
+- **15xx 扫码解析服务段**：无界面模型（H5/JS 全空，仅 SQLScript）。惯例：1521 校验单据（返回 `提示`=OK/错误文案）、1522 拆二维码内容；跨模型传参靠 `#列#` 注入（`js-hooks.md` 扫码解析链）。**巧合提示**：壳源码有 `targetTagNum: 1521/1522`（`linkshared.js:391/495/530`），那是壳内部页面通讯标记，与本编号段无关，勿混淆
+- **#700 双语义**：按钮防呆（`#LINKSCRIPTGET@连接:...#` 返回 `LINKPREVENT:...`）或数据源下拉/开窗（普通 SELECT）——按脚本内容区分，不按编号。**源码核实**：壳侧两种用法都只是透传——(a) 防呆走按钮 `api="3"`+`script` 属性上送（防呆弹窗由响应 `action`/`modelActionInfo` 三分支实现，`linkshared.js:5371-5401`）；(b) 开窗走 `.linkdatasearch` 按钮 `code/num/para/text-value/automatch` 属性（`linkshared.js:4264-4273`→`ape_linkpickData`→`openSearchWeb`→`linkdatasearch_local` 事件回填 + `autoMatching`）
 
 ### 单据编号的两种模式（按业务选型，任务书 §1 写明）
 

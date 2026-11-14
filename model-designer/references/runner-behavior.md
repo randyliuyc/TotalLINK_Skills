@@ -76,6 +76,39 @@ BaseLib 引擎（SysDataModel*/GlobalFormula）同时运行于运行器客户端
 
 以下标记/能力**只在 WinForms 运行器生效**，APP/FB 链路无消费代码（部分会随 modelFlags 下发但被忽略）：过滤行/列标题控制（NOFILTER/NOSUBFILTER/TOPBANDHEADERONLY）、导出开关（NOEXPORT）、进度窗（SHOWPROCESS/SHOWACTION）、行双击/回车编辑（ROWDOUBLECLICK/ROWENTERACTION，纯客户端直读）、批量编辑（BATCHEDIT）、甘特/日历/透视（GANTTVIEW/CALENDARVIEW/PIVOTGRID，未逐项核实但同为 Infragistics 网格属性）。给 APP 的模型里写这些是**无效载荷**——不报错，但也不起作用。
 
+### FB 端反向清单（2026-11-12 前端源码核实，关闭待验项）
+
+`TotalLINKFB/src`（Vue2）全库 grep：`modelFlags`、`--LINK`、`--` 前缀解析模式 **0 命中**——FB 前端**不解析任何 `--LINK*` 标记**，modelFlags「下发即被忽略」。FB 的等价控制面：
+
+| 运行器机制 | FB 等价物 | FB 源码 |
+|---|---|---|
+| LINKPREVENT/LINKCONFIRM/LINKWARNING（#1000 检查模型） | 响应 `action` 字段三分支：warning→alert / confirm→confirm 取消 reject / prevent→alert+reject | `TotalLINKFB/src/utils/request.js:108-123` |
+| 按钮执行前校验 | `linkDMContextActionInfo` 返回 `dataType=="modelActionInfo"`，`data.type` 1=警告/2=确认/3=表达式阻断 | `views/forms/index.vue:8733-8763` |
+| `--LINKREQUIRED` | 表单 JSON `before.form`/`before.table`（必填配置，DOM 类名判定） | `views/forms/index.vue:7649-7698` |
+| `--LINKAUTOCLOSE` 等交互开关 | 按钮 JSON 配置（`after.btnHide`/`btnNotEdit`、`limitMoreTap` 防重复点击、`before.confirm`/`express`） | `views/forms/index.vue:8766-8768、8902-8907` |
+| 行双击/回车编辑（客户端直读） | FB 无对应物——详情/编辑由菜单 `code2/num2` 与行字段 `LINKDMCODE/LINKDMNUM` 路由 | `views/lists/index.vue:1466-1479` |
+
+引擎级标记（`[跨环境]`/服务端，如 `--LINKAUTOREPLACEEMPTYCOLUMNS`、`--LINKADDNEWROWS`、`--LINKAUTHORIZE`）在 FB 模型脚本里仍有效——解析在引擎，与前端无关。
+
+### APP 端反向清单（2026-11-12 APP 壳源码核实，关闭待验项 4b）
+
+`TotalLINKAPP/app`（未混淆 HBuilder 5+ 源码）全目录 grep：`modelFlags`、`--LINK` **0 命中**（唯一假阳性是 `css/mui.min.css` 的 CSS 自定义属性 `--link-bg` 等，与脚本标记无关）——APP 壳**不解析任何 `--LINK*` 标记**，modelFlags「下发即被忽略」，与 FB 同构。标记残留在 SQL 注释层，壳收到的响应是引擎解析后的 HTML/JS/GDs，**无副作用**。
+
+APP 壳的真实控制通道：
+
+| 运行器机制 | APP 等价物 | APP 源码 |
+|---|---|---|
+| LINKPREVENT/LINKCONFIRM/LINKWARNING（#1000 检查模型） | AJAX 底层 `ajax_promise_plus` 按响应 `action` 字段三分支：warning→alert 放行 / confirm→确认才 resolve / prevent→reject 终止 | `js/linkshared.js:2978-2997` |
+| 按钮执行前校验 | `linkDMContextActionInfo` 返回 `r.dataType=="modelActionInfo"`（注意是顶层 `r.dataType` 不是 `r.data.*`），`r.data.type` 1=toast 后放行/2=confirm/3=condition 为假则 alert 拦截 | `js/linkshared.js:5371-5401` |
+| `--LINKREQUIRED` 等编辑校验 | 无壳层对应物——校验靠模型 JS `beforeFunction`（返回真值中断，见 `js-hooks.md`） | `js/linkshared.js:4297-4301` |
+| 行双击编辑（客户端直读） | 无对应物：点行仅设行上下文 `currRDsLineNo`（`contentlist.js:1182-1187`），编辑走底部弹层 `#linkedit`→linkquickAction5→newrecord.html | `contentlist.js:970-978`、`linkshared.js:4982-4995` |
+| 过滤行（--LINKNOFILTER） | 壳有筛选 UI（`#linkul`/filterContent），内容来自引擎生成的 ParaList——开关语义仍在引擎侧 | `contentlist.js:458/466/1506` |
+| 导出（--LINKNOEXPORT） | **无对应物**（壳无任何导出功能） | — |
+| 进度窗（--LINKSHOWPROCESS） | 壳有通用 `showWaiting`，与引擎进度仪表无关 | `linkshared.js:8635` |
+| 批量编辑（--LINKBATCHEDIT） | 壳有勾选多行批量编辑/备忘（editsdata），机制不同 | `contentlist.js:1017-1047`、`linkmemo.js:76` |
+
+⚠️ 不对称点：另一封装 `ajax_promise`（`linkAjax_JQ` 路径，`linkshared.js:3183-3207`）**没有** action 三分支，只按 `r.isSuccess` 分流——走该路径的请求不经过防呆拦截。
+
 ## 设计规律（能力组轴 × 四元组）
 
 > 每条规律 = 设计意图 / 推荐形态 / 运行器依据（file:line）/ 反模式。与 `discovery.md` 问卷能力组同构。

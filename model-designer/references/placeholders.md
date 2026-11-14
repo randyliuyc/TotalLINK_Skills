@@ -178,11 +178,13 @@ N'#LINKDOCNUM({0},PRQ)#' AS [DOCNUM]（TMESPUR01#10）
 | `#LINKENCRYPT(内容)#` | 3DES-CBC+PKCS → Base64，**密钥硬编码** `lINKbipLUS`（可逆混淆，非安全加密） | GF.vb:974-1000 → MLTSimple3Des.vb:85-88 |
 | `#LINKRSAENCRYPT(明文,公钥)#` | **双参**（HTML 单参有误）：公钥由第二参直接携带，Java 公钥转 .NET 后 RSA 加密；两参都不能含逗号 | GF.vb:591-612 |
 | `#LINKTOKEN(用户代码)#` | 目标用户=当前用户 → 直接返回 dm.LinkToken；否则为该用户现造 LinkSpecial Token（存 SYSCODE 表 CODETYPE='TotalLINKToken'，按天滚动、默认 7 天有效）；**不校验调用者权限**（安全注意：任何脚本能触发替换即可为任意用户造 Token） | GF.vb:1226-1256 → MLTSimple3Des.vb:100-137 |
-| `#LINKWEIXINTOKEN#` `#LINKDINGTALKTOKEN#` `#LINKBAIDUAITOKEN#` `#LINKFEISHUTOKEN#` | 微信/钉钉/百度/飞书 AI Token【未核对，直收】 | — |
+| `#LINKWEIXINTOKEN#` `#LINKDINGTALKTOKEN#` `#LINKBAIDUAITOKEN#` `#LINKFEISHUTOKEN#` | 微信/钉钉/百度/飞书 AI Token【未核对，直收】。**APP 壳侧核实（2026-11-12）：0 命中**——壳的 ai.js 只取 localStorage `aiHelp` URL 塞 iframe；壳内 token 逻辑均为登录 LinkID/百度 TTS，与此无关（仍属运行器/服务端侧） | — |
 
 ### 集成/设备/路径（F 组，用户拍板直接收编，【未核对】）
 
 `#LINKIOT.设备.项#`（设备信息采集）、`#LINKINFLUX(查询)#`（InfluxDB 采集信息）、`#LINKACTIVITY(…)#`（LINKFUNC 权限模式判断）、`#LINKSIGNSTEPSETTING(…)#`（审批 SIGNLIST 条件控制，返回提示信息）、`#LINKLOCATION#`/`#LINKLOCATIONJSON#`（简洁/完整地理位置）、`#LINKLOCALPATH#`（本地工作路径）、`#LOCALREPORTPATH#` / `#LINKEXPORTPATH#`（本地报表/导出路径）。
+
+> **APP 壳侧核实（2026-11-12 源码）**：`LINKIOT/LINKINFLUX/LINKACTIVITY/LINKSIGNSTEPSETTING/LINKLOCALPATH/LOCALREPORTPATH/LINKEXPORTPATH` 在 APP 壳 **0 命中**（APP 端无效载荷）。**`LINKLOCATION` 是例外——壳主动消费**：壳定位（`plus.geolocation`，baidu provider）成功后把 `{Key:"LINKLOCATION"(文字)或"LINKLOCATIONJSON"(linklocation=2)}` 塞进行数据/请求 RDs（`linkshared.js:1173-1218`，存 mem 键 `link_addresses`，开关=元素 `linklocation` 属性→mem 键 `linkLocation`）；提交时 `valueList()` 另把页面 `#link_a_location/#LINKLOCATION` 元素文本作为 `LOCATION` 字段附加（:1957-1988）。即 APP 端定位走壳机制而非 `#LINKLOCATION#` 占位符替换。
 
 ## 使用原则
 

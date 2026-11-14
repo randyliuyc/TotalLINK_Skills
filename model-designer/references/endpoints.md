@@ -78,12 +78,44 @@ linkDMFormData(dmCode, dmNum, Para)                     DataModelController.cs:3
 2. 主模型 SEARCHSELECT 返回多行时**只取第 1 行**（`GetGridDataFromDS(ds, 1)`）——FB 表单模型的查询脚本必须按业务键过滤到单行。
 
 **语料证据（2026-11-04，TMESPUR 259 个模型，其中 21 个 #500）**：
-- formSetting 写法 21 处高度一致：`formtemplate` 形如 `MOD220500008`（指向 LINKFORMMOD 骨架）；`formData` 全部是 `"#FORMDATA#"` 字面量（无直接 JSON 变体）；**`formbtns` 与 `selectData` 全部为空**——生成时默认空数组/空对象，按钮逻辑由 #501+ 动作模型与骨架 btns 承担。
-- `tableData` 键名：业务表用 `TABLE_1`/`TABLE_2`，保留名 `LINKDOCLIST`（附件，`LINKFLOW#25`）与 `LINKSIGNLIST`（签核，`LINKFLOW#21`）。
+- formSetting 写法 21 处高度一致：`formtemplate` 形如 `MOD220500008`（指向 LINKFORMMOD 骨架）；`formData` 全部是 `"#FORMDATA#"` 字面量（无直接 JSON 变体）；**`formbtns` 在语料中全部为空（观察值）**——后端有合并逻辑（`SysDataModel.cs:5492-5500`，合并进骨架 btns）、FB 设计器有读取（`btns.vue:3042-3056`），非代码约束；按钮逻辑由 #501+ 动作模型与骨架 btns 承担。**后端读的动态下拉键是 `selectList`**（`SysDataModel.cs:5515`）；语料 H5Para 里的 `selectData:{}` 键后端不读。
+- `tableData` 键名：业务表用 `TABLE_1`/`TABLE_2`；`LINKDOCLIST`（附件，`LINKFLOW#25`）与 `LINKSIGNLIST`（签核，`LINKFLOW#21`）是**键名约定（语料观察，源码无分支）**，映射照常写 dmCode/dmNum；签核专门键为 `signFormSetting`/`signbtns`（`SysDataModel.cs:5379-5390,5470-5488`）。
 - **菜单/列表注册是独立链路**：`XXX9X#500`（描述「菜单设置/List」）`ConnString=LINKMENUITEM`，SQLScript 直接是列表页配置 JSON（title/path/column/paraData/paraCustom）——FB 查询参数区的控件 UI 由这里的 `paraCustom` 定义，不在 H5PARA。
-- **FB 按钮 action ↔ 端点对照**（与 `formbuilder-json-generator` 的按钮配置互证）：按钮 `action.api` 0=取模型数据、1=提交单行、2=附加功能、3=提交多行、4=取公式、5=载入模板/跳转刷新、6=提交全部数据（→ `linkDMDataSubmit` 走主模型 `SQLClear`，语料 `#700-API=6` 附加模型即此机制的模型侧落点）、7=取级联、8=取图表。`formbtns` 恒空时这套机制不启用，按钮逻辑回落到 #501+ 模型。
+- **FB 按钮 action ↔ 端点对照**（与 `formbuilder-json-generator` 的按钮配置互证）：按钮 `action.api` 0=取模型数据、1=提交单行、2=附加功能、3=提交多行、4=取公式、5=载入模板/跳转刷新、6=提交全部数据（→ `linkDMDataSubmit` 走主模型 `SQLClear`，语料 `#700-API=6` 附加模型即此机制的模型侧落点）、7=取级联、8=取图表。`formbtns` 恒空时这套机制不启用，按钮逻辑回落到 #501+ 模型。→ **权威对照已由前端源码核实版取代，见下节**
 
 **保存回写**：`linkDMDataSubmit` 无 scriptType，固定执行主模型 `TreateScript`（`SQLClear`），`data.formData` 整包作 moreData 传入（`SysDataModel.cs`(Core) :6762-6796；旧库同构）。FB 表单的保存 SQL 写在主模型 `SQLClear`，防呆配 1000 号检查模型。
+
+### FB 前端渲染链与按钮 api 权威对照（2026-11-12 前端源码核实，取代上方语料反推版）
+
+> 来源：Formbuilder 混淆前前端源码 `TotalLINKFB/src`（Vue2；设计器 = `views/table/index.vue`，运行时渲染器 = `views/forms/index.vue` + `views/lists/index.vue`）。前端**不解析 formtemplate、不做 MODJSON→控件二次映射**——`linkDMFormData` 返回的就是后端拼装完的成品 JSON，前端 `$set(this,'jsonData',r.data)` 直接渲染（`views/forms/index.vue:8914-8934` checking 入口）。
+
+**模板存取链（设计器侧）**：设计器画布状态即 jsonData（键集 `formData/tableData/row/btns/status/borderColor/item/init/selectData/tops/tempData`），`JSON.stringify` 后作为 **`MODJSON` 字段值**存取——走 **`LINKFORM` 系统模型**的固定编号（前端硬编码，画布内容只决定 MODJSON 的值，与编号无关）：
+
+| LINKFORM 编号 | 用途 | 端点 | 源码 |
+|---|---|---|---|
+| 10 | 列格式 `FATJSON`（读/存/清） | `linkDMDatasetResult` / `linkDMGridRowSubmit` | `views/lists/index.vue:592-599,967-968`、`api.js:4-20,245-264` |
+| 29 | 模板列表 | `linkDMDatasetResult` | `views/table/index.vue:12667` |
+| 30 | 模板详情/另存(scriptType=1)/更新(2)/删除(3) | `linkDMDatasetResult` / `linkDMGridRowSubmit` | `views/table/index.vue:12565-12698,12717` |
+| 40 | 各模型的按钮（读 h5para 的 `formbtns`，共享按钮选择） | `linkDMDatasetResult` | `components/plusin/example/btns.vue:3042-3056` |
+| 50 | 模型字段数据 | `linkDMDatasetResult` | `views/table/index.vue:10092` |
+
+物理表 = **`LINKFORMMOD`（列 `MODJSON`）**，服务端 FormData 直接 `SELECT MODJSON FROM LINKFORMMOD WHERE MODCODE=...` 取骨架（`LINK.Core/src/BaseLib.Core/Data/SysDataModel.cs:5429-5431`）。AI 落库工具 SYSINFOMATION/300 查询/创建/修改的也是同一张表（列 MODCODE/MODDESC/MODJSON）。
+
+**按钮 action.api ↔ 端点权威对照**（设计器选项表 `components/plusin/setting/action.vue:1702`；分发点 `views/forms/index.vue:7993-8070` 同步版、`9109-9250` 异步版；官方文案：0=获取模型数据、1=提交单行记录数据、2=附加功能处理、3=提交多行记录数据、4=获取公式结果、5=载入模板/跳转刷新、6=提交全部数据、7=获取级联数据、8=获取图表，另有 `Function`=本地自定义函数、`sleep`=延时）：
+
+| api | 端点（`TotalLINKFB/src/api/api.js`） | 调用要点 | forms/index.vue |
+|---|---|---|---|
+| 0 | `linkDMDatasetResult` | Para=`{字段}`/`[字段]` 转换的参数数组；RDs=当前行对象 | 7994, 9112 |
+| 1 | `linkDMGridRowSubmit` | `scriptType=e.script`；**RDs=formData∪当前行**（单行） | 7999 |
+| 2 | `linkDMContextFunBack` | `contextMenuNo=e.script`（附加脚本编号）；RDs=formData∪当前行 | 8003 |
+| 3 | `linkDMGridDataSubmit` | **GDs=`tableData[e.para]` 单张子表行集**，每行回填主表外键 `e.attach\|\|'DOCNUM'`；RDs=formData。**实参顺序与函数签名直觉相反**（GDs 收 `re_para` 结果） | 8007, 8974-8995 |
+| 4 | GET `linkFormula?formula=#公式#` | `e.para` 原样上送，`#...#` 由后端解析；结果回填 `quickMatchData`/`e.value2` | 8011 |
+| 5 | `linkDMFormData` | 成功后**整体换模板** `jsonData=re.data`；`_blank` 新窗口 | 8035-8045 |
+| 6 | `linkDMDataSubmit` | 请求体顶层 `{loginID, dm:{...}, data:Rds}`；Rds=`linkConcat`＝formData∪全部 tableData（`e.allTable` 不过滤脏行） | 8048, 9405-9423 |
+| 7 | `linkDMLevelData` | 同 api=0 结构 | 8054 |
+| 8 | `linkDMEChartScript` | 图表 ID 按 `e.id`（`row_*`/`ID_*` 命名） | 8059 |
+
+**FB 防呆/确认**：语义在引擎、UI 在前端——axios 拦截器按响应 `action` 字段三分支（`warning`→alert / `confirm`→confirm 取消 reject / `prevent`→alert+reject，`TotalLINKFB/src/utils/request.js:108-123`）；按钮配 code+num 时先调 `linkDMContextActionInfo`，`dataType=="modelActionInfo"` 按 `data.type` 1=警告/2=确认/3=表达式阻断（`views/forms/index.vue:8733-8763`）。**FB 前端不解析 modelFlags / `--LINK*`**（全 src 0 命中），详见 `link-flags.md`「2026-11-12 FB 前端会话补充」。
 
 ## APP vs FB 对照
 
@@ -91,7 +123,7 @@ linkDMFormData(dmCode, dmNum, Para)                     DataModelController.cs:3
 |---|---|---|
 | 内容模板 | `H5List`/`H5GRIDHDR/DTL`（HTML 片段） | 500 的 `H5PARA`(JSON) + `LINKFORMMOD` 骨架 |
 | 数据 | 多行列表，`H5MaxLines` 分页 | 单行表单 + 子模型明细表/下拉 |
-| 按钮 | 派生（脚本非空即出现）+ 模板内嵌按钮（linkquick/btnid） | formSetting 的 `formbtns`（语料恒空）+ 骨架 `btns`；实际按钮逻辑由 #501+ 动作模型承担 |
+| 按钮 | 派生（脚本非空即出现）+ 模板内嵌按钮（linkquick/btnid） | 骨架 `btns` + H5PARA 的 `formbtns`（后端合并进 btns，仅当骨架已含 btns，`SysDataModel.cs:5492-5500`）；按钮可落在 formbuilder JSON（action.api 0~8，见上节权威表）或 #501+ 动作模型 |
 | 保存 | `linkDMGridDataSubmit` 等按 scriptType 选脚本 | `linkDMDataSubmit` 固定走主模型 `SQLClear` |
 | 联动 | `--LINKDETAILLIST`、501~520、SYSDM | `tableData`、`selectList` 引用子模型 |
 

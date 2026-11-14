@@ -1,6 +1,7 @@
 # FB 页面族组织（.A/.B × .H/.L 多族结构）
 
 > 依据：2026-11-05 用户提供的标杆语料 `samples-corpus/TAMPERFB/`（TMESEXC05 领料申请，22 模型，用户认定为典型 FormBuilder 表单设计模型组）。
+> 2026-11-12 增补：Formbuilder 混淆前前端源码（`TotalLINKFB/src`）核实，见 §7——族命名是**建模/菜单注册侧约定**，前端不做任何族派生。
 > 本文件**修正并细化**旧结论「FB 表单必须有 500 伴生模型」——单一 500 形态的认知不成立。
 
 ## 1. 双层族命名约定（ModelCode 含 `.` 的页面族）
@@ -25,7 +26,7 @@
 
 - **族伴生模型码 = 族码 + `10X`**（如 `TMESEXC0510X.AH10X`）——与「主模型代码+主模型编号+X」的通用规则一致，只是这里族码本身已含 `.`。
 - 根模型 `TMESEXC05#10`（无 `.`）是旧式工作流审批卡片（mui-card + 审批按钮 JS 指向 `LINKWFTASKPR`），SQLScript 允许 `SELECT '标题'` 纯占位——与页面族同码体系共存。区分「根模型 #10」与「族 #10」两种形态。
-- 菜单/列表行点击把行值传给详情族：列表行 → `#列名#` 映射 → 详情族 `#10` 的 SQLScript 直接用行级 `#DOCNUM#` 占位（FB 页面上下文有行数据，validate 对含 `.` 的族码会豁免 `ROW_TOKEN_IN_QUERY` 提示）。
+- 菜单/列表行点击把行值传给详情族：**前端机制**（2026-11-12 源码核实，§7）——详情模型取菜单 `code2/num2`（行字段 `LINKDMCODE/LINKDMNUM` 可覆盖），行值经 `RDs=cObj(row)` 伴随查询、菜单/按钮参数用 `{字段}`（主表 formData）与 `[字段]`（当前行）占位；脚本侧的 `#列名#` 行级令牌由引擎在服务端替换，**不进前端**——两层语法分层，勿混写。
 
 ## 2. 五种 #500 形态（FormSetting 编号段的实际用法）
 
@@ -41,8 +42,8 @@
 
 要点：
 
-- **formbuilder JSON 只出现在 Para / 表单设置两种 500 的 H5Para**，五件套与旧结论一致：`formtemplate`（MOD26xxxxxxx）、`formData:"#FORMDATA#"`、`selectData:{}`、`formbtns:[]`（恒空，按钮固化在 formtemplate 模板里按编号调 50x/70x 模型）
-- `tableData` 的键即表格区数据源：`TABLE_1` → 列表/明细模型（带 `Para` 数组，元素是 `#列名#` 行级令牌）；保留名 `LINKDOCLIST` → `LINKFLOW#25`（工作流单据列表）；本组未出现 `LINKSIGNLIST`
+- **formbuilder JSON 只出现在 Para / 表单设置两种 500 的 H5Para**。H5Para 键表按后端 `FormData()` 实读修正（`LINK.Core SysDataModel.cs:5338-5500`，2026-11-12 源码核实）：`formtemplate`（MOD26xxxxxxx，服务端 `SELECT MODJSON FROM LINKFORMMOD` 取骨架 :5429-5431）、`formData:"#FORMDATA#"`（**必须带双引号的字面量**，服务端用 500 模型 BaseScript 产物整体替换 :5357-5358）、`tableData`（子表定义 dmCode/dmNum/Para/oriTableData :5395-5422）、`selectList`（动态下拉 {node,dataValue,dataText,data}，:5515）、`formbtns`。**「formbtns 恒空」是语料观察不是代码约束**：后端会把 `formbtns` 合并进骨架 `btns`（仅当 MODJSON 已含 btns 数组，:5492-5500），FB 设计器共享按钮功能也读它（`TotalLINKFB/src/components/plusin/example/btns.vue:3042-3056`，经 LINKFORM/40）。语料里出现的 `selectData:{}` 键**后端不读**——那是 FB 设计器 jsonData 的「数据统一」下拉缓存键（懒加载写入），与后端键 `selectList` 是两个东西
+- `tableData` 的键即表格区数据源：`TABLE_1` → 列表/明细模型（带 `Para` 数组，元素是 `#列名#` 行级令牌）。`LINKDOCLIST`/`LINKSIGNLIST` 是**键名约定（语料观察），源码无任何特殊分支**（FB 前端、LINK.Core、LINK(VB) 三处 0 命中）——`LINKDOCLIST → LINKFLOW#25` 这类映射照常写进 tableData 的 dmCode/dmNum 即可，引擎不看键名。签核有专门的独立键：`signFormSetting`（签核子表单分支，:5379-5390）与 `signbtns`（签核按钮合并，:5470-5488），不在 tableData 里
 - 字段映射 JSON（SQLScript）不经 string.Format 执行，花括号是结构本身（validate 已豁免）
 
 ## 3. 菜单注册 JSON 契约（500-List，ConnString=LINKMENUITEM）
@@ -61,6 +62,7 @@
 
 - 可用占位符：`#MENUTITLE#` / `#PARENTNO#` / `#DMCODE##DMNUM#` / `#MENUICON#`
 - `code`/`num` 指向**列表页参数族**（`.AH#10`），不是数据族；`showType:"detail"` 声明详情页跳转模式
+- **前端只消费一个菜单接口**：`linkFormItems`（`TotalLINKFB/src/api/api.js:199-204` → 动态路由 `store/modules/user.js:166-183` + `router/index.js:247-318`）。`linkFormMenu`/`linkFormMenuSetting` 在 FB 前端**定义后未接线**（`getFormMenuSet` 还有 `&dmnum` 缺 `=` 的 bug）——菜单 JSON 消费字段以 `router/index.js` 的 meta 键为准：`code/code2/num/num2/para/paraData/paraCustom/attach/column/href/type` 等
 
 ## 4. 动作模型模式（#501/#502/#503）
 
@@ -74,6 +76,7 @@
 - SELECT 一律大写英文列名/表列名，无中文显示别名；日期统一 `CONVERT(VARCHAR(16),...,21)`；计算列英文别名
 - 写脚本惯例：MERGE INTO + `N'#字段#'`（回写）、`N'@字段@'`（新行占位）、数值列 `0#字段#` 强转、`SQLUpdateScript` 头部 `--LINKADDNEWROWS` + `--LINKAUTOREPLACEEMPTYCOLUMNS`（源码允许，见 `link-flags.md`）
 - **CubeSetting 在 FB 族不是结果集投影**：主模型 SQL 仅 1 列而 CubeSetting 枚举数十列（表结构派生元数据 + `LINKRESERVE_DMTITLE` 多语言标题）。`datasearch-windows.md` 的「COLNAME=结果集列名」契约**仅适用于开窗/列表数据源场景**，不适用于 FB 页面族的 formSetting 模型
+- **CubeSetting 是引擎/服务端内部数据，FB 前端零消费**（2026-11-12 源码核实：`TotalLINKFB/src` 全库 `CubeSetting/CAPTION/COLNAME` 0 命中）。FB 的列标题/格式实际来自三处：菜单 JSON 的 `column` 配置、**`LINKFORM#10` 模型返回的 `FATJSON`**（列格式，用户可在列表页改列格式后回写：`getUserItemBack("LINKFORM",10,2,...)`，`views/lists/index.vue:967-968`）、表单模板内嵌 label。CubeSetting 只影响引擎侧（如 AI 调用、`model run` 的 `captions`）
 
 ## 6. 生成清单（搭 FB 页面组前自查）
 
@@ -82,3 +85,28 @@
 - [ ] 菜单注册 500-List 指向 `.AH#10`；详情接参走 Document 映射
 - [ ] 动作模型 UPDATE 写 SQLClear；防呆配 #700（LINKPREVENT 型）
 - [ ] formbuilder JSON 只写进 Para/表单设置的 H5Para；formtemplate 问用户取号或克隆存量
+
+## 7. FB 前端机制（2026-11-12 混淆前源码核实）
+
+> 来源：`TotalLINKFB/src`（Vue2；设计器 = `views/table/index.vue`，运行时 = `views/forms/index.vue` + `views/lists/index.vue`）。待验项 D7（formtemplate 生成/解析链路）由此关闭。
+
+**路由与页面族**：前端**没有任何 `.A/.B/.H/.L/10X` 族派生逻辑**（全库 0 命中族运算）。页面分发依据全部是菜单 JSON 显式字段 + 行数据字段：
+
+| 场景 | 取值 | 源码 |
+|---|---|---|
+| 列表页 | 菜单 meta `code`/`num`（缺省 `num=9`） | `TotalLINKFB/src/router/index.js:230,269` |
+| 详情页 | 菜单 meta `code2`/`num2`（缺省 `num2=10`），行字段 `LINKDMCODE`/`LINKDMNUM`/`LINKDMPARA` 可覆盖 | `router/index.js:269` + `views/lists/index.vue:1466-1479` |
+| 菜单 type=="custom" | 进 formbuilder 设计器（`views/table/index.vue`） | `router/index.js:191-197` |
+| 有 children | 进 `views/common/index` | `router/index.js:296` |
+
+族命名（`.AH/.AL/.BH/.BL`、伴生 `10X`）因此是**建模与菜单注册侧的数据约定**（服务端菜单生成按它产出 meta），前端只是被动接收 `num` 值——生成模型族时仍按 §1 命名，但排查页面跳转问题查菜单 JSON 与行字段，不是前端代码。
+
+**表头/明细**：前端不按 `.H/.L` 分页面——FB 内是同一模板的主表（`formData`）+ 子表（`tableData`）结构。主子表提交三通道：
+
+| 通道 | action.api | 数据组装 | 源码 |
+|---|---|---|---|
+| 一次全部提交 | 6 → `linkDMDataSubmit` | `linkConcat`：`{…tableData(各子表), formData(主表∪当前操作)}`，`e.allTable` 提交子表全部行不过滤 | `views/forms/index.vue:9405-9423` + `api.js:266-283` |
+| 分明细提交 | 3 → `linkDMGridDataSubmit` | **GDs=单张子表行集**（`e.para`=子表键），每行回填主表外键 `e.attach\|\|'DOCNUM'`；RDs=主表 formData。注意实参顺序与函数签名直觉相反 | `views/forms/index.vue:8974-8995、8007` |
+| 单行提交 | 1 → `linkDMGridRowSubmit` | RDs=formData∪当前行对象 | `api.js:245-264` |
+
+**行传参语法（前端）**：按钮/菜单参数占位是 `{字段}`（取主表 formData）与 `[字段]`（取当前行，无值回退 formData），见 `TotalLINKFB/src/utils/mybase.js:696-717`。`#列名#` 是引擎侧脚本令牌（服务端 GlobalFormula 替换），前端不做 `#…#` 替换（`api.js:220` 把 `#公式#` 原样上送 `linkFormula` 可证）——两层语法分层，别在按钮参数里写 `#列名#`。

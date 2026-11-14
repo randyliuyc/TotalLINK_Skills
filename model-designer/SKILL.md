@@ -124,7 +124,7 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 | 弄不清某字段/脚本如何被执行、影响哪个返回 | `references/endpoints.md`（链路图 + 能力组契约表） |
 | 纯查询/报表模型 | `references/fields.md`、`references/placeholders.md` |
 | 带增删改的模型 | `references/fields.md`、`references/link-flags.md` |
-| 预判某个标记/配置在运行器里长什么样（界面行为） | `references/runner-behavior.md`（模型要素 → 运行器行为映射 + 设计规律） |
+| 预判某个标记/配置在运行器/APP/FB 里长什么样（界面行为、前端消费矩阵） | `references/runner-behavior.md`（模型要素 → 运行器行为映射 + 设计规律；§7 含 FB/APP 端反向清单） |
 | 带动作按钮/外部调用 | `references/fields.md`、`references/callfunction-actions.md` |
 | 带下拉参数（DROPDOWN/DROPRELOAD） | `references/fields.md`、`references/samples/ERAQA101010X.SUPCOD#10-选择供应商.xml` |
 | 可编辑网格/列编辑/保存联动 | `references/fields.md`、`references/modelsetting.md` |

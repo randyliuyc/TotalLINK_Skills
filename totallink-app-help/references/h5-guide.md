@@ -1,6 +1,7 @@
 # 模型 H5 编写指南（动态渲染机制与编写规范）
 
 > **核心概念：模型界面不是静态页面**。contentlist/modelpara/attachmodelpara/newrecord/linkmemo 五个界面的 HTML 都由服务端返回片段、客户端 `innerHTML`/`append` 动态注入。回答"怎么写模型 H5"时以本文件 + classes-ids.md + attributes.md 为准。行号为编写时快照。
+> **2026-11-12 APP 壳源码核对**（`TotalLINKAPP/app`，未混淆源码）：§1 消费链路、§3 取值/提交链路经全量源码核实与本文一致；关键修正/补强见 `model-designer/references/js-hooks.md`（钩子签名/时机）与 `model-designer/references/runner-behavior.md` §7 APP 反向清单（壳不解析 modelFlags/--LINK*，防呆走 `ajax_promise_plus` 的 action 三分支 `linkshared.js:2978-2997`）。
 
 ## 1. 五个界面的动态渲染链路
 
@@ -93,8 +94,8 @@
 
 ### 3.4 服务端下发 JS（模型 JS 通道）
 
-- **`load_js(src)`（:2255-2269，可靠通道）**：先 `$(".linkjavascript").remove()` 再 append 新 `<script class="linkjavascript">`，插入即执行；contentlist/modelpara/attachmodelpara 用
-- `load_js_ajax`（:2271-2290，newrecord/linkmemo 用）：把 r.data.js append 进预留的 `<script id="linkjavascript">` 空占位——**按标准 DOM 行为对已解析 script 追加文本不会重新执行**，模型 JS 初始化应走 `load_js` 通道或依赖 `reloadAfter()` 钩子
+- **`load_js(src)`（:2292-2306，可靠通道）**：先 `$(".linkjavascript").remove()` 再 append 新 `<script class="linkjavascript">`，插入即执行；contentlist/modelpara/attachmodelpara 用
+- `load_js_ajax`（:2308-2327，newrecord/linkmemo 用）与 `append_js`（:2329-2335，离线）：把 r.data.js append 进预留的 `<script id="linkjavascript">` 空占位——**按标准 DOM 行为对已解析 script 追加文本不会重新执行**，模型 JS 初始化应走 `reloadAfter()` 钩子（壳默认空实现 `linkshared.js:4306`，`linkInitData` 末尾 :4382 统一调用）
 - 填充后统一初始化 `linkInitData`（:4333-4348）：键盘监听、图片预览、mui input/switch/numbox/slider 重初始化、initTextarea/initMediaContainer/initCollapseMethod、**`reloadAfter()`（模型自定义钩子，写模型 JS 时在此做初始化）**
 
 ### 3.5 多语言

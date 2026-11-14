@@ -26,7 +26,8 @@ SQLUpdateScript（`--LINKEDITMODE` 行编辑上下文）在两端都可以用行
 - `linkquick="8"`：附加功能入口；`btnid="501"` = 同族附加模型编号（框架自动拼 `主code+主num+'X'`）
 - `id="linknewrecord"`：特化委托（contentlist.js 928-991）识别的新建入口
 - `linkparafill="1"`：打开**附加模型参数补充页**（attachmodelpara.html；源码语义见 linkquick.md §4）
-  - ⚠️ 参数预填是否按位置对齐主模型参数：语料强烈支持（KZ3010X#700 参数前两位与主模型同名对齐；TMESSTK2010X#501 实测带入成功），**但源码未核实**——设计时让附加模型参数 01、02 与主模型参数 01、02 同名同义，不依赖巧合
+  - 参数预填机制（**2026-11-12 APP 壳源码核实，关闭原「未核实」**）：**按名字（Key/ParaLabel）匹配，不是按位置**——父模型当前行 RDs（`{Key,Type,Value}` 数组）整包透传两路：(a) 打开页面时经 extras `currRowData` → `linkDMH5AttachParaListJS` 的 `par.RDs`，由服务端生成带预填值的界面 HTML（`attachmodelpara.js:88-98`）；(b) 确认提交时 `valueList().concat(cRDs)` 追加进 `linkDMContextFunBack` 的 RDs（`attachmodelpara.js:110-115`）。附加模型参数 01、02 与主模型参数 01、02 **同名**即可带值。⚠️ 同名 Key 在提交数组中会重复出现（附加页输入在前、父行 RDs 在后，壳不去重），最终取值由服务端决定
+  - `AttachDmCode = 主code+主num+'X'`、`AttachDmNum = btnid`：源码核实（`linkshared.js:5568-5578` contextTap、:5123-5125 linkquickAction8）
 - 配套：附加模型 `UseParameter=true` + 参数四件套（`ParaDefVal='?'` 必填）。APP 框架可按 ParaLabel 自动渲染参数表单（KZ5010X#501 的 H5Para 为空也能用），但**校验器要求显式 H5Para**（服务端兜底已删除），生成时仍写 H5Para 模板
 
 ### ② 卡片级动作（提交/删除整单等，显式指明目标模型）
@@ -85,13 +86,31 @@ SQLUpdateScript（`--LINKEDITMODE` 行编辑上下文）在两端都可以用行
 
 | linkquick | 用途 | 模型设计相关 |
 |---|---|---|
-| 1 / 2 | 前置/后置处理 | 固定调附加 21~30 / 41~50 |
+| 1 / 2 | 前置/后置处理 | 固定调附加 21~30 / 41~50（`linkDMPreProcess/PostProcessByGridDataBack`，`linkshared.js:913-923`） |
 | 3 | 添加记录 | SQLNew（`--LINKADDNEWROWS`）|
 | 5 | 编辑 | SQLUpdateScript 校验+编辑页 |
 | 6 | 删除 | SQLRemove |
-| 8 | 附加功能 | `btnid`→contextid；拍照 linkimage=1/2 |
+| 8 | 附加功能 | `btnid`→contextid；拍照 linkimage=1/2；`linklocation` 0/1/2 定位 |
+| 9 | 打开地址 | `#linkurllist` 项 |
 | 10 | 数据挖掘 | btnid + paraconfirm |
+| 11 | 第三方 APP | — |
 | 12 | 提交所有数据 | api 1~7 + script 脚本号，模型自定义动作主力 |
+| 13 / 14 / 15 | 低功耗蓝牙 / MQTT / TTS | — |
+| 16 | 自定义 JS | `eval($(ele).attr("js"))`（`linkshared.js:4582-4594`） |
+
+### api 属性 → 接口权威对照（2026-11-12 APP 壳源码核实，`linkshared.js:4814-4875`）
+
+| api | 端点 | 备注 |
+|---|---|---|
+| 1 | `linkDMDatasetResult` | 取模型数据 |
+| 2 | `linkDMGridRowSubmit` | 单行提交，`scriptType = script 属性` |
+| 3 | `linkDMContextFunBack` | 单行数据处理（附加功能/动作主力），先过 `DMContextAction` 校验 |
+| 4 | `linkDMGridDataSubmit` | 多行记录数据处理 |
+| 5 | `api/LINK/linkFormula` | para 拼成 `#公式#` 原样上送 |
+| 6 | `linkDMFormData` | 载入模板/跳转刷新 |
+| 7 | `linkDMDataSubmit` | 全部数据一起提交（`data:{formData:rds}`） |
+
+> 注意与 FB 的 `action.api 0~8` **错位一位**（APP 1~7 ↔ FB 0~6 依次同端点：DatasetResult/GridRowSubmit/ContextFunBack/GridDataSubmit/linkFormula/FormData/DataSubmit）；FB 的 api=7 LevelData / api=8 EChartScript 在 APP 按钮属性里无对应。`script` 属性壳纯透传（scriptType/contextMenuNo），SQLNew/Update/Remove/Clear 的 1/2/3/4 语义由服务端脚本字段定义，壳内无 SQLClear 字样（0 命中）。
 
 ## 3. 生成清单（写按钮前自查）
 

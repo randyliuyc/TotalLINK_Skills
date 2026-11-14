@@ -103,6 +103,41 @@
 4. `--LINKACTIONPUSH` 是 CALLFUNCTION 命令，带括号参数，非无参标记。
 5. `#LINKRSAENCRYPT(明文,公钥)#` 为双参（HTML 单参写法有误），见 `placeholders.md` 2026-11-05 节。
 
+## 2026-11-12 FB 前端会话补充（FB 端消费结论，源码核实）
+
+> 依据：Formbuilder 混淆前前端源码 `TotalLINKFB/src`（Vue2，设计器 `views/table/index.vue` + 运行时 `views/forms/index.vue`/`views/lists/index.vue`）。关键行号已主会话复核。
+
+**核心结论：FB 前端完全不解析 modelFlags / `--LINK*` 标记**——`modelflags`、`--LINK`、`--` 前缀解析模式在全 src 0 命中（2026-11-12 全库 grep）。引擎随响应下发的 modelFlags 在 FB 端「发下来被忽略」。
+
+FB 端的真实控制通道（替代运行器的 --LINK* 机制）：
+
+| 通道 | 机制 | 源码 |
+|---|---|---|
+| 防呆/确认/警告 | axios 拦截器按响应 `action` 字段三分支：`warning`→alert、`confirm`→confirm（取消 reject）、`prevent`→alert+reject | `TotalLINKFB/src/utils/request.js:108-123` |
+| 按钮执行前校验 | 按钮配 code+num 时先调 `linkDMContextActionInfo`，返回 `dataType=="modelActionInfo"` 按 `data.type` 分支：1=警告不阻断、2=前端确认弹窗、3=`a.condition` 为假则阻断（tip 提示） | `TotalLINKFB/src/views/forms/index.vue:8733-8763` |
+| 必填/确认/阻断表达式 | FB 自有 JSON 配置：`before.form`/`before.table`（必填）、`before.confirm`、`before.express`/`before.tip`、`limitMoreTap`（防重复点击） | `views/forms/index.vue:7649-7698、8826-8831、8902-8907` |
+| `#LINK*` 占位符 | 前端**不替换**，原样发后端（如 `linkFormula` 把 `#公式#` 原样上送）；token 走请求参数 `sLinkToken`，不是占位符 | `TotalLINKFB/src/api/api.js:220` |
+| `LINKPREVENT/LINKCONFIRM` 模型 | 在 FB 的等价物即上表响应 `action` 三分支——语义在引擎侧生成，前端只做弹窗 UI | 同上 |
+
+设计含义：给 FB 模型写 `--LINKNOFILTER`/`--LINKROWDOUBLECLICK` 等运行器标记仍是无效载荷；FB 的交互控制走**表单 JSON 配置**（before/after/limitMoreTap）与**模型响应 action 字段**，不走 `--` 标记。`--LINKAUTOREPLACEEMPTYCOLUMNS`/`--LINKADDNEWROWS` 等引擎级标记（`[跨环境]`）在 FB 模型脚本里仍有效（引擎解析，非前端）。
+
+## 2026-11-12 APP 壳会话补充（APP 端消费结论，源码核实）
+
+> 依据：APP 壳混淆前源码 `TotalLINKAPP/app`（HBuilder 5+ / mui / jQuery，公共库 `js/linkshared.js` 约 1.07 万行）。关键行号已主会话复核。
+
+**核心结论：APP 壳同样完全不解析 modelFlags / `--LINK*` 标记**——全目录 0 命中（唯一假阳性 `mui.min.css` 的 CSS 变量 `--link-*`）。APP 端的真实控制通道与 FB 同构但实现不同：
+
+| 通道 | 机制 | 源码 |
+|---|---|---|
+| 防呆/确认/警告 | AJAX 底层 `ajax_promise_plus` 按响应 `action` 字段三分支（warning→alert 放行 / confirm→确认 / prevent→reject）；⚠️ `ajax_promise`（linkAjax_JQ 路径）无此分支 | `TotalLINKAPP/app/js/linkshared.js:2978-2997`（无分支版 :3183-3207） |
+| 按钮执行前校验 | `linkDMContextActionInfo` → 顶层 `r.dataType=="modelActionInfo"`，`r.data.type` 1/2/3 | `js/linkshared.js:5371-5401` |
+| 提交/动作前校验 | 模型 JS 钩子 `beforeFunction(sta,id)` 返回真值中断（sta 白名单 BEFORE_STA_ARRAY） | `js/linkshared.js:4297-4301`，清单见 `js-hooks.md` |
+| 动作完成刷新 | `linkDMFuncBackImpl(data)`（附加功能 linkDMContextFunBack 返回后）或模型 JS `afterFunction` | `js/linkshared.js:941-989/1266` |
+| 行编辑/交互 | 点行设 `currRDsLineNo` → 底部弹层特化 id（`#linkedit`/`#linkremove`/`#linknewrecord`…）→ linkquickAction1~16；无行双击 | `contentlist.js:925-1014/1182-1187` |
+| 按钮调用面 | 按钮属性 `linkquick`(1~16)/`api`(1~7)/`script`/`btnid`/`code`/`num`/`para`——壳纯透传，编号无壳侧特判 | `js/linkshared.js:4431-4531/4814-4875`，对照见 `app-buttons.md` |
+
+设计含义：给 APP 模型写运行器 UI 标记同样是无效载荷；APP 的交互控制走**模型 JS 钩子**（`js-hooks.md`）与**按钮 HTML 属性**（`app-buttons.md`）。编号段语义（#110/#301/15xx/#700）全部是服务端/菜单侧约定，壳对用户模型编号零特判（详见 `discovery.md` 编号段语义补充）。
+
 ## 使用原则
 
 1. 带参数标记的格式差异很大（`:` / `,` / `@...:`），**只用本表实证过的写法**。

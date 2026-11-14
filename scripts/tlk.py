@@ -45,6 +45,14 @@ def _print_json(obj):
     print(json.dumps(obj, ensure_ascii=False, indent=2))
 
 
+def _json_arg(raw):
+    """argparse 的 JSON 参数类型：非法时给可读文案，而不是 "invalid loads value"。"""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise argparse.ArgumentTypeError(f"不是合法 JSON：{e}") from e
+
+
 def _emit(obj):
     """打印结果；含 error 字段时以 exit 1 结束。"""
     _print_json(obj)
@@ -241,9 +249,9 @@ def build_parser():
                    help="操作类型，取工具的 script_type 值（整数 0-4）")
     p.add_argument("--params-json", default="[]", metavar="JSON",
                    help="Para 参数数组（JSON 数组），空位传 \"\"，如 '[\"\",\"2026-06-18\"]'")
-    p.add_argument("--row-data", type=json.loads, default={},
+    p.add_argument("--row-data", type=_json_arg, default={},
                    help="rowData JSON 字典（按工具说明按需传入）")
-    p.add_argument("--table-data", type=json.loads, default=[],
+    p.add_argument("--table-data", type=_json_arg, default=[],
                    help="tableData JSON 数组（按工具说明按需传入）")
     p.add_argument("--project", help="指定项目名（不传则使用活跃项目）")
     p.add_argument("--timeout", type=int, default=tlk_core.DEFAULT_TIMEOUT,

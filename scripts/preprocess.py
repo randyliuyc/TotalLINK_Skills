@@ -23,7 +23,7 @@ MAX_PREVIEW = 5
 def load_data(source):
     """加载 JSON：支持文件路径或 stdin。"""
     if isinstance(source, str) and os.path.isfile(source):
-        with open(source) as f:
+        with open(source, encoding="utf-8") as f:
             return json.load(f)
     return json.loads(source)
 
@@ -129,14 +129,6 @@ def head(rows, schema, captions, n=5):
         print("\t".join(str(v) for v in r))
 
 
-def _find_col(captions, name):
-    """通过 captions 名称找 schema 列名。"""
-    for k, v in captions.items():
-        if v == name or k == name:
-            return k
-    raise KeyError(name)
-
-
 def _resolve_index(schema, captions, column):
     """解析列名为 schema 索引。支持 schema 名或 captions 名。"""
     if column in schema:
@@ -187,7 +179,7 @@ def main():
 
     # 读取输入
     if args.input:
-        with open(args.input) as f:
+        with open(args.input, encoding="utf-8") as f:
             raw = f.read()
     else:
         raw = sys.stdin.read()

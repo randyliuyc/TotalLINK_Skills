@@ -111,6 +111,22 @@ class ConfigFileTest(ConfigFixture):
         self.assertEqual(result["active"], "甲")
 
 
+class IsFalseTest(unittest.TestCase):
+    """isSuccess 可能是字符串 "false"，也可能是布尔 false，两种都算失败。"""
+
+    def test_string_false(self):
+        self.assertTrue(tlk_core._is_false("false"))
+        self.assertTrue(tlk_core._is_false(" FALSE "))
+
+    def test_bool_false(self):
+        self.assertTrue(tlk_core._is_false(False))
+
+    def test_success_values(self):
+        for value in ("true", "True", True, None, "", 1):
+            with self.subTest(value=value):
+                self.assertFalse(tlk_core._is_false(value))
+
+
 class ParamsJsonTest(unittest.TestCase):
     def test_accepts_array(self):
         self.assertEqual(tlk_core.parse_params_json('["", "x"]'), ["", "x"])

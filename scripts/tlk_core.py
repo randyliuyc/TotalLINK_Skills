@@ -52,6 +52,17 @@ TOOL_SEARCH_DM_CODE = "SEARCHLIST"
 TOOL_SEARCH_DM_NUM = 100
 
 
+def _is_false(value):
+    """判断服务端的 isSuccess 是否为失败。
+
+    服务端历史上返回字符串 "false"，也可能返回布尔 false，两种都认，
+    避免布尔 false 被当成成功继续走后面的取数逻辑。
+    """
+    if isinstance(value, str):
+        return value.strip().lower() == "false"
+    return value is False
+
+
 # ---------------------------------------------------------------- 配置
 
 def load_all_config():
@@ -267,7 +278,7 @@ def call(dm_code, dm_num, params=None,
         return resp
 
     resp["_project"] = project_key
-    if resp.get("isSuccess") == "false":
+    if _is_false(resp.get("isSuccess")):
         return {"error": "BIZ", "message": resp.get("message", "未知业务错误"), "_project": project_key}
 
     # 检测服务端警告：action == "warning" 时服务端主动警告后返回（设计行为，非故障）。
@@ -335,7 +346,7 @@ def verify(project=None):
         resp.setdefault("_project", project_key)
         return resp
 
-    if resp.get("isSuccess") == "false":
+    if _is_false(resp.get("isSuccess")):
         detail = resp.get("data")
         detail = detail if isinstance(detail, str) else ""
         message = resp.get("message") or "未知业务错误"
@@ -418,7 +429,7 @@ def _design_call(endpoint, body, project=None, timeout=DEFAULT_TIMEOUT):
         return resp
 
     resp["_project"] = project_key
-    if resp.get("isSuccess") == "false":
+    if _is_false(resp.get("isSuccess")):
         detail = resp.get("data")
         return {
             "error": "BIZ",

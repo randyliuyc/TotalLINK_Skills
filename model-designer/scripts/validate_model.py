@@ -455,10 +455,13 @@ def check_flags(root, d):
         if not text or "--LINK" not in text:
             continue
         for line in text.splitlines():
-            stripped = line.strip()
-            if not stripped.startswith("--"):
+            # 只看 `--` 之后的部分：SQL 里 `--` 到行尾都是注释，标记既可能单独成行，
+            # 也可能缀在语句行尾（`SELECT ... --LINKSAVEONENTERKEY`），两种都要认。
+            pos = line.find("--")
+            if pos < 0:
                 continue
-            for flag in FLAG_RE.findall(stripped):
+            comment = line[pos:]
+            for flag in FLAG_RE.findall(comment):
                 if flag in FLAG_UNEVIDENCED:
                     d.info("FLAG_UNEVIDENCED", field,
                            f"{flag} 源码有解析但样例无证据，参数格式须读源码确认")
@@ -475,12 +478,12 @@ def check_flags(root, d):
                                   f"{flag} 应写在 {'/'.join(sorted(allowed))}，写在 {field} 不会被解析")
 
                 if flag == "--LINKREQUIRED":
-                    value = stripped.split(flag, 1)[1].strip()
+                    value = comment.split(flag, 1)[1].strip()
                     if not value.startswith(":") or not value[1:].strip():
                         d.warning("FLAG_FORMAT", field,
                                   "--LINKREQUIRED 格式为 --LINKREQUIRED:列1,列2")
                 elif flag == "--LINKDATAMINELAYOUT":
-                    value = stripped.split(flag, 1)[1].strip()
+                    value = comment.split(flag, 1)[1].strip()
                     parts = value.lstrip(":").split(",")
                     if not value.startswith(":") or len(parts) != 2 \
                             or not all(p.strip().isdigit() for p in parts):

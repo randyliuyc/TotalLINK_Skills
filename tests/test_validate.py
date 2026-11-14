@@ -136,6 +136,26 @@ class RuleCalibrationTest(unittest.TestCase):
         )
         self.assertIn("SYSMODELFLAG", codes_of(result, "error"))
 
+    def test_inline_flag_is_detected(self):
+        """--LINKxxx 缀在语句行尾也要认出来（原先只扫行首）。"""
+        result = validate_text(
+            MINIMAL.format(
+                num=10,
+                extra="<SQLScript>SELECT 1 --LINKBADFLAG</SQLScript>",
+            )
+        )
+        self.assertIn("FLAG_UNKNOWN", codes_of(result, "warning"))
+
+    def test_inline_flag_wrong_field_is_detected(self):
+        """行尾写法也要做「标记写错字段」判定。"""
+        result = validate_text(
+            MINIMAL.format(
+                num=10,
+                extra="<SQLUpdateScript>UPDATE T SET A=1 --LINKNOGROUP</SQLUpdateScript>",
+            )
+        )
+        self.assertIn("FLAG_WRONG_FIELD", codes_of(result, "warning"))
+
     def test_bad_root_tag_is_error(self):
         result = validate_text("<NotAModel><ModelCode>X</ModelCode></NotAModel>")
         self.assertIn("ROOT_TAG", codes_of(result, "error"))

@@ -13,6 +13,7 @@
 插件契约：GROUP / register(subparsers) / 可选 HELP，见 `scripts/tlk.py` 顶部 docstring。
 """
 
+import argparse
 import json
 import os
 import sys
@@ -48,6 +49,14 @@ def _emit(obj):
     """打印结果；含 error 字段即失败（与 base 的输出版本一致）。"""
     print(json.dumps(obj, ensure_ascii=False, indent=2))
     sys.exit(1 if isinstance(obj, dict) and "error" in obj else 0)
+
+
+def _json_arg(raw):
+    """argparse 的 JSON 参数类型：非法时给可读文案。"""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise argparse.ArgumentTypeError(f"不是合法 JSON：{e}") from e
 
 
 def _parse_params_json(raw):
@@ -377,7 +386,7 @@ def register(subparsers):
                    metavar="N",
                    help=f"返回行数上限（默认 {tlk_core.DEFAULT_MAX_ROWS}，"
                         f"上限 {tlk_core.MAX_ROWS_LIMIT}）")
-    p.add_argument("--row-data", type=json.loads, default={},
+    p.add_argument("--row-data", type=_json_arg, default={},
                    help="替换脚本里 #列名# 的数据行（JSON 字典）")
     _add_common(p)
     p.set_defaults(handler=cmd_run)

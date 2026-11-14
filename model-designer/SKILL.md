@@ -86,42 +86,19 @@ description: 设计 TotalLINK 数据模型（SYSSEARCH）并落库验证——�
 
 `validate` 的顶层 `error`：`VALIDATE` = 有 error 级诊断（先修再导）；`IO` = 文件读不到或为空。
 
-`validate` 的诊断 `code`：
+诊断 `code` 全表、`dict` 的 `CONFIG` 降级路径、`run`/`import` 的 `error` 对照表都在 **`references/errors.md`**。速记：
 
-| code | 含义 | 处理 |
-|------|------|------|
-| `STRUCTURE` 类（`UNKNOWN_ELEMENT` / `DUPLICATE_ELEMENT` / `BAD_INT` / `BAD_BOOL` / `ROOT_TAG` / `MISSING_FIELD`） | XML 结构或字段名不对，导入会失败或字段被丢弃 | 对照 `fields.md` 改元素名/类型 |
-| `SYSMODELFLAG` | 系统级标志为 true | 改 `false` |
-| `PARATYPE_ILLEGAL`（info） | `ParaType` 不在 `EParamType` 词汇表（`DATEC8/DATEC10/DATEINT8/DATEVAL/DATETIME/DEC/STR/SPEECHSTR/PICKERSTR/DROPDOWN/DROPRELOAD/MOREFUNC`，见 `fields.md`）。语料另有 `TEXTAREA`/`字符型` 等写法，引擎不因此拒绝导入 | 词表可能不全，确认运行时是否生效 |
-| `PARAM_INDEX_UNDEFINED` | 脚本引用了未定义的参数位（主模型会原样留在脚本里；附加模型可能由调用方传参）。`{10}` 不在此列——它是系统传入的文本框内容 | 主模型补 `ParaLabel` 或改占位符；附加模型确认调用链 |
-| `ROW_TOKEN_IN_QUERY` | 主模型 `SQLScript` 里用了行级 `#列名#` | 挪到编辑/新增/删除/动作脚本 |
-| `OLD_SEPARATOR` / `SEPARATOR_MIXED` | 旧 `~` 或混用分隔符 | 改用 `~<!>~` |
-| `FLAG_*` | `--LINKxxx` 标记未知、写错字段或格式不对 | 对照 `link-flags.md` |
-| `MODELSETTING_*` | ModelSetting JSON 非法、键名大小写错、用了无读取方的键 | 对照 `modelsetting.md` |
-| `CUBE_UNCOVERED` / `CUBE_STALE` | CubeSetting 与实际返回列不对应 | 补/删对应列的设置 |
-| `EXPECT_MISMATCH` | XML 内编号与给定期望值不一致 | 确认是否用错了模板 |
-| `FAMILY_*`（`--env` 时） | 模型族一致性问题（H5GRIDHDR/DTL 不成对、H5PARA 空、500 JSON 非法、`#FORMDATA#` 写法错等） | 对照 `endpoints.md` 修复 |
-
-`dict` 的降级提示：见上文命令表 `dict` 条目——缺配置报 `CONFIG`（列明缺哪几项）时**问用户**要 dmCode/dmNum/conn/db 并 `--save` 落配置，不自行试探。
-
-`run` 的 `error`：
-
-| error | 含义 | 处理 |
-|-------|------|------|
-| `BIZ`，`message` 为「功能模型不存在」 | 编号写错或未导入（`detail` 是英文 `Function model does not exist.`） | 核对编号；未导入先 `import` |
-| `BIZ`，`message` 含「没有操作权限」 | 角色闸门或功能授权 | 告知用户找管理员，不换项目重试 |
-| `BIZ`，其他（哈希不符、无结果集） | 脚本问题或 `MD5HASH` 不一致 | 按 `message` 修脚本；哈希问题重新 `import` 让服务端重算 |
-| `AUTH` | 令牌无效 | 提示用户更新令牌 |
-| `CONFIG` | 没有可用项目配置 | 回到 base 的 `env add` / `env use` |
-| `NETWORK` | 连不上 `base_url` | 检查地址，用 base 的 `auth verify` 定向排查 |
-| `HTTP` | `404` = 该环境未部署该端点；5xx = 后端异常 | 404 告知用户版本不支持；5xx 稍后重试 |
-| `UNKNOWN` | 其他异常 | 把 `message` 原文报给用户 |
+- **结构类**（`STRUCTURE` / `SYSMODELFLAG` / `EXPECT_MISMATCH`）→ 改 XML，对照 `fields.md`
+- **写法类**（`PARAM_INDEX_UNDEFINED` / `ROW_TOKEN_IN_QUERY` / `OLD_SEPARATOR` / `FLAG_*` / `MODELSETTING_*`）→ 对照 `link-flags.md`、`placeholders.md`、`modelsetting.md`
+- **覆盖类**（`CUBE_*` / `FAMILY_*`）→ 对照 `endpoints.md`、`datasearch-windows.md`
+- **交付门槛**：`summary.error == 0`。error 级里不应有"其实能跑"的项——遇到即记下来当场校准，别让 agent 学会不信任 error
 
 ## 任务 → 必读文档
 
 | 任务 | 必读 |
 |------|------|
 | 任何模型需求（第一入口） | `references/discovery.md`（问卷 + 任务书模板） |
+| 看不懂 `validate` 的诊断 code、`run`/`import` 报错、`dict` 缺配置 | `references/errors.md`（诊断码 + 错误对照表） |
 | 弄不清某字段/脚本如何被执行、影响哪个返回 | `references/endpoints.md`（链路图 + 能力组契约表） |
 | 纯查询/报表模型 | `references/fields.md`、`references/placeholders.md` |
 | 带增删改的模型 | `references/fields.md`、`references/link-flags.md` |

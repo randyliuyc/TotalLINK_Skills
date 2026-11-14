@@ -28,9 +28,44 @@ git clone https://gitee.com/randyliuyc/TotalLINK_Skill.git <目标目录>
 | model-interview | `model-interview/` | 需求访谈纪律（grilling）：一次一题、附推荐、事实自查决策归用户、共识前不动手 | 通用 |
 | formbuilder-json-generator | `formbuilder-json-generator/` | Formbuilder 表单 JSON 生成（MODJSON 骨架：布局/控件/按钮/表达式规则）——model-designer 的 FB `formtemplate` 骨架设计知识来源 | 通用 |
 | totallink-app-help | `totallink-app-help/` | TotalLINK App 壳项目知识库（linkquick / 公共函数 / 接口 / 模型 H5 编写指南 / 属性与 class 约定）——model-designer 生成 APP H5 模板时的客户端约定权威 | TotalLINK App 项目 |
+| totallink-api | `totallink-api/` | 第三方系统 HTTP 对接契约：`linkUserLogin` / `linkDMDatasetResult` 等 8 个端点的权威文档（登录、查询、提交、上传；权威基准 LINKIIS）——开发对接代码时给 Agent 读的参照 | 第三方集成开发 |
 | reimbursement-audit | `reimbursement-audit/` | 报销单全流程审计 | TotalLINK Development |
 | email-sender | `email-sender/` | SMTP 邮件发送（SSL 465） | 通用 |
 | pdf-generator | `pdf-generator/` | Markdown → 精美 HTML → A4 PDF（自动，Chrome headless 渲染） | 通用 |
+
+## 技能关系
+
+所有 skill 建立在 **totallink-base** 之上（环境配置、令牌、统一调用入口 `scripts/tlk.py`），按用途分四层：
+
+```text
+                        ┌────────────────────────────────────────────┐
+                        │  totallink-base（根目录）：env / auth / call / tools │
+                        └──────────────────┬─────────────────────────┘
+        ┌──────────────┬───────────────┬──┴──────────┬──────────────┐
+     环境准备        模型开发         场景应用       外部集成        通用工具
+        │              │               │             │              │
+     ai-init     model-designer  reimbursement-  totallink-api  email-sender
+                 model-interview audit           （不走 tlk.py） pdf-generator
+                 formbuilder-json-generator
+                 totallink-app-help
+```
+
+- **环境准备**：`ai-init` 只在新环境第一次使用时跑一次（导入初始化模型组、建额度表）。
+- **模型开发族**：`model-designer` 是主入口，其余三个是它按需引用的支撑——`model-interview` 提供访谈纪律、`formbuilder-json-generator` 提供 FB 表单骨架知识、`totallink-app-help` 提供 APP 壳客户端约定。
+- **外部集成**：`totallink-api` 是**另一套独立通道**——用户名密码登录拿 `loginID` token 直调服务端 HTTP 端点，不使用 `tlk.py` 和 `tlk_` 令牌。给第三方系统写对接代码时才用。
+- **通用工具**：`email-sender` / `pdf-generator` 与 TotalLINK 平台无耦合；`reimbursement-audit` 的 PDF 渲染依赖 `pdf-generator/scripts/`。
+
+### 我该用哪个 skill？
+
+| 我想…… | 用 |
+|--------|-----|
+| 第一次在新环境用 AI / 额度激活 | `ai-init`（先配好 totallink-base 令牌） |
+| 把业务需求设计成数据模型、生成/导入模型 XML | `model-designer` |
+| 设计 FB 网页表单的骨架 JSON | `model-designer` + `formbuilder-json-generator` |
+| 给 TotalLINK App 写 H5 模板 / 前端脚本 | `model-designer` + `totallink-app-help` |
+| 让第三方系统（ERP 等）调 TotalLINK 的数据能力 | `totallink-api` |
+| 审计报销单 | `reimbursement-audit` |
+| 发邮件 / 生成 PDF | `email-sender` / `pdf-generator` |
 
 ## 目录结构
 
@@ -63,6 +98,9 @@ TotalLINK/                        # 仓库根 = totallink-base（安装目录名
 ├── totallink-app-help/           # TotalLINK App 壳项目知识库 Skill
 │   ├── SKILL.md
 │   └── references/               #   架构 / linkquick / 函数 / API / H5 指南 / 属性 / class / 平台专题
+├── totallink-api/                # 第三方系统 HTTP 对接契约 Skill
+│   ├── SKILL.md
+│   └── references/               #   endpoints.md（8 端点契约）/ auth-and-errors.md（认证与错误）
 ├── reimbursement-audit/          # 报销审计 Skill
 │   ├── SKILL.md
 │   └── scripts/dedup_check.py    #   跨单/跨月发票查重
@@ -73,6 +111,7 @@ TotalLINK/                        # 仓库根 = totallink-base（安装目录名
 │   ├── references/               #   打印 CSS / 视觉方向 / 交付前检查
 │   └── scripts/                  #   重复检测 / Chrome 渲染 / PDF 校验
 └── docs/
+    ├── adr/                      #   架构决策记录（0001 totallink-api 权威基准）
     └── handoff-formbuilder-app.md #  源码核对会话的交接记录（维护者内部文档）
 ```
 
@@ -83,6 +122,8 @@ TotalLINK/                        # 仓库根 = totallink-base（安装目录名
 - 报销单审计额外依赖：`pdfplumber`（PDF 校验）、Chrome / Chromium / Edge（PDF 渲染，脚本自动探测）
 
 ## 使用
+
+以下命令属于 totallink-base（`totallink-api` 是纯文档 skill，无需配置、无命令，按其 `SKILL.md` 引导阅读 `references/` 即可）：
 
 ```bash
 # 查询项目列表
